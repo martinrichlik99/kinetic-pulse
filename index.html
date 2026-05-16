@@ -152,15 +152,15 @@ tailwind.config = {
     <!-- Weekly Stats Row -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
       <div class="card-sm" style="text-align:center">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00">4</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00">0</div>
         <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Einheiten</div>
       </div>
       <div class="card-sm" style="text-align:center">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">12.4 t</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">0 t</div>
         <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Volumen</div>
       </div>
       <div class="card-sm" style="text-align:center">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">3h 40m</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">0m</div>
         <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Zeit</div>
       </div>
     </div>
@@ -186,21 +186,16 @@ tailwind.config = {
     </div>
 
     <!-- Weight Widget -->
-    <div class="card-sm" onclick="navigate('profil')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+    <div class="card-sm" onclick="navigate('gewicht')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
       <div>
         <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Körpergewicht</p>
         <div style="display:flex;align-items:baseline;gap:6px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#ccff00">82.4</span>
+          <span id="dash-gewicht" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#ccff00">—</span>
           <span style="color:#8e9379;font-size:14px">kg</span>
-          <span style="background:#1a3300;color:#ccff00;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid #ccff00">▼ 0.4 kg</span>
         </div>
       </div>
       <div style="text-align:right">
-        <p style="font-size:11px;color:#8e9379;margin:0 0 4px">Ziel: 78 kg</p>
-        <div class="progress-track" style="height:6px;width:80px">
-          <div class="progress-fill" style="width:65%;height:100%"></div>
-        </div>
-        <p style="font-size:10px;color:#8e9379;margin:4px 0 0">65%</p>
+        <p style="font-size:11px;color:#8e9379;margin:0 0 4px">Gewicht eintragen →</p>
       </div>
     </div>
 
@@ -249,33 +244,10 @@ tailwind.config = {
         <span onclick="navigate('plaene')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600;touch-action:manipulation">Alle →</span>
       </div>
       <div id="dashboard-plaene-list" style="display:flex;flex-direction:column;gap:8px">
-        <!-- Push Pull Legs -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #333627">
-          <div>
-            <div style="display:flex;gap:6px;margin-bottom:4px">
-              <span style="font-size:10px;background:#1a2200;color:#ccff00;border:1px solid #ccff00;border-radius:99px;padding:2px 7px;font-weight:700">Brust</span>
-              <span style="font-size:10px;background:#1a2200;color:#ccff00;border:1px solid #ccff00;border-radius:99px;padding:2px 7px;font-weight:700">Trizeps</span>
-            </div>
-            <p style="margin:0;font-size:14px;font-weight:800;font-style:italic">Push Pull Legs</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">6 Übungen · 60 min</p>
-          </div>
-          <button onclick="navigate('workout')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">
-            <span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span>
-          </button>
-        </div>
-        <!-- Upper Body -->
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #333627">
-          <div>
-            <div style="display:flex;gap:6px;margin-bottom:4px">
-              <span style="font-size:10px;background:#161a0c;color:#8e9379;border:1px solid #444933;border-radius:99px;padding:2px 7px;font-weight:700">Quads</span>
-              <span style="font-size:10px;background:#161a0c;color:#8e9379;border:1px solid #444933;border-radius:99px;padding:2px 7px;font-weight:700">Waden</span>
-            </div>
-            <p style="margin:0;font-size:14px;font-weight:800;font-style:italic">Leg Day Kraft</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">5 Übungen · 75 min</p>
-          </div>
-          <button onclick="navigate('workout')" style="width:40px;height:40px;border-radius:50%;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">
-            <span class="material-symbols-outlined" style="font-size:20px;color:#ccff00">play_arrow</span>
-          </button>
+        <!-- Leer-Zustand -->
+        <div id="plaene-empty-state" style="text-align:center;padding:20px 0">
+          <span class="material-symbols-outlined" style="font-size:40px;color:#444933">fitness_center</span>
+          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine Pläne. Erstelle deinen ersten!</p>
         </div>
         <!-- Neuer Plan Button -->
         <button onclick="showCreatePlan()" style="width:100%;height:44px;background:transparent;border:1px dashed #444933;border-radius:10px;color:#8e9379;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
@@ -291,27 +263,9 @@ tailwind.config = {
         <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Aktuelle PRs</h3>
         <span onclick="navigate('historie')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600">Alle →</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px;border:1px solid #333627">
-          <div>
-            <p style="margin:0;font-size:14px;font-weight:700">Kreuzheben</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">1 Tag her</p>
-          </div>
-          <div style="text-align:right">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00">180 kg</span>
-            <span style="display:block;font-size:10px;color:#8e9379">1 WH</span>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px;border:1px solid #333627">
-          <div>
-            <p style="margin:0;font-size:14px;font-weight:700">Bankdrücken</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">5 Tage her</p>
-          </div>
-          <div style="text-align:right">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">120 kg</span>
-            <span style="display:block;font-size:10px;color:#8e9379">3 WH</span>
-          </div>
-        </div>
+      <div style="text-align:center;padding:16px 0">
+        <span class="material-symbols-outlined" style="font-size:36px;color:#444933">emoji_events</span>
+        <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine PRs — starte dein erstes Training!</p>
       </div>
     </div>
   </main>
@@ -331,141 +285,14 @@ tailwind.config = {
   <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
     <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Trainingspläne</h1>
 
-    <!-- Active Plan -->
-    <div style="background:linear-gradient(135deg,#1a2200,#111508);border:1px solid #ccff00;border-radius:16px;padding:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:11px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Aktiver Plan</span>
-        <span class="pill active" style="font-size:10px">Woche 3/6</span>
+    <!-- Pläne Liste (wird per JS befüllt) -->
+    <div id="plaene-screen-list" style="display:flex;flex-direction:column;gap:10px">
+      <!-- Leer-Zustand -->
+      <div id="plaene-screen-empty" style="text-align:center;padding:40px 0">
+        <span class="material-symbols-outlined" style="font-size:56px;color:#444933">fitness_center</span>
+        <p style="font-size:16px;font-weight:700;color:#8e9379;margin:12px 0 4px">Noch keine Pläne</p>
+        <p style="font-size:13px;color:#8e9379;margin:0">Erstelle deinen ersten Trainingsplan</p>
       </div>
-      <h2 style="font-size:20px;font-weight:800;font-style:italic;margin:0 0 12px;letter-spacing:-.01em">Push-Pull-Legs A/B</h2>
-      <div style="display:flex;gap:16px;margin-bottom:16px">
-        <div>
-          <span style="font-size:11px;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Tage/Woche</span>
-          <p style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00;margin:2px 0 0">6</p>
-        </div>
-        <div>
-          <span style="font-size:11px;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Übungen</span>
-          <p style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf;margin:2px 0 0">42</p>
-        </div>
-        <div>
-          <span style="font-size:11px;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Fortschritt</span>
-          <p style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf;margin:2px 0 0">48%</p>
-        </div>
-      </div>
-      <div class="progress-track" style="height:5px;margin-bottom:16px">
-        <div class="progress-fill" style="width:48%;height:100%"></div>
-      </div>
-
-      <!-- Week Schedule -->
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
-        <div style="text-align:center">
-          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Mo</p>
-          <div style="height:32px;border-radius:8px;background:#ccff00;display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="font-size:14px;color:#1a2200">fitness_center</span>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Di</p>
-          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Mi</p>
-          <div style="height:32px;border-radius:8px;background:#ccff00;display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="font-size:14px;color:#1a2200">fitness_center</span>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Do</p>
-          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Fr</p>
-          <div style="height:32px;border-radius:8px;background:#ccff00;display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="font-size:14px;color:#1a2200">fitness_center</span>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Sa</p>
-          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
-          </div>
-        </div>
-        <div style="text-align:center">
-          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">So</p>
-          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
-            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Today's workout detail -->
-    <div class="card">
-      <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0 0 12px">Push A — Heute</h3>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:6px;height:40px;background:#ccff00;border-radius:3px"></div>
-            <div>
-              <p style="margin:0;font-size:14px;font-weight:700">Bankdrücken</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">4 × 6–8 · Referenz: 100 kg</p>
-            </div>
-          </div>
-          <span style="font-size:11px;color:#8e9379">Brust</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:6px;height:40px;background:#abd600;border-radius:3px"></div>
-            <div>
-              <p style="margin:0;font-size:14px;font-weight:700">Schulterdrücken</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">4 × 8–10 · Referenz: 65 kg</p>
-            </div>
-          </div>
-          <span style="font-size:11px;color:#8e9379">Schulter</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:6px;height:40px;background:#556d00;border-radius:3px"></div>
-            <div>
-              <p style="margin:0;font-size:14px;font-weight:700">Schrägbankdrücken</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">3 × 8–10 · Referenz: 80 kg</p>
-            </div>
-          </div>
-          <span style="font-size:11px;color:#8e9379">Brust</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px;opacity:.7">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:6px;height:40px;background:#444933;border-radius:3px"></div>
-            <div>
-              <p style="margin:0;font-size:14px;font-weight:700">Seitheben</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">3 × 12–15 · Referenz: 16 kg</p>
-            </div>
-          </div>
-          <span style="font-size:11px;color:#8e9379">Schulter</span>
-        </div>
-        <p style="text-align:center;font-size:12px;color:#8e9379;margin:4px 0">+ 3 weitere Übungen</p>
-      </div>
-    </div>
-
-    <!-- Other Plans -->
-    <h3 style="font-size:14px;font-weight:700;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;margin:4px 0">Weitere Pläne</h3>
-    <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <p style="margin:0;font-size:15px;font-weight:700">Upper/Lower Split</p>
-        <p style="margin:0;font-size:11px;color:#8e9379">4 Tage · 28 Übungen</p>
-      </div>
-      <span class="material-symbols-outlined" style="color:#8e9379">chevron_right</span>
-    </div>
-    <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <p style="margin:0;font-size:15px;font-weight:700">Ganzkörper Hypertrophie</p>
-        <p style="margin:0;font-size:11px;color:#8e9379">3 Tage · 21 Übungen</p>
-      </div>
-      <span class="material-symbols-outlined" style="color:#8e9379">chevron_right</span>
     </div>
     <button onclick="showCreatePlan()" style="width:100%;height:48px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
       <span class="material-symbols-outlined" style="font-size:18px">add</span>
@@ -1608,20 +1435,45 @@ function savePlan() {
 function renderDashboardPlaene() {
   try {
     var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
-    if (!plaene.length) return;
+
+    // Dashboard
     var container = document.getElementById('dashboard-plaene-list');
-    if (!container) return;
-    // Nur eigene Pläne am Anfang einfügen (vor dem "Neuen Plan erstellen" Button)
-    var existingCustom = container.querySelectorAll('.custom-plan-item');
-    existingCustom.forEach(function(el) { el.remove(); });
-    var btn = container.querySelector('button[onclick="showCreatePlan()"]');
-    plaene.slice(-3).reverse().forEach(function(p) {
-      var div = document.createElement('div');
-      div.className = 'custom-plan-item';
-      div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #ccff00;margin-bottom:0';
-      div.innerHTML = '<div><p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf">' + p.name + '</p><p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p></div><button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
-      container.insertBefore(div, btn);
-    });
+    var emptyState = document.getElementById('plaene-empty-state');
+    if (container) {
+      var existingCustom = container.querySelectorAll('.custom-plan-item');
+      existingCustom.forEach(function(el) { el.remove(); });
+      if (emptyState) emptyState.style.display = plaene.length ? 'none' : 'block';
+      var btn = container.querySelector('button[onclick="showCreatePlan()"]');
+      plaene.slice(-3).reverse().forEach(function(p) {
+        var div = document.createElement('div');
+        div.className = 'custom-plan-item';
+        div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #ccff00';
+        div.innerHTML = '<div><p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf">' + p.name + '</p><p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p></div><button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
+        container.insertBefore(div, btn);
+      });
+    }
+
+    // Pläne-Screen
+    var screenList = document.getElementById('plaene-screen-list');
+    var screenEmpty = document.getElementById('plaene-screen-empty');
+    if (screenList) {
+      var existing = screenList.querySelectorAll('.plan-screen-item');
+      existing.forEach(function(el) { el.remove(); });
+      if (screenEmpty) screenEmpty.style.display = plaene.length ? 'none' : 'block';
+      plaene.forEach(function(p) {
+        var div = document.createElement('div');
+        div.className = 'plan-screen-item card-sm';
+        div.style.cssText = 'display:flex;align-items:center;justify-content:space-between';
+        div.innerHTML = '<div><p style="margin:0;font-size:15px;font-weight:800;font-style:italic">' + p.name + '</p><p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p></div><button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
+        screenList.appendChild(div);
+      });
+    }
+
+    // Gewicht-Widget Dashboard aktualisieren
+    var g = localStorage.getItem('kp_gewicht');
+    var dashG = document.getElementById('dash-gewicht');
+    if (dashG && g) dashG.textContent = parseFloat(g).toFixed(1);
+
   } catch(e) {}
 }
 
