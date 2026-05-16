@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Kinetic Pulse</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'surface':          '#111508',
+        'surface-dim':      '#111508',
+        'surface-low':      '#1a1d10',
+        'surface-card':     '#1e2113',
+        'surface-high':     '#282b1d',
+        'surface-highest':  '#333627',
+        'surface-variant':  '#333627',
+        'on-surface':       '#e2e4cf',
+        'on-surface-var':   '#c4c9ac',
+        'outline':          '#8e9379',
+        'outline-var':      '#444933',
+        'volt':             '#ccff00',
+        'volt-dim':         '#abd600',
+        'on-volt':          '#1a2200',
+        'error':            '#ffb4ab',
+      },
+      fontFamily: {
+        'inter': ['Inter', 'sans-serif'],
+        'mono':  ['JetBrains Mono', 'monospace'],
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  [onclick] { cursor: pointer; touch-action: manipulation; }
+  body {
+    background: #111508;
+    color: #e2e4cf;
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+  .screen { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 80px; }
+  .screen.active { display: flex; }
+
+  /* Bottom Nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(30,33,19,0.92); backdrop-filter: blur(20px); border-top: 1px solid #444933; display: flex; justify-content: space-around; align-items: center; padding: 8px 4px 12px; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: #8e9379; cursor: pointer; min-width: 56px; padding: 4px; border-radius: 12px; transition: all .2s; }
+  .nav-item:active { transform: scale(.9); }
+  .nav-item.active { color: #ccff00; }
+  .nav-item .nav-label { font-size: 10px; font-weight: 600; letter-spacing: .03em; }
+  .nav-center { background: #ccff00; border-radius: 50%; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; color: #1a2200; margin-top: -20px; box-shadow: 0 0 20px rgba(204,255,0,.4); transition: all .2s; }
+  .nav-center:active { transform: scale(.92); }
+  .nav-center.active { box-shadow: 0 0 32px rgba(204,255,0,.6); }
+
+  /* Header */
+  .app-header { position: sticky; top: 0; z-index: 50; background: rgba(17,21,8,.9); backdrop-filter: blur(16px); border-bottom: 1px solid #444933; padding: 0 20px; height: 56px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .brand { font-size: 20px; font-weight: 900; font-style: italic; color: #ccff00; text-transform: uppercase; letter-spacing: -.03em; justify-self: center; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #333627; overflow: hidden; border: 1px solid #444933; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #c4c9ac; cursor: pointer; transition: all .2s; }
+  .icon-btn:active { transform: scale(.9); background: #1e2113; }
+
+  /* Cards */
+  .card { background: #1e2113; border: 1px solid #333627; border-radius: 16px; padding: 20px; }
+  .card-sm { background: #1e2113; border: 1px solid #333627; border-radius: 12px; padding: 14px; }
+  .card-dark { background: #161a0c; border: 1px solid #333627; border-radius: 16px; padding: 20px; }
+
+  /* Volt Glow */
+  .volt-glow { box-shadow: 0 0 12px rgba(204,255,0,.35); }
+  .volt-text { color: #ccff00; }
+  .volt-bg { background: #ccff00; color: #1a2200; }
+
+  /* Progress Bar */
+  .progress-track { background: #333627; border-radius: 99px; overflow: hidden; }
+  .progress-fill { background: #ccff00; border-radius: 99px; height: 100%; box-shadow: 0 0 8px rgba(204,255,0,.4); transition: width .6s ease; }
+
+  /* Stealth Input */
+  .stealth-input { background: transparent; border: none; border-bottom: 2px solid #333627; color: #ccff00; font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 600; text-align: center; width: 100%; padding: 4px 0; }
+  .stealth-input:focus { outline: none; border-bottom-color: #ccff00; }
+
+  /* Pill */
+  .pill { display: inline-flex; align-items: center; background: #1e2113; border: 1px solid #333627; border-radius: 99px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #c4c9ac; cursor: pointer; transition: all .2s; }
+  .pill.active { background: #ccff00; color: #1a2200; border-color: #ccff00; }
+  .pill:active { transform: scale(.95); }
+
+  /* Timer */
+  .timer-ring { transform: rotate(-90deg); }
+  .timer-ring circle { transition: stroke-dashoffset 1s linear; }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse-volt { 0%,100% { box-shadow: 0 0 12px rgba(204,255,0,.3); } 50% { box-shadow: 0 0 24px rgba(204,255,0,.6); } }
+  .screen.active { animation: fadeIn .25s ease; }
+  .pulse { animation: pulse-volt 2s infinite; }
+
+  /* Share Card */
+  .share-card { background: linear-gradient(135deg, #1a2200 0%, #111508 50%, #0c0f04 100%); border: 1px solid #ccff00; border-radius: 20px; padding: 24px; position: relative; overflow: hidden; }
+  .share-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(204,255,0,.15) 0%, transparent 70%); }
+
+  /* Chart */
+  .chart-bar { background: #333627; border-radius: 4px 4px 0 0; width: 100%; transition: all .3s; position: relative; }
+  .chart-bar .fill { background: #ccff00; border-radius: 4px 4px 0 0; width: 100%; position: absolute; bottom: 0; box-shadow: 0 0 8px rgba(204,255,0,.3); }
+
+  /* Set Row */
+  .set-row { display: grid; grid-template-columns: 32px 1fr 1fr auto; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 10px; background: #161a0c; border: 1px solid #333627; margin-bottom: 6px; }
+  .set-num { font-size: 12px; color: #8e9379; font-weight: 700; text-align: center; }
+  .set-input { background: transparent; border: none; border-bottom: 1px solid #333627; color: #e2e4cf; font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; text-align: center; width: 100%; padding: 4px 0; }
+  .set-input:focus { outline: none; border-bottom-color: #ccff00; color: #ccff00; }
+  .set-done { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #444933; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; color: transparent; font-size: 16px; }
+  .set-done.done { background: #ccff00; border-color: #ccff00; color: #1a2200; box-shadow: 0 0 8px rgba(204,255,0,.4); }
+
+  /* Numpad */
+  .numpad-btn { background:#1e2113;border:1px solid #333627;border-radius:12px;height:52px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;transition:all .15s; }
+  .numpad-btn:active { background:#333627;transform:scale(.93); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333627; border-radius: 2px; }
+
+  .material-symbols-outlined { font-size: 22px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ SCREEN: DASHBOARD ═══════════════════════════ -->
+<div id="screen-dashboard" class="screen active">
+  <header class="app-header">
+    <div class="avatar" onclick="navigate('profil')" style="background:linear-gradient(135deg,#ccff00,#556d00);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#1a2200">M</div>
+    <span class="brand">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn" onclick="navigate('profil')"><span class="material-symbols-outlined">settings</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <!-- Greeting -->
+    <div>
+      <p id="greeting-date" style="color:#8e9379;font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin:0 0 4px"></p>
+      <h1 id="greeting-text" style="font-size:26px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em"></h1>
+    </div>
+
+    <!-- Weekly Stats Row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div class="card-sm" style="text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00">4</div>
+        <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Einheiten</div>
+      </div>
+      <div class="card-sm" style="text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">12.4 t</div>
+        <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Volumen</div>
+      </div>
+      <div class="card-sm" style="text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">3h 40m</div>
+        <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Zeit</div>
+      </div>
+    </div>
+
+    <!-- Next Workout -->
+    <div class="card" style="background:linear-gradient(135deg,#1e2113,#161a0c)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Nächstes Training</p>
+          <h2 style="font-size:20px;font-weight:800;font-style:italic;margin:0;letter-spacing:-.01em">Push A — Brust & Schultern</h2>
+        </div>
+        <span class="pill active" style="font-size:11px">Heute</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <span class="pill">Bankdrücken</span>
+        <span class="pill">Schulterdrücken</span>
+        <span class="pill">+4 Übungen</span>
+      </div>
+      <button class="volt-bg" onclick="navigate('workout')" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;letter-spacing:-.01em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span class="material-symbols-outlined" style="font-size:20px">play_arrow</span>
+        Training starten
+      </button>
+    </div>
+
+    <!-- Weight Widget -->
+    <div class="card-sm" onclick="navigate('profil')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Körpergewicht</p>
+        <div style="display:flex;align-items:baseline;gap:6px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#ccff00">82.4</span>
+          <span style="color:#8e9379;font-size:14px">kg</span>
+          <span style="background:#1a3300;color:#ccff00;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid #ccff00">▼ 0.4 kg</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <p style="font-size:11px;color:#8e9379;margin:0 0 4px">Ziel: 78 kg</p>
+        <div class="progress-track" style="height:6px;width:80px">
+          <div class="progress-fill" style="width:65%;height:100%"></div>
+        </div>
+        <p style="font-size:10px;color:#8e9379;margin:4px 0 0">65%</p>
+      </div>
+    </div>
+
+    <!-- Last 7 Days Volume Chart -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Wochenvolumen</h3>
+        <span style="font-size:11px;color:#8e9379">letzte 7 Tage</span>
+      </div>
+      <div style="display:flex;gap:6px;height:80px;align-items:flex-end">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="chart-bar" style="height:60px"><div class="fill" style="height:45%"></div></div>
+          <span style="font-size:9px;color:#8e9379">Mo</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="chart-bar" style="height:60px"><div class="fill" style="height:0%"></div></div>
+          <span style="font-size:9px;color:#8e9379">Di</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="chart-bar" style="height:60px"><div class="fill" style="height:80%"></div></div>
+          <span style="font-size:9px;color:#8e9379">Mi</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="chart-bar" style="height:60px"><div class="fill" style="height:0%"></div></div>
+          <span style="font-size:9px;color:#8e9379">Do</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="chart-bar" style="height:60px"><div class="fill" style="height:100%"></div></div>
+          <span style="font-size:9px;color:#8e9379">Fr</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="chart-bar" style="height:60px"><div class="fill" style="height:70%"></div></div>
+          <span style="font-size:9px;color:#8e9379">Sa</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="chart-bar" style="height:60px"><div class="fill" style="height:0%;background:#333627"></div></div>
+          <span style="font-size:9px;color:#8e9379">So</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schnellstart Trainingspläne -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Schnellstart</h3>
+        <span onclick="navigate('plaene')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600;touch-action:manipulation">Alle →</span>
+      </div>
+      <div id="dashboard-plaene-list" style="display:flex;flex-direction:column;gap:8px">
+        <!-- Push Pull Legs -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #333627">
+          <div>
+            <div style="display:flex;gap:6px;margin-bottom:4px">
+              <span style="font-size:10px;background:#1a2200;color:#ccff00;border:1px solid #ccff00;border-radius:99px;padding:2px 7px;font-weight:700">Brust</span>
+              <span style="font-size:10px;background:#1a2200;color:#ccff00;border:1px solid #ccff00;border-radius:99px;padding:2px 7px;font-weight:700">Trizeps</span>
+            </div>
+            <p style="margin:0;font-size:14px;font-weight:800;font-style:italic">Push Pull Legs</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">6 Übungen · 60 min</p>
+          </div>
+          <button onclick="navigate('workout')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">
+            <span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span>
+          </button>
+        </div>
+        <!-- Upper Body -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #333627">
+          <div>
+            <div style="display:flex;gap:6px;margin-bottom:4px">
+              <span style="font-size:10px;background:#161a0c;color:#8e9379;border:1px solid #444933;border-radius:99px;padding:2px 7px;font-weight:700">Quads</span>
+              <span style="font-size:10px;background:#161a0c;color:#8e9379;border:1px solid #444933;border-radius:99px;padding:2px 7px;font-weight:700">Waden</span>
+            </div>
+            <p style="margin:0;font-size:14px;font-weight:800;font-style:italic">Leg Day Kraft</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">5 Übungen · 75 min</p>
+          </div>
+          <button onclick="navigate('workout')" style="width:40px;height:40px;border-radius:50%;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">
+            <span class="material-symbols-outlined" style="font-size:20px;color:#ccff00">play_arrow</span>
+          </button>
+        </div>
+        <!-- Neuer Plan Button -->
+        <button onclick="showCreatePlan()" style="width:100%;height:44px;background:transparent;border:1px dashed #444933;border-radius:10px;color:#8e9379;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
+          <span class="material-symbols-outlined" style="font-size:18px">add</span>
+          Neuen Plan erstellen
+        </button>
+      </div>
+    </div>
+
+    <!-- Recent PRs -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Aktuelle PRs</h3>
+        <span onclick="navigate('historie')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600">Alle →</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px;border:1px solid #333627">
+          <div>
+            <p style="margin:0;font-size:14px;font-weight:700">Kreuzheben</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">1 Tag her</p>
+          </div>
+          <div style="text-align:right">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00">180 kg</span>
+            <span style="display:block;font-size:10px;color:#8e9379">1 WH</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px;border:1px solid #333627">
+          <div>
+            <p style="margin:0;font-size:14px;font-weight:700">Bankdrücken</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">5 Tage her</p>
+          </div>
+          <div style="text-align:right">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">120 kg</span>
+            <span style="display:block;font-size:10px;color:#8e9379">3 WH</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: PLÄNE ═══════════════════════════ -->
+<div id="screen-plaene" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn" onclick="showCreatePlan()"><span class="material-symbols-outlined">add</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Trainingspläne</h1>
+
+    <!-- Active Plan -->
+    <div style="background:linear-gradient(135deg,#1a2200,#111508);border:1px solid #ccff00;border-radius:16px;padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:11px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Aktiver Plan</span>
+        <span class="pill active" style="font-size:10px">Woche 3/6</span>
+      </div>
+      <h2 style="font-size:20px;font-weight:800;font-style:italic;margin:0 0 12px;letter-spacing:-.01em">Push-Pull-Legs A/B</h2>
+      <div style="display:flex;gap:16px;margin-bottom:16px">
+        <div>
+          <span style="font-size:11px;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Tage/Woche</span>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00;margin:2px 0 0">6</p>
+        </div>
+        <div>
+          <span style="font-size:11px;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Übungen</span>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf;margin:2px 0 0">42</p>
+        </div>
+        <div>
+          <span style="font-size:11px;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Fortschritt</span>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf;margin:2px 0 0">48%</p>
+        </div>
+      </div>
+      <div class="progress-track" style="height:5px;margin-bottom:16px">
+        <div class="progress-fill" style="width:48%;height:100%"></div>
+      </div>
+
+      <!-- Week Schedule -->
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Mo</p>
+          <div style="height:32px;border-radius:8px;background:#ccff00;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#1a2200">fitness_center</span>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Di</p>
+          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Mi</p>
+          <div style="height:32px;border-radius:8px;background:#ccff00;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#1a2200">fitness_center</span>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Do</p>
+          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Fr</p>
+          <div style="height:32px;border-radius:8px;background:#ccff00;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#1a2200">fitness_center</span>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">Sa</p>
+          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <p style="font-size:9px;color:#8e9379;margin:0 0 4px;font-weight:600">So</p>
+          <div style="height:32px;border-radius:8px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">hotel</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's workout detail -->
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0 0 12px">Push A — Heute</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:6px;height:40px;background:#ccff00;border-radius:3px"></div>
+            <div>
+              <p style="margin:0;font-size:14px;font-weight:700">Bankdrücken</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">4 × 6–8 · Referenz: 100 kg</p>
+            </div>
+          </div>
+          <span style="font-size:11px;color:#8e9379">Brust</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:6px;height:40px;background:#abd600;border-radius:3px"></div>
+            <div>
+              <p style="margin:0;font-size:14px;font-weight:700">Schulterdrücken</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">4 × 8–10 · Referenz: 65 kg</p>
+            </div>
+          </div>
+          <span style="font-size:11px;color:#8e9379">Schulter</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:6px;height:40px;background:#556d00;border-radius:3px"></div>
+            <div>
+              <p style="margin:0;font-size:14px;font-weight:700">Schrägbankdrücken</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">3 × 8–10 · Referenz: 80 kg</p>
+            </div>
+          </div>
+          <span style="font-size:11px;color:#8e9379">Brust</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#161a0c;border-radius:10px;opacity:.7">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:6px;height:40px;background:#444933;border-radius:3px"></div>
+            <div>
+              <p style="margin:0;font-size:14px;font-weight:700">Seitheben</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">3 × 12–15 · Referenz: 16 kg</p>
+            </div>
+          </div>
+          <span style="font-size:11px;color:#8e9379">Schulter</span>
+        </div>
+        <p style="text-align:center;font-size:12px;color:#8e9379;margin:4px 0">+ 3 weitere Übungen</p>
+      </div>
+    </div>
+
+    <!-- Other Plans -->
+    <h3 style="font-size:14px;font-weight:700;color:#8e9379;text-transform:uppercase;letter-spacing:.05em;margin:4px 0">Weitere Pläne</h3>
+    <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <p style="margin:0;font-size:15px;font-weight:700">Upper/Lower Split</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">4 Tage · 28 Übungen</p>
+      </div>
+      <span class="material-symbols-outlined" style="color:#8e9379">chevron_right</span>
+    </div>
+    <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <p style="margin:0;font-size:15px;font-weight:700">Ganzkörper Hypertrophie</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">3 Tage · 21 Übungen</p>
+      </div>
+      <span class="material-symbols-outlined" style="color:#8e9379">chevron_right</span>
+    </div>
+    <button onclick="showCreatePlan()" style="width:100%;height:48px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
+      <span class="material-symbols-outlined" style="font-size:18px">add</span>
+      Neuen Plan erstellen
+    </button>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: WORKOUT-MODUS ═══════════════════════════ -->
+<div id="screen-workout" class="screen">
+  <header class="app-header">
+    <div class="icon-btn" onclick="navigate('dashboard')"><span class="material-symbols-outlined">close</span></div>
+    <span class="brand">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn" id="workout-done-btn" onclick="finishWorkout()" style="background:#1a3300;color:#ccff00"><span class="material-symbols-outlined" style="font-size:18px">done_all</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:14px;flex:1;padding-bottom:220px">
+
+    <!-- Übung Header -->
+    <div>
+      <p style="font-size:11px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px">Übung 1 von 6</p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="flex:1">
+          <h2 style="font-size:28px;font-weight:900;font-style:italic;margin:0 0 2px;letter-spacing:-.02em">Bench Press</h2>
+          <p style="font-size:13px;color:#8e9379;margin:0 0 10px">Dumbbell · Chest</p>
+          <span style="display:inline-flex;align-items:center;gap:6px;background:#1a2200;border:1px solid #ccff00;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;color:#ccff00">
+            <span class="material-symbols-outlined" style="font-size:14px">emoji_events</span>
+            PR: 100KG × 5
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-top:4px">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:#8e9379">
+            <span class="material-symbols-outlined" style="font-size:20px">skip_next</span>
+            <span style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Überspringen</span>
+          </div>
+          <div style="width:40px;height:40px;border-radius:50%;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c4c9ac">
+            <span class="material-symbols-outlined" style="font-size:18px">more_horiz</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Satz-Tabelle -->
+    <div>
+      <!-- Header Row -->
+      <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;padding:0 4px;margin-bottom:6px">
+        <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Satz</span>
+        <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">KG</span>
+        <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Wdh.</span>
+        <span style="font-size:11px;color:transparent">✓</span>
+      </div>
+
+      <!-- Sets -->
+      <div id="sets-container" style="display:flex;flex-direction:column;gap:6px">
+        <!-- Satz 1 — erledigt, gedimmt -->
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:1px solid #333627;border-radius:12px;padding:10px 12px;opacity:.55">
+          <span style="font-size:15px;color:#8e9379;font-weight:700;text-align:center">1</span>
+          <div style="background:#282b1d;border-radius:8px;height:40px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#8e9379">80</div>
+          <div style="background:#282b1d;border-radius:8px;height:40px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#8e9379">10</div>
+          <div class="set-done done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
+        </div>
+        <!-- Satz 2 — aktiv, volt-Rahmen -->
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:2px solid #ccff00;border-radius:12px;padding:10px 12px;box-shadow:0 0 12px rgba(204,255,0,.15)">
+          <span style="font-size:15px;color:#ccff00;font-weight:700;text-align:center">2</span>
+          <input type="text" placeholder="" style="background:#fff;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#111508;text-align:center;width:100%" />
+          <input type="text" placeholder="" style="background:#fff;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#111508;text-align:center;width:100%" />
+          <div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
+        </div>
+        <!-- Satz 3 -->
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:1px solid #333627;border-radius:12px;padding:10px 12px">
+          <span style="font-size:15px;color:#8e9379;font-weight:700;text-align:center">3</span>
+          <input type="text" value="0" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%" />
+          <input type="text" value="0" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%" />
+          <div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
+        </div>
+      </div>
+
+      <!-- + Satz hinzufügen -->
+      <button style="width:100%;height:44px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px">
+        <span class="material-symbols-outlined" style="font-size:18px">add</span>
+        Satz hinzufügen
+      </button>
+    </div>
+  </main>
+
+  <!-- ═ Sticky Footer ═ -->
+  <div style="position:fixed;bottom:68px;left:0;right:0;z-index:90;background:rgba(17,21,8,.97);backdrop-filter:blur(16px);border-top:1px solid #333627;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
+
+    <!-- Nächste Übung Button -->
+    <button style="width:100%;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+      Nächste Übung
+      <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
+    </button>
+
+    <!-- Timer Leiste -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="material-symbols-outlined" style="color:#ccff00;font-size:20px;flex-shrink:0">timer</span>
+      <span id="timer-display" style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#ccff00;min-width:52px">01:30</span>
+      <div style="display:flex;gap:6px;flex:1;justify-content:flex-end">
+        <button onclick="startTimer(120)" id="tbtn-120" style="height:32px;padding:0 14px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">120s</button>
+        <button onclick="startTimer(150)" id="tbtn-150" style="height:32px;padding:0 14px;background:#ccff00;border:none;border-radius:99px;color:#1a2200;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">150s</button>
+        <button onclick="startTimer(180)" id="tbtn-180" style="height:32px;padding:0 14px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">180s</button>
+      </div>
+    </div>
+
+    <!-- Training Beenden Button -->
+    <button class="volt-bg" onclick="finishWorkout()" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+      <span class="material-symbols-outlined" style="font-size:20px">flag</span>
+      Training beenden
+    </button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: HISTORIE ═══════════════════════════ -->
+<div id="screen-historie" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn"><span class="material-symbols-outlined">search</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <!-- Tab Switcher -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;background:#1e2113;border-radius:12px;padding:4px;border:1px solid #333627">
+      <button id="tab-history" onclick="switchHistoryTab('history')" style="height:36px;background:#ccff00;border:none;border-radius:9px;color:#1a2200;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">Einheiten</button>
+      <button id="tab-prs" onclick="switchHistoryTab('prs')" style="height:36px;background:transparent;border:none;color:#8e9379;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">PRs</button>
+    </div>
+
+    <!-- Einheiten Liste -->
+    <div id="history-list">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <!-- Entry 1 -->
+        <div class="card-sm" onclick="navigate('social')" style="cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Push A</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">Fr, 15. Mai · 58 min</p>
+            </div>
+            <div style="text-align:right">
+              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#ccff00">4.2 t</p>
+              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill">Brust</span>
+            <span class="pill">Schultern</span>
+            <span class="pill">Trizeps</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#ccff00;font-weight:600;cursor:pointer" onclick="event.stopPropagation();navigate('social')">
+              <span class="material-symbols-outlined" style="font-size:14px">share</span> Teilen
+            </span>
+          </div>
+        </div>
+        <!-- Entry 2 -->
+        <div class="card-sm">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Beine A</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">Mi, 13. Mai · 65 min</p>
+            </div>
+            <div style="text-align:right">
+              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">5.8 t</p>
+              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill">Beine</span>
+            <span class="pill">Waden</span>
+          </div>
+        </div>
+        <!-- Entry 3 -->
+        <div class="card-sm">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Pull A</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">Mo, 11. Mai · 52 min</p>
+            </div>
+            <div style="text-align:right">
+              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">3.9 t</p>
+              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill">Rücken</span>
+            <span class="pill">Bizeps</span>
+          </div>
+        </div>
+
+        <!-- Month Separator -->
+        <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:8px 0 4px">April 2026</p>
+        <div class="card-sm">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Push B</p>
+              <p style="margin:0;font-size:11px;color:#8e9379">Sa, 27. Apr · 61 min</p>
+            </div>
+            <div style="text-align:right">
+              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">4.1 t</p>
+              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRs Liste (hidden by default) -->
+    <div id="prs-list" style="display:none;flex-direction:column;gap:10px">
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <span class="pill active">Alle</span>
+        <span class="pill">Brust</span>
+        <span class="pill">Rücken</span>
+        <span class="pill">Beine</span>
+      </div>
+
+      <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span style="font-size:18px">🏆</span>
+            <p style="margin:0;font-size:15px;font-weight:800">Kreuzheben</p>
+          </div>
+          <p style="margin:0;font-size:11px;color:#8e9379">15. Mai · 1 WH</p>
+        </div>
+        <div style="text-align:right">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#ccff00">180 kg</span>
+          <p style="margin:4px 0 0;font-size:10px;color:#ccff00;font-weight:600">▲ +5 kg vs. vorher</p>
+        </div>
+      </div>
+
+      <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span style="font-size:18px">🥈</span>
+            <p style="margin:0;font-size:15px;font-weight:800">Kniebeuge</p>
+          </div>
+          <p style="margin:0;font-size:11px;color:#8e9379">10. Mai · 3 WH</p>
+        </div>
+        <div style="text-align:right">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#e2e4cf">145 kg</span>
+          <p style="margin:4px 0 0;font-size:10px;color:#abd600;font-weight:600">▲ +2.5 kg vs. vorher</p>
+        </div>
+      </div>
+
+      <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span style="font-size:18px">🥉</span>
+            <p style="margin:0;font-size:15px;font-weight:800">Bankdrücken</p>
+          </div>
+          <p style="margin:0;font-size:11px;color:#8e9379">11. Mai · 3 WH</p>
+        </div>
+        <div style="text-align:right">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#e2e4cf">120 kg</span>
+          <p style="margin:4px 0 0;font-size:10px;color:#abd600;font-weight:600">▲ +2.5 kg vs. vorher</p>
+        </div>
+      </div>
+
+      <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <p style="margin:0;font-size:15px;font-weight:800">Schulterdrücken</p>
+          <p style="margin:0;font-size:11px;color:#8e9379">5. Mai · 5 WH</p>
+        </div>
+        <div style="text-align:right">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#e2e4cf">72.5 kg</span>
+          <p style="margin:4px 0 0;font-size:10px;color:#e2e4cf;font-weight:600">= gleich wie vorher</p>
+        </div>
+      </div>
+
+      <!-- Share PRs CTA -->
+      <button onclick="navigate('social')" style="width:100%;height:48px;background:transparent;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px">
+        <span class="material-symbols-outlined" style="font-size:18px">share</span>
+        PRs als Share-Card teilen
+      </button>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: PROFIL ═══════════════════════════ -->
+<div id="screen-profil" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn" onclick="toggleProfilEdit()"><span class="material-symbols-outlined" id="profil-edit-icon">edit</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+
+    <!-- ─ ANSICHT-MODUS ─ -->
+    <div id="profil-view">
+      <div class="card" style="display:flex;align-items:center;gap:16px">
+        <div id="avatar-display" onclick="toggleProfilEdit()" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ccff00,#556d00);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#1a2200;flex-shrink:0;border:2px solid #ccff00;overflow:hidden;cursor:pointer">M</div>
+        <div style="flex:1">
+          <h2 id="profil-name-display" style="font-size:20px;font-weight:800;font-style:italic;margin:0 0 2px">Martin R.</h2>
+          <p id="profil-sub-display" style="font-size:12px;color:#8e9379;margin:0 0 8px">Trainiert seit 18 Monaten · PPL-Split</p>
+          <div style="display:flex;gap:16px">
+            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#ccff00">127</span><span style="font-size:10px;color:#8e9379;display:block">Einheiten</span></div>
+            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">5</span><span style="font-size:10px;color:#8e9379;display:block">Freunde</span></div>
+            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">12</span><span style="font-size:10px;color:#8e9379;display:block">PRs</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gewicht -->
+      <div class="card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Gewicht und Trends</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
+            <span id="profil-gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#ccff00">82.4</span>
+            <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Aktuell kg</p>
+          </div>
+          <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
+            <span id="profil-ziel-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#e2e4cf">78.0</span>
+            <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Ziel kg</p>
+          </div>
+          <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
+            <span id="profil-diff-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#abd600">–4.4</span>
+            <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Noch kg</p>
+          </div>
+        </div>
+        <!-- Progress -->
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;color:#8e9379">Fortschritt zum Ziel</span>
+            <span id="profil-progress-pct" style="font-size:12px;color:#ccff00;font-weight:700">65%</span>
+          </div>
+          <div class="progress-track" style="height:8px">
+            <div id="profil-progress-bar" class="progress-fill" style="width:65%;height:100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Muskel-Fokus -->
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0 0 14px">Muskel-Fokus (30 Tage)</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Brust</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">28%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:28%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Rücken</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">24%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:24%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Beine</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">22%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:22%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Schultern</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">14%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:14%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Arme</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">12%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:12%;height:100%"></div></div></div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button onclick="navigate('social')" style="flex:1;height:48px;background:#1e2113;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#ccff00">share</span>Teilen
+        </button>
+        <button style="flex:1;height:48px;background:#1e2113;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#abd600">group</span>Freunde
+        </button>
+      </div>
+    </div>
+
+    <!-- ─ EDIT-MODUS ─ -->
+    <div id="profil-edit" style="display:none;flex-direction:column;gap:16px">
+
+      <!-- Profilbild -->
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div id="avatar-edit-preview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#ccff00,#556d00);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#1a2200;border:2px solid #ccff00;overflow:hidden">M</div>
+        <label style="display:flex;align-items:center;gap:8px;background:#1e2113;border:1px solid #ccff00;border-radius:10px;padding:10px 20px;cursor:pointer;color:#ccff00;font-size:13px;font-weight:700;touch-action:manipulation">
+          <span class="material-symbols-outlined" style="font-size:18px">photo_camera</span>
+          Foto wählen
+          <input type="file" accept="image/*" id="avatar-input" style="display:none" onchange="handleAvatarUpload(this)">
+        </label>
+      </div>
+
+      <!-- Name & Info -->
+      <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <h3 style="font-size:15px;font-weight:700;margin:0;color:#8e9379;text-transform:uppercase;letter-spacing:.05em">Persönliche Daten</h3>
+        <div>
+          <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Name</label>
+          <input id="edit-name" type="text" placeholder="Dein Name" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Trainingsplan / Notiz</label>
+          <input id="edit-sub" type="text" placeholder="z.B. PPL-Split · 3 Jahre Erfahrung" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+        </div>
+      </div>
+
+      <!-- Gewichtsdaten -->
+      <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <h3 style="font-size:15px;font-weight:700;margin:0;color:#8e9379;text-transform:uppercase;letter-spacing:.05em">Gewicht</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Aktuell (kg)</label>
+            <input id="edit-gewicht" type="number" step="0.1" placeholder="82.4" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#ccff00;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Ziel (kg)</label>
+            <input id="edit-ziel" type="number" step="0.1" placeholder="78.0" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+          </div>
+        </div>
+      </div>
+
+      <!-- Speichern -->
+      <button onclick="saveProfilData()" class="volt-bg" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span class="material-symbols-outlined" style="font-size:20px">check</span>
+        Speichern
+      </button>
+      <button onclick="toggleProfilEdit()" style="width:100%;height:44px;background:transparent;border:1px solid #444933;border-radius:12px;color:#8e9379;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation">
+        Abbrechen
+      </button>
+    </div>
+
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: SOCIAL / SHARE ═══════════════════════════ -->
+<div id="screen-social" class="screen">
+  <header class="app-header">
+    <div class="icon-btn" id="social-back-btn" onclick="goBack()" style="cursor:pointer"><span class="material-symbols-outlined">arrow_back</span></div>
+    <span class="brand">Kinetic Pulse</span>
+    <div style="width:40px"></div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Teilen & Vergleichen</h1>
+
+    <!-- Tab Switcher -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#1e2113;border-radius:12px;padding:4px;border:1px solid #333627">
+      <button id="social-tab-share" onclick="switchSocialTab('share')" style="height:34px;background:#ccff00;border:none;border-radius:9px;color:#1a2200;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s">Share Card</button>
+      <button id="social-tab-feed" onclick="switchSocialTab('feed')" style="height:34px;background:transparent;border:none;color:#8e9379;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s">Feed</button>
+      <button id="social-tab-bench" onclick="switchSocialTab('bench')" style="height:34px;background:transparent;border:none;color:#8e9379;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s">Vergleich</button>
+    </div>
+
+    <!-- Share Card Tab -->
+    <div id="social-share" style="display:flex;flex-direction:column;gap:14px">
+      <p style="font-size:13px;color:#8e9379;margin:0">Wähle was du teilen möchtest:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <button onclick="showShareCard('workout')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-workout-btn">
+          <span class="material-symbols-outlined" style="color:#ccff00;font-size:24px;display:block;margin-bottom:6px">fitness_center</span>
+          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Workout</p>
+          <p style="margin:0;font-size:11px;color:#8e9379">Letztes Training teilen</p>
+        </button>
+        <button onclick="showShareCard('pr')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-pr-btn">
+          <span class="material-symbols-outlined" style="color:#abd600;font-size:24px;display:block;margin-bottom:6px">emoji_events</span>
+          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Persönlicher Rekord</p>
+          <p style="margin:0;font-size:11px;color:#8e9379">Neuen PR teilen</p>
+        </button>
+        <button onclick="showShareCard('progress')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-progress-btn">
+          <span class="material-symbols-outlined" style="color:#556d00;font-size:24px;display:block;margin-bottom:6px">trending_up</span>
+          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Fortschritt</p>
+          <p style="margin:0;font-size:11px;color:#8e9379">30-Tage-Verlauf</p>
+        </button>
+        <button onclick="showShareCard('streak')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-streak-btn">
+          <span class="material-symbols-outlined" style="color:#ffb4ab;font-size:24px;display:block;margin-bottom:6px">local_fire_department</span>
+          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Streak</p>
+          <p style="margin:0;font-size:11px;color:#8e9379">Trainingsserie</p>
+        </button>
+      </div>
+
+      <!-- Share Card Preview -->
+      <div id="share-card-preview" style="display:none">
+        <!-- Workout Share Card -->
+        <div id="card-workout" class="share-card" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+            <div>
+              <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+              <h2 style="margin:4px 0 0;font-size:22px;font-weight:900;font-style:italic;color:#e2e4cf;letter-spacing:-.02em">Push A Completed! 💪</h2>
+            </div>
+            <svg width="36" height="36" viewBox="0 0 100 100">
+              <path d="M20 50 L40 50 L50 20 L60 80 L70 50 L90 50" fill="none" stroke="#ccff00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#ccff00">58'</span>
+              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Dauer</p>
+            </div>
+            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf">4.2t</span>
+              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Volumen</p>
+            </div>
+            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf">7</span>
+              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Übungen</p>
+            </div>
+          </div>
+          <div style="border-top:1px solid rgba(204,255,0,.2);padding-top:12px;display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="background:rgba(204,255,0,.15);color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid rgba(204,255,0,.3)">Brust</span>
+              <span style="background:rgba(204,255,0,.15);color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid rgba(204,255,0,.3)">Schultern</span>
+              <span style="background:rgba(204,255,0,.15);color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid rgba(204,255,0,.3)">Trizeps</span>
+            </div>
+            <span style="font-size:10px;color:#8e9379">15. Mai '26</span>
+          </div>
+        </div>
+
+        <!-- PR Share Card -->
+        <div id="card-pr" class="share-card" style="display:none">
+          <div style="text-align:center;margin-bottom:16px">
+            <span style="font-size:48px">🏆</span>
+            <p style="margin:4px 0 0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Neuer PR</p>
+          </div>
+          <h2 style="text-align:center;font-size:20px;font-weight:900;font-style:italic;margin:0 0 16px;letter-spacing:-.02em">Kreuzheben</h2>
+          <div style="text-align:center;background:rgba(0,0,0,.5);border-radius:14px;padding:20px;margin-bottom:16px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#ccff00;line-height:1">180</span>
+            <span style="font-size:20px;color:#c4c9ac;font-weight:600"> kg</span>
+            <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#abd600;margin:8px 0 0">▲ +5 kg Personal Best</p>
+          </div>
+          <p style="text-align:center;font-size:12px;color:#8e9379;margin:0">15. Mai 2026 · 1 Wiederholung</p>
+        </div>
+
+        <!-- Progress Share Card -->
+        <div id="card-progress" class="share-card" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div>
+              <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+              <h2 style="margin:4px 0 0;font-size:20px;font-weight:900;font-style:italic;letter-spacing:-.02em">30-Tage Trend 📈</h2>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#8e9379">Apr – Mai</span>
+          </div>
+          <svg width="100%" height="70" viewBox="0 0 300 70" preserveAspectRatio="none">
+            <path d="M0,60 Q50,50 100,42 T200,30 T300,25" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="300" cy="25" r="5" fill="#ccff00"/>
+          </svg>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:8px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#ccff00">18</span>
+              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;font-weight:600">Einheiten</p>
+            </div>
+            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:8px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#abd600">–1.6</span>
+              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;font-weight:600">kg</p>
+            </div>
+            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:8px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">3</span>
+              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;font-weight:600">Neue PRs</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Streak Share Card -->
+        <div id="card-streak" class="share-card" style="display:none">
+          <div style="text-align:center">
+            <p style="margin:0 0 8px;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Streak</p>
+            <div style="font-size:72px;line-height:1;margin-bottom:8px">🔥</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#ccff00;line-height:1">14</div>
+            <p style="font-size:18px;color:#c4c9ac;font-weight:700;margin:4px 0">Tage in Folge</p>
+            <p style="font-size:12px;color:#8e9379;margin:8px 0 0">Seit 2. Mai 2026</p>
+          </div>
+        </div>
+
+        <!-- Share Actions -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+          <button style="height:48px;background:#1e2113;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <span class="material-symbols-outlined" style="font-size:18px">download</span>
+            Speichern
+          </button>
+          <button style="height:48px;background:#ccff00;border:none;border-radius:12px;color:#1a2200;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <span class="material-symbols-outlined" style="font-size:18px">share</span>
+            Teilen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed Tab -->
+    <div id="social-feed" style="display:none;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Freundes-Feed</h3>
+        <span style="font-size:12px;color:#ccff00;font-weight:600">5 Freunde</span>
+      </div>
+
+      <div class="card-sm">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0">L</div>
+          <div style="flex:1">
+            <p style="margin:0;font-size:14px;font-weight:700">Lukas H.</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">vor 2 Stunden</p>
+          </div>
+          <span style="background:#1a3300;color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid #ccff00">Neuer PR 🏆</span>
+        </div>
+        <div style="background:#161a0c;border-radius:10px;padding:12px">
+          <p style="margin:0 0 4px;font-size:13px;font-weight:700">Kniebeuge</p>
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#ccff00">160 kg</span>
+            <span style="font-size:11px;color:#abd600">▲ +5 kg</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-sm">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#f97316);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0">S</div>
+          <div style="flex:1">
+            <p style="margin:0;font-size:14px;font-weight:700">Stefan M.</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">vor 5 Stunden</p>
+          </div>
+          <span style="background:#1e2113;color:#8e9379;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid #333627">Training</span>
+        </div>
+        <div style="background:#161a0c;border-radius:10px;padding:12px">
+          <p style="margin:0 0 2px;font-size:13px;font-weight:700">Pull B abgeschlossen</p>
+          <p style="margin:0;font-size:11px;color:#8e9379">55 min · 4.1 Tonnen · 6 Übungen</p>
+        </div>
+      </div>
+
+      <div class="card-sm">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0">K</div>
+          <div style="flex:1">
+            <p style="margin:0;font-size:14px;font-weight:700">Katrin W.</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">Gestern</p>
+          </div>
+          <span style="background:#200010;color:#ffb4ab;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid #93000a">Streak 🔥</span>
+        </div>
+        <div style="background:#161a0c;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:28px">🔥</span>
+          <div>
+            <p style="margin:0;font-size:13px;font-weight:700">21 Tage Streak!</p>
+            <p style="margin:0;font-size:11px;color:#8e9379">Persönlicher Rekord</p>
+          </div>
+        </div>
+      </div>
+
+      <button style="width:100%;height:48px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <span class="material-symbols-outlined" style="font-size:18px">person_add</span>
+        Freunde einladen
+      </button>
+    </div>
+
+    <!-- Benchmark Tab -->
+    <div id="social-bench" style="display:none;flex-direction:column;gap:12px">
+      <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Kraft-Benchmarking</h3>
+      <p style="font-size:13px;color:#8e9379;margin:0">Deine Werte vs. Freundes-Durchschnitt</p>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <!-- Bankdrücken -->
+        <div class="card-sm">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:15px;font-weight:700">Bankdrücken</span>
+            <span style="font-size:11px;color:#8e9379">1 WH Max</span>
+          </div>
+          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden;margin-bottom:6px">
+            <div style="position:absolute;left:0;top:0;height:100%;width:72%;background:linear-gradient(90deg,#1a3300,#ccff00);border-radius:8px;display:flex;align-items:center;padding:0 12px">
+              <span style="font-size:12px;font-weight:700;color:#1a2200">Du: 130 kg</span>
+            </div>
+          </div>
+          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;height:100%;width:58%;background:#1e2113;border:1px solid #333627;border-radius:8px;display:flex;align-items:center;padding:0 12px">
+              <span style="font-size:12px;font-weight:600;color:#8e9379">Ø Freunde: 105 kg</span>
+            </div>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:#ccff00;font-weight:600;text-align:right">+24% über Gruppe 🏆</p>
+        </div>
+
+        <!-- Kniebeuge -->
+        <div class="card-sm">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:15px;font-weight:700">Kniebeuge</span>
+            <span style="font-size:11px;color:#8e9379">1 WH Max</span>
+          </div>
+          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden;margin-bottom:6px">
+            <div style="position:absolute;left:0;top:0;height:100%;width:65%;background:linear-gradient(90deg,#1a3300,#ccff00);border-radius:8px;display:flex;align-items:center;padding:0 12px">
+              <span style="font-size:12px;font-weight:700;color:#1a2200">Du: 145 kg</span>
+            </div>
+          </div>
+          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;height:100%;width:62%;background:#1e2113;border:1px solid #333627;border-radius:8px;display:flex;align-items:center;padding:0 12px">
+              <span style="font-size:12px;font-weight:600;color:#8e9379">Ø Freunde: 138 kg</span>
+            </div>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:#abd600;font-weight:600;text-align:right">+5% über Gruppe</p>
+        </div>
+
+        <!-- Kreuzheben -->
+        <div class="card-sm">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:15px;font-weight:700">Kreuzheben</span>
+            <span style="font-size:11px;color:#8e9379">1 WH Max</span>
+          </div>
+          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden;margin-bottom:6px">
+            <div style="position:absolute;left:0;top:0;height:100%;width:80%;background:linear-gradient(90deg,#1a3300,#ccff00);border-radius:8px;display:flex;align-items:center;padding:0 12px">
+              <span style="font-size:12px;font-weight:700;color:#1a2200">Du: 180 kg</span>
+            </div>
+          </div>
+          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;height:100%;width:55%;background:#1e2113;border:1px solid #333627;border-radius:8px;display:flex;align-items:center;padding:0 12px">
+              <span style="font-size:12px;font-weight:600;color:#8e9379">Ø Freunde: 122 kg</span>
+            </div>
+          </div>
+          <p style="margin:6px 0 0;font-size:11px;color:#ccff00;font-weight:600;text-align:right">+48% über Gruppe 💪</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: GEWICHT ═══════════════════════════ -->
+<div id="screen-gewicht" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand">Kinetic Pulse</span>
+    <div style="width:40px"></div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Gewicht &amp; Trends</h1>
+
+    <!-- Heutiges Gewicht Eingabe -->
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0">Heutiges Gewicht</p>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span id="gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#ccff00;line-height:1">82.4</span>
+        <span style="font-size:20px;color:#8e9379;font-weight:600">kg</span>
+      </div>
+      <!-- Numpad -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:280px">
+        <button onclick="numpad('1')" class="numpad-btn">1</button>
+        <button onclick="numpad('2')" class="numpad-btn">2</button>
+        <button onclick="numpad('3')" class="numpad-btn">3</button>
+        <button onclick="numpad('4')" class="numpad-btn">4</button>
+        <button onclick="numpad('5')" class="numpad-btn">5</button>
+        <button onclick="numpad('6')" class="numpad-btn">6</button>
+        <button onclick="numpad('7')" class="numpad-btn">7</button>
+        <button onclick="numpad('8')" class="numpad-btn">8</button>
+        <button onclick="numpad('9')" class="numpad-btn">9</button>
+        <button onclick="numpad('.')" class="numpad-btn" style="color:#8e9379">.</button>
+        <button onclick="numpad('0')" class="numpad-btn">0</button>
+        <button onclick="numpad('del')" class="numpad-btn" style="color:#8e9379">
+          <span class="material-symbols-outlined" style="font-size:20px">backspace</span>
+        </button>
+      </div>
+      <button onclick="saveGewicht()" class="volt-bg" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;touch-action:manipulation" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        Speichern
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="card-sm" style="text-align:center">
+        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Gleitender Ø</p>
+        <span id="gewicht-avg" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#ccff00">82.7 kg</span>
+      </div>
+      <div class="card-sm" style="text-align:center">
+        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Wöchentlich</p>
+        <span id="gewicht-weekly" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#abd600">–0.4 kg</span>
+      </div>
+    </div>
+
+    <!-- 30-Tage-Trend Chart -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">30-Tage-Trend</h3>
+        <span style="font-size:11px;color:#8e9379">Apr – Mai</span>
+      </div>
+      <div style="height:80px;position:relative;margin-bottom:8px">
+        <svg width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="gGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ccff00" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#ccff00" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,55 Q40,58 80,52 T160,45 T220,42 T300,35" fill="url(#gGrad)" stroke="none"/>
+          <path d="M0,55 Q40,58 80,52 T160,45 T220,42 T300,35" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="0" cy="55" r="3" fill="#8e9379"/>
+          <circle cx="300" cy="35" r="4" fill="#ccff00"/>
+        </svg>
+        <div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:10px;color:#8e9379">
+          <span>14. Apr</span><span>Heute</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ziel & Meilensteine -->
+    <div class="card">
+      <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0 0 12px">Gewichtsziel</h3>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#8e9379;margin-bottom:6px">
+        <span>Start: <span id="gw-start" style="color:#e2e4cf">90 kg</span></span>
+        <span style="color:#ccff00;font-weight:700" id="gw-aktuell">Aktuell: 82.4 kg</span>
+        <span>Ziel: <span id="gw-ziel-label" style="color:#e2e4cf">78 kg</span></span>
+      </div>
+      <div class="progress-track" style="height:8px;margin-bottom:14px">
+        <div id="gw-progress-bar" class="progress-fill" style="width:65%;height:100%"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div id="ms1" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#1a3300;border-radius:10px;border:1px solid #444933">
+          <span style="font-size:18px">✅</span>
+          <span style="font-size:13px;font-weight:700;flex:1">–5 kg Meilenstein</span>
+          <span style="font-size:11px;color:#ccff00;font-weight:600">Erreicht</span>
+        </div>
+        <div id="ms2" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#161a0c;border-radius:10px;border:1px solid #333627">
+          <span style="font-size:18px">⭕</span>
+          <span style="font-size:13px;font-weight:700;flex:1;color:#c4c9ac">–10 kg Meilenstein</span>
+          <span id="ms2-label" style="font-size:11px;color:#8e9379">Noch 2.4 kg</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#161a0c;border-radius:10px;border:1px solid #333627;opacity:.6">
+          <span style="font-size:18px">⭕</span>
+          <span style="font-size:13px;font-weight:700;flex:1;color:#8e9379">Zielgewicht erreicht</span>
+          <span style="font-size:11px;color:#8e9379">Ausstehend</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ MODAL: PLAN ERSTELLEN ═══════════════════════════ -->
+<div id="modal-create-plan" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center">
+  <div style="background:#1e2113;border:1px solid #444933;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="font-size:20px;font-weight:900;font-style:italic;margin:0">Neuen Plan erstellen</h2>
+      <div class="icon-btn" onclick="hideCreatePlan()"><span class="material-symbols-outlined">close</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Planname</label>
+        <input id="new-plan-name" type="text" placeholder="z.B. Push Pull Legs" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Tage/Woche</label>
+          <input id="new-plan-tage" type="number" min="1" max="7" placeholder="3" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#ccff00;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center;box-sizing:border-box" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Dauer (min)</label>
+          <input id="new-plan-dauer" type="number" min="10" max="180" placeholder="60" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center;box-sizing:border-box" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Fokus (optional)</label>
+        <input id="new-plan-fokus" type="text" placeholder="z.B. Brust, Rücken, Beine" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+      </div>
+      <button onclick="savePlan()" class="volt-bg" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;touch-action:manipulation;margin-top:4px" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span style="display:flex;align-items:center;justify-content:center;gap:8px">
+          <span class="material-symbols-outlined" style="font-size:20px">check</span>
+          Plan speichern
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ BOTTOM NAVIGATION ═══════════════════════════ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span class="nav-label">Dashboard</span>
+  </div>
+  <div class="nav-item" id="nav-plaene" onclick="navigate('plaene')">
+    <span class="material-symbols-outlined">fitness_center</span>
+    <span class="nav-label">Pläne</span>
+  </div>
+  <div class="nav-item nav-center" id="nav-workout" onclick="navigate('workout')">
+    <span class="material-symbols-outlined" style="font-size:26px">play_arrow</span>
+  </div>
+  <div class="nav-item" id="nav-historie" onclick="navigate('historie')">
+    <span class="material-symbols-outlined">history</span>
+    <span class="nav-label">Historie</span>
+  </div>
+  <div class="nav-item" id="nav-gewicht" onclick="navigate('gewicht')">
+    <span class="material-symbols-outlined">monitor_weight</span>
+    <span class="nav-label">Gewicht</span>
+  </div>
+  <div class="nav-item" id="nav-profil" onclick="navigate('profil')">
+    <span class="material-symbols-outlined">person</span>
+    <span class="nav-label">Profil</span>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════ JAVASCRIPT ═══════════════════════════ -->
+<script>
+// ─── Navigation ───────────────────────────────────────────────────
+let currentScreen = 'dashboard';
+let navHistory = ['dashboard'];
+
+const screens = ['dashboard','plaene','workout','historie','profil','social','gewicht'];
+const navItems = ['dashboard','plaene','workout','historie','gewicht','profil'];
+
+function navigate(target) {
+  // Start workout timer wenn Workout-Screen geöffnet wird
+  if (target === 'workout' && currentScreen !== 'workout') {
+    setTimeout(() => startWorkoutTimer(), 100);
+  }
+  // Gewicht-Screen initialisieren
+  if (target === 'gewicht') {
+    setTimeout(() => initGewichtScreen(), 50);
+  }
+
+  // Hide all screens
+  screens.forEach(s => {
+    const el = document.getElementById('screen-' + s);
+    if (el) el.classList.remove('active');
+  });
+
+  // Show target
+  const target_el = document.getElementById('screen-' + target);
+  if (target_el) {
+    target_el.classList.add('active');
+    target_el.scrollTop = 0;
+  }
+
+  // Update nav active state
+  navItems.forEach(id => {
+    const btn = document.getElementById('nav-' + id);
+    if (!btn) return;
+    btn.classList.remove('active');
+    // Workout-Button immer volt-Style
+    if (id === 'workout') {
+      btn.style.background = '#ccff00';
+      btn.style.color = '#1a2200';
+      btn.style.boxShadow = '0 0 20px rgba(204,255,0,.4)';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.boxShadow = '';
+    }
+  });
+
+  const activeBtn = document.getElementById('nav-' + target);
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+    if (target === 'workout') {
+      activeBtn.style.boxShadow = '0 0 32px rgba(204,255,0,.6)';
+    }
+  }
+
+  navHistory.push(target);
+  currentScreen = target;
+}
+
+// Back button
+function goBack() {
+  if (navHistory.length > 1) {
+    navHistory.pop();
+    const prev = navHistory[navHistory.length - 1] || 'dashboard';
+    navigate(prev);
+  }
+}
+
+// ─── Workout Timer ─────────────────────────────────────────────────
+let workoutSeconds = 0;
+let workoutInterval = null;
+let pauseSeconds = 0;
+let pauseInterval = null;
+
+function startWorkoutTimer() {
+  if (workoutInterval) return;
+  workoutInterval = setInterval(() => {
+    workoutSeconds++;
+    const m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
+    const s = String(workoutSeconds % 60).padStart(2,'0');
+    const el = document.getElementById('workout-time');
+    if (el) el.textContent = m + ':' + s;
+  }, 1000);
+}
+
+function startTimer(seconds) {
+  if (pauseInterval) clearInterval(pauseInterval);
+  pauseSeconds = seconds;
+  // Highlight active chip
+  var chips = [120, 150, 180];
+  for (var ci = 0; ci < chips.length; ci++) {
+    var btn = document.getElementById('tbtn-' + chips[ci]);
+    if (!btn) continue;
+    if (chips[ci] === seconds) {
+      btn.style.background = '#ccff00';
+      btn.style.color = '#1a2200';
+      btn.style.border = 'none';
+    } else {
+      btn.style.background = '#1e2113';
+      btn.style.color = '#c4c9ac';
+      btn.style.border = '1px solid #333627';
+    }
+  }
+  updateTimerDisplay();
+  pauseInterval = setInterval(() => {
+    pauseSeconds--;
+    if (pauseSeconds <= 0) {
+      stopTimer();
+      return;
+    }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(pauseSeconds / 60);
+  const s = String(pauseSeconds % 60).padStart(2,'0');
+  const el = document.getElementById('timer-display');
+  if (el) el.textContent = m + ':' + s;
+}
+
+function stopTimer() {
+  if (pauseInterval) clearInterval(pauseInterval);
+  pauseInterval = null;
+}
+
+function finishWorkout() {
+  stopTimer();
+  if (workoutInterval) clearInterval(workoutInterval);
+  workoutInterval = null;
+  workoutSeconds = 0;
+  navigate('social');
+  setTimeout(() => showShareCard('workout'), 300);
+}
+
+// navigate() ist bereits oben vollständig definiert
+
+// ─── Set Done Toggle ───────────────────────────────────────────────
+function toggleSet(el) {
+  el.classList.toggle('done');
+  if (el.classList.contains('done')) {
+    el.textContent = '✓';
+    el.style.color = '#1a2200';
+    startTimer(150); // auto-start 2:30 Pause
+  } else {
+    el.textContent = '✓';
+    el.style.color = 'transparent';
+  }
+}
+
+// ─── History Tab Switch ────────────────────────────────────────────
+function switchHistoryTab(tab) {
+  const historyList = document.getElementById('history-list');
+  const prsList = document.getElementById('prs-list');
+  const tabHistory = document.getElementById('tab-history');
+  const tabPrs = document.getElementById('tab-prs');
+
+  if (tab === 'history') {
+    historyList.style.display = 'block';
+    prsList.style.display = 'none';
+    tabHistory.style.background = '#ccff00';
+    tabHistory.style.color = '#1a2200';
+    tabPrs.style.background = 'transparent';
+    tabPrs.style.color = '#8e9379';
+  } else {
+    historyList.style.display = 'none';
+    prsList.style.display = 'flex';
+    tabPrs.style.background = '#ccff00';
+    tabPrs.style.color = '#1a2200';
+    tabHistory.style.background = 'transparent';
+    tabHistory.style.color = '#8e9379';
+  }
+}
+
+// ─── Social Tab Switch ─────────────────────────────────────────────
+function switchSocialTab(tab) {
+  const tabs = ['share','feed','bench'];
+  tabs.forEach(t => {
+    const content = document.getElementById('social-' + t);
+    const btn = document.getElementById('social-tab-' + t);
+    if (content) content.style.display = 'none';
+    if (btn) {
+      btn.style.background = 'transparent';
+      btn.style.color = '#8e9379';
+    }
+  });
+  const activeContent = document.getElementById('social-' + tab);
+  const activeBtn = document.getElementById('social-tab-' + tab);
+  if (activeContent) activeContent.style.display = 'flex';
+  if (activeBtn) {
+    activeBtn.style.background = '#ccff00';
+    activeBtn.style.color = '#1a2200';
+  }
+}
+
+// ─── Share Card Preview ────────────────────────────────────────────
+function showShareCard(type) {
+  const preview = document.getElementById('share-card-preview');
+  const cards = ['workout','pr','progress','streak'];
+
+  preview.style.display = 'flex';
+  preview.style.flexDirection = 'column';
+  preview.style.gap = '12px';
+
+  cards.forEach(c => {
+    const el = document.getElementById('card-' + c);
+    if (el) el.style.display = 'none';
+  });
+
+  const target = document.getElementById('card-' + type);
+  if (target) target.style.display = 'block';
+
+  // Highlight selected button
+  ['workout','pr','progress','streak'].forEach(t => {
+    const btn = document.getElementById('share-' + t + '-btn');
+    if (btn) {
+      btn.style.border = t === type ? '1px solid #ccff00' : '1px solid #333627';
+      btn.style.background = t === type ? '#1a2200' : '#1e2113';
+    }
+  });
+
+  // Scroll to preview
+  setTimeout(() => {
+    preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+// ─── Plan erstellen ────────────────────────────────────────────────
+function showCreatePlan() {
+  var modal = document.getElementById('modal-create-plan');
+  if (modal) { modal.style.display = 'flex'; }
+  // Felder leeren
+  ['new-plan-name','new-plan-tage','new-plan-dauer','new-plan-fokus'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+}
+
+function hideCreatePlan() {
+  var modal = document.getElementById('modal-create-plan');
+  if (modal) modal.style.display = 'none';
+}
+
+function savePlan() {
+  var name  = (document.getElementById('new-plan-name').value || '').trim();
+  var tage  = document.getElementById('new-plan-tage').value || '3';
+  var dauer = document.getElementById('new-plan-dauer').value || '60';
+  var fokus = (document.getElementById('new-plan-fokus').value || '').trim();
+
+  if (!name) { alert('Bitte einen Plannamen eingeben.'); return; }
+
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    plaene.push({ name: name, tage: tage, dauer: dauer, fokus: fokus, id: Date.now() });
+    localStorage.setItem('kp_plaene', JSON.stringify(plaene));
+  } catch(e) {}
+
+  hideCreatePlan();
+  renderDashboardPlaene();
+
+  // Kurzes Feedback
+  setTimeout(() => alert('✓ Plan "' + name + '" gespeichert!'), 100);
+}
+
+function renderDashboardPlaene() {
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    if (!plaene.length) return;
+    var container = document.getElementById('dashboard-plaene-list');
+    if (!container) return;
+    // Nur eigene Pläne am Anfang einfügen (vor dem "Neuen Plan erstellen" Button)
+    var existingCustom = container.querySelectorAll('.custom-plan-item');
+    existingCustom.forEach(function(el) { el.remove(); });
+    var btn = container.querySelector('button[onclick="showCreatePlan()"]');
+    plaene.slice(-3).reverse().forEach(function(p) {
+      var div = document.createElement('div');
+      div.className = 'custom-plan-item';
+      div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #ccff00;margin-bottom:0';
+      div.innerHTML = '<div><p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf">' + p.name + '</p><p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p></div><button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
+      container.insertBefore(div, btn);
+    });
+  } catch(e) {}
+}
+
+// ─── Gewicht Numpad ────────────────────────────────────────────────
+let gewichtInput = '';
+
+function numpad(val) {
+  var display = document.getElementById('gewicht-display');
+  if (val === 'del') {
+    gewichtInput = gewichtInput.slice(0, -1);
+  } else if (val === '.' && gewichtInput.includes('.')) {
+    return; // nur ein Komma erlaubt
+  } else if (gewichtInput.length >= 5) {
+    return; // max 5 Zeichen (z.B. 100.0)
+  } else {
+    gewichtInput += val;
+  }
+  if (display) display.textContent = gewichtInput || '0';
+}
+
+function saveGewicht() {
+  if (!gewichtInput) return;
+  var val = parseFloat(gewichtInput);
+  if (isNaN(val) || val < 30 || val > 300) {
+    alert('Ungültiger Wert');
+    return;
+  }
+  try {
+    localStorage.setItem('kp_gewicht', val.toFixed(1));
+    // Historie
+    var hist = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+    hist.push({ date: new Date().toISOString().slice(0,10), val: val });
+    if (hist.length > 90) hist = hist.slice(-90);
+    localStorage.setItem('kp_gewicht_hist', JSON.stringify(hist));
+  } catch(e) {}
+  gewichtInput = '';
+  updateGewichtScreen(val);
+  loadProfilData();
+  // Kurzes Feedback
+  var btn = document.querySelector('#screen-gewicht .volt-bg');
+  if (btn) { btn.textContent = '✓ Gespeichert!'; setTimeout(() => { btn.textContent = 'Speichern'; }, 1500); }
+}
+
+function updateGewichtScreen(val) {
+  var ziel = parseFloat(localStorage.getItem('kp_ziel') || '78');
+  var start = parseFloat(localStorage.getItem('kp_startgewicht') || '90');
+  var display = document.getElementById('gewicht-display');
+  var aktuell = document.getElementById('gw-aktuell');
+  var zielLabel = document.getElementById('gw-ziel-label');
+  var startLabel = document.getElementById('gw-start');
+  var bar = document.getElementById('gw-progress-bar');
+  var ms2lbl = document.getElementById('ms2-label');
+  var avg = document.getElementById('gewicht-avg');
+  var weekly = document.getElementById('gewicht-weekly');
+
+  if (display) display.textContent = val.toFixed(1);
+  if (aktuell) aktuell.textContent = 'Aktuell: ' + val.toFixed(1) + ' kg';
+  if (zielLabel) zielLabel.textContent = ziel.toFixed(0) + ' kg';
+  if (startLabel) startLabel.textContent = start.toFixed(0) + ' kg';
+
+  var diff = val - ziel;
+  var pct = Math.max(0, Math.min(100, Math.round((start - val) / (start - ziel) * 100)));
+  if (bar) bar.style.width = pct + '%';
+  if (ms2lbl) ms2lbl.textContent = diff > 0 ? 'Noch ' + diff.toFixed(1) + ' kg' : 'Erreicht!';
+  if (avg) avg.textContent = val.toFixed(1) + ' kg';
+  if (weekly) weekly.textContent = '–0.4 kg';
+}
+
+function initGewichtScreen() {
+  var val = parseFloat(localStorage.getItem('kp_gewicht') || '82.4');
+  gewichtInput = '';
+  updateGewichtScreen(val);
+  var display = document.getElementById('gewicht-display');
+  if (display) display.textContent = val.toFixed(1);
+}
+
+// ─── Profil localStorage ───────────────────────────────────────────
+function loadProfilData() {
+  try {
+    var name    = localStorage.getItem('kp_name')    || 'Martin R.';
+    var sub     = localStorage.getItem('kp_sub')     || 'Trainiert seit 18 Monaten · PPL-Split';
+    var gewicht = localStorage.getItem('kp_gewicht') || '82.4';
+    var ziel    = localStorage.getItem('kp_ziel')    || '78.0';
+    var avatar  = localStorage.getItem('kp_avatar')  || '';
+
+    // Ansicht aktualisieren
+    var nd = document.getElementById('profil-name-display');
+    var sd = document.getElementById('profil-sub-display');
+    var gd = document.getElementById('profil-gewicht-display');
+    var zd = document.getElementById('profil-ziel-display');
+    var dd = document.getElementById('profil-diff-display');
+    var pb = document.getElementById('profil-progress-bar');
+    var pp = document.getElementById('profil-progress-pct');
+
+    if (nd) nd.textContent = name;
+    if (sd) sd.textContent = sub;
+    if (gd) gd.textContent = parseFloat(gewicht).toFixed(1);
+    if (zd) zd.textContent = parseFloat(ziel).toFixed(1);
+
+    var diff = parseFloat(gewicht) - parseFloat(ziel);
+    if (dd) dd.textContent = diff > 0 ? '–' + diff.toFixed(1) : '+' + Math.abs(diff).toFixed(1);
+
+    // Fortschritt: Annahme Stargewicht 90 kg (oder aus LS)
+    var start = parseFloat(localStorage.getItem('kp_startgewicht') || '90');
+    var pct = Math.max(0, Math.min(100, Math.round((start - parseFloat(gewicht)) / (start - parseFloat(ziel)) * 100)));
+    if (pb) pb.style.width = pct + '%';
+    if (pp) pp.textContent = pct + '%';
+
+    // Avatar
+    updateAvatarDisplay(avatar, name);
+
+    // Edit-Felder vorausfüllen
+    var en = document.getElementById('edit-name');
+    var es = document.getElementById('edit-sub');
+    var eg = document.getElementById('edit-gewicht');
+    var ez = document.getElementById('edit-ziel');
+    if (en) en.value = name;
+    if (es) es.value = sub;
+    if (eg) eg.value = gewicht;
+    if (ez) ez.value = ziel;
+  } catch(e) {}
+}
+
+function updateAvatarDisplay(avatarSrc, name) {
+  var initial = (name || 'M').charAt(0).toUpperCase();
+  var displays = [
+    document.getElementById('avatar-display'),
+    document.getElementById('avatar-edit-preview')
+  ];
+  // Auch Dashboard-Avatar
+  var dashAvatar = document.querySelector('.avatar');
+
+  displays.forEach(function(el) {
+    if (!el) return;
+    if (avatarSrc) {
+      el.innerHTML = '<img src="' + avatarSrc + '" style="width:100%;height:100%;object-fit:cover">';
+    } else {
+      el.innerHTML = initial;
+      el.style.background = 'linear-gradient(135deg,#ccff00,#556d00)';
+    }
+  });
+
+  if (dashAvatar) {
+    if (avatarSrc) {
+      dashAvatar.innerHTML = '<img src="' + avatarSrc + '" style="width:100%;height:100%;object-fit:cover">';
+      dashAvatar.style.background = 'none';
+    } else {
+      dashAvatar.innerHTML = initial;
+      dashAvatar.style.background = 'linear-gradient(135deg,#ccff00,#556d00)';
+    }
+  }
+}
+
+function saveProfilData() {
+  try {
+    var name    = document.getElementById('edit-name').value.trim()    || 'Martin R.';
+    var sub     = document.getElementById('edit-sub').value.trim()     || '';
+    var gewicht = document.getElementById('edit-gewicht').value.trim() || '82.4';
+    var ziel    = document.getElementById('edit-ziel').value.trim()    || '78.0';
+
+    localStorage.setItem('kp_name',    name);
+    localStorage.setItem('kp_sub',     sub);
+    localStorage.setItem('kp_gewicht', gewicht);
+    localStorage.setItem('kp_ziel',    ziel);
+
+    loadProfilData();
+    toggleProfilEdit();
+  } catch(e) {
+    alert('Speichern fehlgeschlagen — bitte App über eine URL öffnen (nicht als lokale Datei).');
+  }
+}
+
+function handleAvatarUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var src = e.target.result;
+    try { localStorage.setItem('kp_avatar', src); } catch(err) {}
+    var preview = document.getElementById('avatar-edit-preview');
+    if (preview) preview.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover">';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function toggleProfilEdit() {
+  var view = document.getElementById('profil-view');
+  var edit = document.getElementById('profil-edit');
+  var icon = document.getElementById('profil-edit-icon');
+  var isEditing = edit.style.display === 'flex';
+  if (isEditing) {
+    edit.style.display = 'none';
+    view.style.display = 'block';
+    if (icon) icon.textContent = 'edit';
+  } else {
+    view.style.display = 'none';
+    edit.style.display = 'flex';
+    if (icon) icon.textContent = 'close';
+    loadProfilData(); // Felder aktualisieren
+  }
+}
+
+// ─── Greeting ──────────────────────────────────────────────────────
+function initGreeting() {
+  var now = new Date();
+  var h = now.getHours();
+  var greet = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Nachmittag' : 'Guten Abend';
+  var days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var dateStr = days[now.getDay()] + ', ' + now.getDate() + '. ' + months[now.getMonth()];
+  var emoji = h < 12 ? '☀️' : h < 18 ? '💪' : '🌙';
+  var d = document.getElementById('greeting-date');
+  var t = document.getElementById('greeting-text');
+  if (d) d.textContent = dateStr;
+  if (t) t.textContent = greet + ', Martin ' + emoji;
+}
+
+// ─── Init ──────────────────────────────────────────────────────────
+initGreeting();
+loadProfilData();
+initGewichtScreen();
+renderDashboardPlaene();
+navigate('dashboard');
+</script>
+</body>
+</html>
