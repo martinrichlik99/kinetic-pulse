@@ -296,24 +296,15 @@ tailwind.config = {
 
     <!-- Übung Header -->
     <div>
-      <p style="font-size:11px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px">Übung 1 von 6</p>
+      <p id="wkt-counter" style="font-size:11px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px">Übung 1 von 1</p>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
         <div style="flex:1">
-          <h2 style="font-size:28px;font-weight:900;font-style:italic;margin:0 0 2px;letter-spacing:-.02em">Bench Press</h2>
-          <p style="font-size:13px;color:#8e9379;margin:0 0 10px">Dumbbell · Chest</p>
-          <span style="display:inline-flex;align-items:center;gap:6px;background:#1a2200;border:1px solid #ccff00;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;color:#ccff00">
+          <h2 id="wkt-name" style="font-size:28px;font-weight:900;font-style:italic;margin:0 0 2px;letter-spacing:-.02em">—</h2>
+          <p id="wkt-sub" style="font-size:13px;color:#8e9379;margin:0 0 10px">Sätze · Wdh</p>
+          <span id="wkt-pr" style="display:none;align-items:center;gap:6px;background:#1a2200;border:1px solid #ccff00;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;color:#ccff00">
             <span class="material-symbols-outlined" style="font-size:14px">emoji_events</span>
-            PR: 100KG × 5
+            PR: —
           </span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-top:4px">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:#8e9379">
-            <span class="material-symbols-outlined" style="font-size:20px">skip_next</span>
-            <span style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Überspringen</span>
-          </div>
-          <div style="width:40px;height:40px;border-radius:50%;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c4c9ac">
-            <span class="material-symbols-outlined" style="font-size:18px">more_horiz</span>
-          </div>
         </div>
       </div>
     </div>
@@ -365,7 +356,7 @@ tailwind.config = {
   <div style="position:fixed;bottom:68px;left:0;right:0;z-index:90;background:rgba(17,21,8,.97);backdrop-filter:blur(16px);border-top:1px solid #333627;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
 
     <!-- Nächste Übung Button -->
-    <button style="width:100%;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+    <button id="wkt-next-btn" style="width:100%;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
       Nächste Übung
       <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
     </button>
@@ -1444,6 +1435,9 @@ function showCreatePlan() {
 function hideCreatePlan() {
   var modal = document.getElementById('modal-create-plan');
   if (modal) modal.style.display = 'none';
+  editingPlanId = null;
+  var modalTitle = document.querySelector('#modal-create-plan h2');
+  if (modalTitle) modalTitle.textContent = 'Neuen Plan erstellen';
 }
 
 function addUebungRow() {
@@ -1492,72 +1486,210 @@ function savePlan() {
 
   try {
     var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
-    plaene.push({ name: name, tage: tage, dauer: dauer, fokus: fokus, uebungen: uebungen, id: Date.now() });
+    if (editingPlanId !== null) {
+      // Update bestehenden Plan
+      for (var i = 0; i < plaene.length; i++) {
+        if (plaene[i].id === editingPlanId) {
+          plaene[i] = { name: name, tage: tage, dauer: dauer, fokus: fokus, uebungen: uebungen, id: editingPlanId };
+          break;
+        }
+      }
+      editingPlanId = null;
+    } else {
+      plaene.push({ name: name, tage: tage, dauer: dauer, fokus: fokus, uebungen: uebungen, id: Date.now() });
+    }
     localStorage.setItem('kp_plaene', JSON.stringify(plaene));
   } catch(e) {}
 
   hideCreatePlan();
   renderDashboardPlaene();
-
-  // Kurzes Feedback
-  setTimeout(function() { alert('✓ Plan "' + name + '" gespeichert!'); }, 100);
 }
 
 function renderDashboardPlaene() {
   try {
     var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
 
-    // Dashboard
+    // ── Dashboard Schnellstart ──────────────────────────────────────
     var container = document.getElementById('dashboard-plaene-list');
     var emptyState = document.getElementById('plaene-empty-state');
     if (container) {
-      var existingCustom = container.querySelectorAll('.custom-plan-item');
-      existingCustom.forEach(function(el) { el.remove(); });
+      container.querySelectorAll('.custom-plan-item').forEach(function(el) { el.remove(); });
       if (emptyState) emptyState.style.display = plaene.length ? 'none' : 'block';
       var btn = container.querySelector('button[onclick="showCreatePlan()"]');
       plaene.slice(-3).reverse().forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'custom-plan-item';
-        div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #ccff00';
-        div.innerHTML = '<div><p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf">' + p.name + '</p><p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p></div><button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
+        div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #444933;gap:10px';
+        div.innerHTML =
+          '<div style="flex:1;min-width:0">' +
+            '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</p>' +
+            '<p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p>' +
+          '</div>' +
+          '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">' +
+            '<span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span>' +
+          '</button>';
         container.insertBefore(div, btn);
       });
     }
 
-    // Pläne-Screen
+    // ── Pläne-Screen ───────────────────────────────────────────────
     var screenList = document.getElementById('plaene-screen-list');
     var screenEmpty = document.getElementById('plaene-screen-empty');
     if (screenList) {
-      var existing = screenList.querySelectorAll('.plan-screen-item');
-      existing.forEach(function(el) { el.remove(); });
+      screenList.querySelectorAll('.plan-screen-item').forEach(function(el) { el.remove(); });
       if (screenEmpty) screenEmpty.style.display = plaene.length ? 'none' : 'block';
       plaene.forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'plan-screen-item card-sm';
+        div.style.cssText = 'display:flex;align-items:flex-start;gap:10px';
         var uebPills = '';
         if (p.uebungen && p.uebungen.length) {
           uebPills = '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">' +
             p.uebungen.map(function(u) {
-              return '<span class="pill" style="font-size:10px">' + u.name + ' <span style="color:#ccff00;font-weight:700">' + u.saetze + 'x' + u.wdh + '</span></span>';
+              return '<span class="pill" style="font-size:10px">' + u.name + ' <span style="color:#ccff00;font-weight:700">' + u.saetze + '\xd7' + u.wdh + '</span></span>';
             }).join('') +
-            '</div>';
+          '</div>';
         }
         div.innerHTML =
-          '<div style="flex:1">' +
+          '<div style="flex:1;min-width:0">' +
             '<p style="margin:0;font-size:15px;font-weight:800;font-style:italic">' + p.name + '</p>' +
             '<p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p>' +
             uebPills +
           '</div>' +
-          '<button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation;margin-left:12px"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
+          '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:center">' +
+            '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation">' +
+              '<span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span>' +
+            '</button>' +
+            '<div style="display:flex;gap:4px">' +
+              '<button onclick="editPlan(' + p.id + ')" style="width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
+                '<span class="material-symbols-outlined" style="font-size:15px">edit</span>' +
+              '</button>' +
+              '<button onclick="deletePlan(' + p.id + ')" style="width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
+                '<span class="material-symbols-outlined" style="font-size:15px">delete</span>' +
+              '</button>' +
+            '</div>' +
+          '</div>';
         screenList.appendChild(div);
       });
     }
 
-    // Gewicht-Widget Dashboard aktualisieren
+    // ── Gewicht-Widget Dashboard ────────────────────────────────────
     var g = localStorage.getItem('kp_gewicht');
     var dashG = document.getElementById('dash-gewicht');
     if (dashG && g) dashG.textContent = parseFloat(g).toFixed(1);
 
+  } catch(e) {}
+}
+
+// ─── Plan starten: Workout-Screen mit Plan-Übungen befüllen ───────
+var wktUebungen = [];
+var wktIdx = 0;
+
+function startPlan(planId) {
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    var plan = null;
+    for (var i = 0; i < plaene.length; i++) { if (plaene[i].id === planId) { plan = plaene[i]; break; } }
+    if (!plan || !plan.uebungen || !plan.uebungen.length) { navigate('workout'); return; }
+    wktUebungen = plan.uebungen;
+    wktIdx = 0;
+    renderWorkoutExercise(0);
+    navigate('workout');
+  } catch(e) { navigate('workout'); }
+}
+
+function renderWorkoutExercise(idx) {
+  var u = wktUebungen[idx];
+  if (!u) return;
+  var saetze = parseInt(u.saetze) || 3;
+  var wdh    = parseInt(u.wdh)    || 10;
+
+  var ctrEl = document.getElementById('wkt-counter');
+  if (ctrEl) ctrEl.textContent = 'Übung ' + (idx + 1) + ' von ' + wktUebungen.length;
+  var nameEl = document.getElementById('wkt-name');
+  if (nameEl) nameEl.textContent = u.name;
+  var subEl = document.getElementById('wkt-sub');
+  if (subEl) subEl.textContent = saetze + ' Sätze \xb7 ' + wdh + ' Wdh';
+
+  // Sätze aufbauen
+  var sc = document.getElementById('sets-container');
+  if (sc) {
+    sc.innerHTML = '';
+    for (var s = 1; s <= saetze; s++) {
+      var row = document.createElement('div');
+      var active = s === 1;
+      row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #ccff00;box-shadow:0 0 12px rgba(204,255,0,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
+      row.innerHTML =
+        '<span style="font-size:15px;color:' + (active ? '#ccff00' : '#8e9379') + ';font-weight:700;text-align:center">' + s + '</span>' +
+        '<input type="number" value="0" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%">' +
+        '<input type="number" value="' + wdh + '" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%">' +
+        '<div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>';
+      sc.appendChild(row);
+    }
+  }
+
+  // Nächste-Übung-Button
+  var nextBtn = document.getElementById('wkt-next-btn');
+  if (nextBtn) {
+    if (idx < wktUebungen.length - 1) {
+      nextBtn.style.display = 'flex';
+      nextBtn.onclick = function() { wktIdx++; renderWorkoutExercise(wktIdx); };
+    } else {
+      nextBtn.style.display = 'none';
+    }
+  }
+}
+
+// ─── Plan löschen ─────────────────────────────────────────────────
+function deletePlan(planId) {
+  if (!confirm('Plan löschen?')) return;
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    plaene = plaene.filter(function(p) { return p.id !== planId; });
+    localStorage.setItem('kp_plaene', JSON.stringify(plaene));
+  } catch(e) {}
+  renderDashboardPlaene();
+}
+
+// ─── Plan bearbeiten ──────────────────────────────────────────────
+var editingPlanId = null;
+
+function editPlan(planId) {
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    var plan = null;
+    for (var i = 0; i < plaene.length; i++) { if (plaene[i].id === planId) { plan = plaene[i]; break; } }
+    if (!plan) return;
+    editingPlanId = planId;
+    document.getElementById('new-plan-name').value = plan.name || '';
+    document.getElementById('new-plan-tage').value = plan.tage || '3';
+    document.getElementById('new-plan-dauer').value = plan.dauer || '60';
+    document.getElementById('new-plan-fokus').value = plan.fokus || '';
+    // Übungen neu laden
+    var liste = document.getElementById('uebungen-liste');
+    var leer  = document.getElementById('uebungen-leer');
+    if (liste) {
+      liste.innerHTML = '';
+      if (plan.uebungen && plan.uebungen.length) {
+        if (leer) leer.style.display = 'none';
+        plan.uebungen.forEach(function(u) {
+          addUebungRow();
+          var rows = liste.children;
+          var last = rows[rows.length - 1];
+          var inputs = last.querySelectorAll('input');
+          if (inputs[0]) inputs[0].value = u.name || '';
+          if (inputs[1]) inputs[1].value = u.saetze || '3';
+          if (inputs[2]) inputs[2].value = u.wdh || '10';
+        });
+      } else {
+        if (leer) leer.style.display = 'block';
+      }
+    }
+    // Modal-Titel anpassen
+    var modalTitle = document.querySelector('#modal-create-plan h2');
+    if (modalTitle) modalTitle.textContent = 'Plan bearbeiten';
+    var modal = document.getElementById('modal-create-plan');
+    if (modal) modal.style.display = 'flex';
   } catch(e) {}
 }
 
