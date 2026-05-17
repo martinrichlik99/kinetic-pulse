@@ -171,20 +171,6 @@ tailwind.config = {
       </div>
     </div>
 
-    <!-- Weight Widget -->
-    <div class="card-sm" onclick="navigate('gewicht')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Körpergewicht</p>
-        <div style="display:flex;align-items:baseline;gap:6px">
-          <span id="dash-gewicht" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#ccff00">—</span>
-          <span style="color:#8e9379;font-size:14px">kg</span>
-        </div>
-      </div>
-      <div style="text-align:right">
-        <p style="font-size:11px;color:#8e9379;margin:0 0 4px">Gewicht eintragen →</p>
-      </div>
-    </div>
-
     <!-- Last 7 Days Volume Chart -->
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -227,19 +213,28 @@ tailwind.config = {
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Schnellstart</h3>
-        <span onclick="navigate('plaene')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600;touch-action:manipulation">Alle →</span>
+        <span onclick="navigate('plaene')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600;touch-action:manipulation">Pläne →</span>
       </div>
       <div id="dashboard-plaene-list" style="display:flex;flex-direction:column;gap:8px">
         <!-- Leer-Zustand -->
         <div id="plaene-empty-state" style="text-align:center;padding:20px 0">
           <span class="material-symbols-outlined" style="font-size:40px;color:#444933">fitness_center</span>
-          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine Pläne. Erstelle deinen ersten!</p>
+          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine Pläne — erstelle einen unter <strong style="color:#ccff00">Pläne</strong>.</p>
         </div>
-        <!-- Neuer Plan Button -->
-        <button onclick="showCreatePlan()" style="width:100%;height:44px;background:transparent;border:1px dashed #444933;border-radius:10px;color:#8e9379;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
-          <span class="material-symbols-outlined" style="font-size:18px">add</span>
-          Neuen Plan erstellen
-        </button>
+      </div>
+    </div>
+
+    <!-- Weight Widget -->
+    <div class="card-sm" onclick="navigate('gewicht')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Körpergewicht</p>
+        <div style="display:flex;align-items:baseline;gap:6px">
+          <span id="dash-gewicht" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#ccff00">—</span>
+          <span style="color:#8e9379;font-size:14px">kg</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <p style="font-size:11px;color:#8e9379;margin:0 0 4px">Gewicht eintragen →</p>
       </div>
     </div>
 
@@ -1179,9 +1174,6 @@ tailwind.config = {
     <span class="material-symbols-outlined">fitness_center</span>
     <span class="nav-label">Pläne</span>
   </div>
-  <div class="nav-item nav-center" id="nav-workout" onclick="navigate('workout')">
-    <span class="material-symbols-outlined" style="font-size:22px">bolt</span>
-  </div>
   <div class="nav-item" id="nav-historie" onclick="navigate('historie')">
     <span class="material-symbols-outlined">history</span>
     <span class="nav-label">Historie</span>
@@ -1201,10 +1193,10 @@ tailwind.config = {
 <script>
 // ─── Navigation ───────────────────────────────────────────────────
 let currentScreen = 'dashboard';
-let navHistory = ['dashboard'];
+var navHistory = ['dashboard'];
 
-const screens = ['dashboard','plaene','workout','historie','profil','social','gewicht'];
-const navItems = ['dashboard','plaene','workout','historie','gewicht','profil'];
+var screens = ['dashboard','plaene','workout','historie','profil','social','gewicht'];
+var navItems = ['dashboard','plaene','historie','gewicht','profil'];
 
 function navigate(target) {
   // Start workout timer wenn Workout-Screen geöffnet wird
@@ -1235,24 +1227,14 @@ function navigate(target) {
     var nbtn = document.getElementById('nav-' + nid);
     if (!nbtn) continue;
     nbtn.classList.remove('active');
-    // Workout-Button immer volt-Style
-    if (nid === 'workout') {
-      nbtn.style.background = '#ccff00';
-      nbtn.style.color = '#1a2200';
-      nbtn.style.boxShadow = '0 0 20px rgba(204,255,0,.4)';
-    } else {
-      nbtn.style.background = '';
-      nbtn.style.color = '';
-      nbtn.style.boxShadow = '';
-    }
+    nbtn.style.background = '';
+    nbtn.style.color = '';
+    nbtn.style.boxShadow = '';
   }
 
   var activeBtn = document.getElementById('nav-' + target);
   if (activeBtn) {
     activeBtn.classList.add('active');
-    if (target === 'workout') {
-      activeBtn.style.boxShadow = '0 0 32px rgba(204,255,0,.6)';
-    }
   }
 
   navHistory.push(target);
@@ -1571,7 +1553,6 @@ function renderDashboardPlaene() {
     if (container) {
       container.querySelectorAll('.custom-plan-item').forEach(function(el) { el.remove(); });
       if (emptyState) emptyState.style.display = plaene.length ? 'none' : 'block';
-      var btn = container.querySelector('button[onclick="showCreatePlan()"]');
       plaene.slice(-3).reverse().forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'custom-plan-item';
@@ -1584,7 +1565,7 @@ function renderDashboardPlaene() {
           '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">' +
             '<span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span>' +
           '</button>';
-        container.insertBefore(div, btn);
+        container.appendChild(div);
       });
     }
 
@@ -1612,18 +1593,13 @@ function renderDashboardPlaene() {
             '<p style="margin:0;font-size:11px;color:#8e9379">' + (p.fokus ? p.fokus : 'Kein Fokus angegeben') + '</p>' +
             uebPills +
           '</div>' +
-          '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:center">' +
-            '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation">' +
-              '<span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span>' +
+          '<div style="display:flex;gap:4px;flex-shrink:0;align-items:center">' +
+            '<button onclick="editPlan(' + p.id + ')" style="width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
+              '<span class="material-symbols-outlined" style="font-size:16px">edit</span>' +
             '</button>' +
-            '<div style="display:flex;gap:4px">' +
-              '<button onclick="editPlan(' + p.id + ')" style="width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
-                '<span class="material-symbols-outlined" style="font-size:15px">edit</span>' +
-              '</button>' +
-              '<button onclick="deletePlan(' + p.id + ')" style="width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
-                '<span class="material-symbols-outlined" style="font-size:15px">delete</span>' +
-              '</button>' +
-            '</div>' +
+            '<button onclick="deletePlan(' + p.id + ')" style="width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
+              '<span class="material-symbols-outlined" style="font-size:16px">delete</span>' +
+            '</button>' +
           '</div>';
         screenList.appendChild(div);
       });
