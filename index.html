@@ -57,7 +57,7 @@ tailwind.config = {
   .nav-item:active { transform: scale(.9); }
   .nav-item.active { color: #ccff00; }
   .nav-item .nav-label { font-size: 10px; font-weight: 600; letter-spacing: .03em; }
-  .nav-center { background: #ccff00; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: #1a2200; margin-top: -6px; box-shadow: 0 0 20px rgba(204,255,0,.4); transition: all .2s; }
+  .nav-center { background: #ccff00; border-radius: 50%; width: 48px !important; height: 48px; min-width: 48px !important; display: flex; align-items: center; justify-content: center; color: #1a2200; margin-top: -6px; box-shadow: 0 0 20px rgba(204,255,0,.4); transition: all .2s; padding: 0; }
   .nav-center:active { transform: scale(.92); }
   .nav-center.active { box-shadow: 0 0 32px rgba(204,255,0,.6); }
 
@@ -1118,9 +1118,46 @@ tailwind.config = {
             <span class="material-symbols-outlined" style="font-size:14px">add</span> Übung
           </button>
         </div>
+        <!-- Spalten-Header -->
+        <div style="display:grid;grid-template-columns:1fr 56px 56px 36px;gap:6px;padding:0 2px;margin-bottom:4px">
+          <span style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Übung</span>
+          <span style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Sätze</span>
+          <span style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Wdh</span>
+          <span></span>
+        </div>
         <div id="uebungen-liste" style="display:flex;flex-direction:column;gap:8px"></div>
         <p id="uebungen-leer" style="font-size:12px;color:#8e9379;text-align:center;padding:12px 0;margin:0">Noch keine Übungen — tippe auf „+ Übung"</p>
       </div>
+      <!-- Datalist für Autocomplete -->
+      <datalist id="uebungen-vorschlaege">
+        <option value="Bankdrücken"></option>
+        <option value="Schrägbankdrücken"></option>
+        <option value="Kurzhantel-Flyes"></option>
+        <option value="Dips"></option>
+        <option value="Schulterdrücken"></option>
+        <option value="Seitheben"></option>
+        <option value="Vorgebeugtes Seitheben"></option>
+        <option value="Trizeps-Pushdown"></option>
+        <option value="Skull Crushers"></option>
+        <option value="Klimmzüge"></option>
+        <option value="Latzug"></option>
+        <option value="Rudern (Langhantel)"></option>
+        <option value="Rudern (Kabelzug)"></option>
+        <option value="Bizeps-Curls"></option>
+        <option value="Hammer Curls"></option>
+        <option value="Kniebeugen"></option>
+        <option value="Beinpresse"></option>
+        <option value="Rumänisches Kreuzheben"></option>
+        <option value="Kreuzheben"></option>
+        <option value="Beinbeuger"></option>
+        <option value="Beinstrecker"></option>
+        <option value="Wadenheben"></option>
+        <option value="Hip Thrust"></option>
+        <option value="Plank"></option>
+        <option value="Crunches"></option>
+        <option value="Beinheben"></option>
+        <option value="Kabelzug-Crunch"></option>
+      </datalist>
 
       <button onclick="savePlan()" class="volt-bg" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;touch-action:manipulation;margin-top:4px" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
         <span style="display:flex;align-items:center;justify-content:center;gap:8px">
@@ -1419,9 +1456,9 @@ function addUebungRow() {
   var row = document.createElement('div');
   row.style.cssText = 'display:grid;grid-template-columns:1fr 56px 56px 36px;gap:6px;align-items:center';
   row.innerHTML =
-    '<input type="text" placeholder="Übungsname" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 10px;color:#e2e4cf;font-size:14px;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
-    '<input type="number" placeholder="Sätze" min="1" max="20" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#ccff00;font-size:14px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
-    '<input type="number" placeholder="Wdh" min="1" max="100" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#e2e4cf;font-size:14px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="text" list="uebungen-vorschlaege" placeholder="Übungsname" autocomplete="off" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 10px;color:#e2e4cf;font-size:14px;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="number" placeholder="3" min="1" max="20" value="3" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#ccff00;font-size:14px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="number" placeholder="10" min="1" max="100" value="10" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#e2e4cf;font-size:14px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
     '<button type="button" onclick="this.parentNode.remove();checkUebungenLeer()" style="width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:16px">delete</span></button>';
   liste.appendChild(row);
 }
@@ -1497,8 +1534,21 @@ function renderDashboardPlaene() {
       plaene.forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'plan-screen-item card-sm';
-        div.style.cssText = 'display:flex;align-items:center;justify-content:space-between';
-        div.innerHTML = '<div><p style="margin:0;font-size:15px;font-weight:800;font-style:italic">' + p.name + '</p><p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p></div><button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
+        var uebPills = '';
+        if (p.uebungen && p.uebungen.length) {
+          uebPills = '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">' +
+            p.uebungen.map(function(u) {
+              return '<span class="pill" style="font-size:10px">' + u.name + ' <span style="color:#ccff00;font-weight:700">' + u.saetze + 'x' + u.wdh + '</span></span>';
+            }).join('') +
+            '</div>';
+        }
+        div.innerHTML =
+          '<div style="flex:1">' +
+            '<p style="margin:0;font-size:15px;font-weight:800;font-style:italic">' + p.name + '</p>' +
+            '<p style="margin:0;font-size:11px;color:#8e9379">' + p.tage + ' Tage/Woche · ' + p.dauer + ' min' + (p.fokus ? ' · ' + p.fokus : '') + '</p>' +
+            uebPills +
+          '</div>' +
+          '<button onclick="navigate(\'workout\')" style="width:40px;height:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation;margin-left:12px"><span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span></button>';
         screenList.appendChild(div);
       });
     }
@@ -1723,6 +1773,21 @@ function initGreeting() {
   if (d) d.textContent = dateStr;
   if (t) t.textContent = greet + ', Martin ' + emoji;
 }
+
+// ─── Migration: Übungen aus bestehenden Plänen entfernen ──────────
+(function migratePlaene() {
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    var changed = false;
+    plaene.forEach(function(p) {
+      if (p.uebungen && p.uebungen.length > 0) {
+        p.uebungen = [];
+        changed = true;
+      }
+    });
+    if (changed) localStorage.setItem('kp_plaene', JSON.stringify(plaene));
+  } catch(e) {}
+})();
 
 // ─── Init ──────────────────────────────────────────────────────────
 initGreeting();
