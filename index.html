@@ -1200,44 +1200,45 @@ const navItems = ['dashboard','plaene','workout','historie','gewicht','profil'];
 function navigate(target) {
   // Start workout timer wenn Workout-Screen geöffnet wird
   if (target === 'workout' && currentScreen !== 'workout') {
-    setTimeout(() => startWorkoutTimer(), 100);
+    setTimeout(function() { startWorkoutTimer(); }, 100);
   }
   // Gewicht-Screen initialisieren
   if (target === 'gewicht') {
-    setTimeout(() => initGewichtScreen(), 50);
+    setTimeout(function() { initGewichtScreen(); }, 50);
   }
 
   // Hide all screens
-  screens.forEach(s => {
-    const el = document.getElementById('screen-' + s);
+  for (var si = 0; si < screens.length; si++) {
+    var el = document.getElementById('screen-' + screens[si]);
     if (el) el.classList.remove('active');
-  });
+  }
 
   // Show target
-  const target_el = document.getElementById('screen-' + target);
+  var target_el = document.getElementById('screen-' + target);
   if (target_el) {
     target_el.classList.add('active');
     target_el.scrollTop = 0;
   }
 
   // Update nav active state
-  navItems.forEach(id => {
-    const btn = document.getElementById('nav-' + id);
-    if (!btn) return;
-    btn.classList.remove('active');
+  for (var ni = 0; ni < navItems.length; ni++) {
+    var nid = navItems[ni];
+    var nbtn = document.getElementById('nav-' + nid);
+    if (!nbtn) continue;
+    nbtn.classList.remove('active');
     // Workout-Button immer volt-Style
-    if (id === 'workout') {
-      btn.style.background = '#ccff00';
-      btn.style.color = '#1a2200';
-      btn.style.boxShadow = '0 0 20px rgba(204,255,0,.4)';
+    if (nid === 'workout') {
+      nbtn.style.background = '#ccff00';
+      nbtn.style.color = '#1a2200';
+      nbtn.style.boxShadow = '0 0 20px rgba(204,255,0,.4)';
     } else {
-      btn.style.background = '';
-      btn.style.color = '';
-      btn.style.boxShadow = '';
+      nbtn.style.background = '';
+      nbtn.style.color = '';
+      nbtn.style.boxShadow = '';
     }
-  });
+  }
 
-  const activeBtn = document.getElementById('nav-' + target);
+  var activeBtn = document.getElementById('nav-' + target);
   if (activeBtn) {
     activeBtn.classList.add('active');
     if (target === 'workout') {
@@ -1253,7 +1254,7 @@ function navigate(target) {
 function goBack() {
   if (navHistory.length > 1) {
     navHistory.pop();
-    const prev = navHistory[navHistory.length - 1] || 'dashboard';
+    var prev = navHistory[navHistory.length - 1] || 'dashboard';
     navigate(prev);
   }
 }
@@ -1266,11 +1267,11 @@ let pauseInterval = null;
 
 function startWorkoutTimer() {
   if (workoutInterval) return;
-  workoutInterval = setInterval(() => {
+  workoutInterval = setInterval(function() {
     workoutSeconds++;
-    const m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
-    const s = String(workoutSeconds % 60).padStart(2,'0');
-    const el = document.getElementById('workout-time');
+    var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
+    var s = String(workoutSeconds % 60).padStart(2,'0');
+    var el = document.getElementById('workout-time');
     if (el) el.textContent = m + ':' + s;
   }, 1000);
 }
@@ -1294,7 +1295,7 @@ function startTimer(seconds) {
     }
   }
   updateTimerDisplay();
-  pauseInterval = setInterval(() => {
+  pauseInterval = setInterval(function() {
     pauseSeconds--;
     if (pauseSeconds <= 0) {
       stopTimer();
@@ -1305,9 +1306,9 @@ function startTimer(seconds) {
 }
 
 function updateTimerDisplay() {
-  const m = Math.floor(pauseSeconds / 60);
-  const s = String(pauseSeconds % 60).padStart(2,'0');
-  const el = document.getElementById('timer-display');
+  var m = Math.floor(pauseSeconds / 60);
+  var s = String(pauseSeconds % 60).padStart(2,'0');
+  var el = document.getElementById('timer-display');
   if (el) el.textContent = m + ':' + s;
 }
 
@@ -1346,10 +1347,10 @@ function toggleSet(el) {
 
 // ─── History Tab Switch ────────────────────────────────────────────
 function switchHistoryTab(tab) {
-  const historyList = document.getElementById('history-list');
-  const prsList = document.getElementById('prs-list');
-  const tabHistory = document.getElementById('tab-history');
-  const tabPrs = document.getElementById('tab-prs');
+  var historyList = document.getElementById('history-list');
+  var prsList = document.getElementById('prs-list');
+  var tabHistory = document.getElementById('tab-history');
+  var tabPrs = document.getElementById('tab-prs');
 
   if (tab === 'history') {
     historyList.style.display = 'block';
@@ -1370,18 +1371,18 @@ function switchHistoryTab(tab) {
 
 // ─── Social Tab Switch ─────────────────────────────────────────────
 function switchSocialTab(tab) {
-  const tabs = ['share','feed','bench'];
-  tabs.forEach(t => {
-    const content = document.getElementById('social-' + t);
-    const btn = document.getElementById('social-tab-' + t);
+  var tabs = ['share','feed','bench'];
+  tabs.forEach(function(t) {
+    var content = document.getElementById('social-' + t);
+    var btn = document.getElementById('social-tab-' + t);
     if (content) content.style.display = 'none';
     if (btn) {
       btn.style.background = 'transparent';
       btn.style.color = '#8e9379';
     }
   });
-  const activeContent = document.getElementById('social-' + tab);
-  const activeBtn = document.getElementById('social-tab-' + tab);
+  var activeContent = document.getElementById('social-' + tab);
+  var activeBtn = document.getElementById('social-tab-' + tab);
   if (activeContent) activeContent.style.display = 'flex';
   if (activeBtn) {
     activeBtn.style.background = '#ccff00';
@@ -1391,24 +1392,24 @@ function switchSocialTab(tab) {
 
 // ─── Share Card Preview ────────────────────────────────────────────
 function showShareCard(type) {
-  const preview = document.getElementById('share-card-preview');
-  const cards = ['workout','pr','progress','streak'];
+  var preview = document.getElementById('share-card-preview');
+  var cards = ['workout','pr','progress','streak'];
 
   preview.style.display = 'flex';
   preview.style.flexDirection = 'column';
   preview.style.gap = '12px';
 
-  cards.forEach(c => {
-    const el = document.getElementById('card-' + c);
+  cards.forEach(function(c) {
+    var el = document.getElementById('card-' + c);
     if (el) el.style.display = 'none';
   });
 
-  const target = document.getElementById('card-' + type);
+  var target = document.getElementById('card-' + type);
   if (target) target.style.display = 'block';
 
   // Highlight selected button
-  ['workout','pr','progress','streak'].forEach(t => {
-    const btn = document.getElementById('share-' + t + '-btn');
+  ['workout','pr','progress','streak'].forEach(function(t) {
+    var btn = document.getElementById('share-' + t + '-btn');
     if (btn) {
       btn.style.border = t === type ? '1px solid #ccff00' : '1px solid #333627';
       btn.style.background = t === type ? '#1a2200' : '#1e2113';
@@ -1416,7 +1417,7 @@ function showShareCard(type) {
   });
 
   // Scroll to preview
-  setTimeout(() => {
+  setTimeout(function() {
     preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, 100);
 }
@@ -1823,7 +1824,7 @@ function saveGewicht() {
   loadProfilData();
   // Kurzes Feedback
   var btn = document.querySelector('#screen-gewicht .volt-bg');
-  if (btn) { btn.textContent = '✓ Gespeichert!'; setTimeout(() => { btn.textContent = 'Speichern'; }, 1500); }
+  if (btn) { btn.textContent = '✓ Gespeichert!'; setTimeout(function() { btn.textContent = 'Speichern'; }, 1500); }
 }
 
 function updateGewichtScreen(val) {
