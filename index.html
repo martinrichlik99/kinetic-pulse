@@ -634,6 +634,15 @@ tailwind.config = {
           <span class="material-symbols-outlined" style="font-size:18px;color:#abd600">group</span>Freunde
         </button>
       </div>
+
+      <!-- App-Reset -->
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid #2a2d1e">
+        <p style="font-size:12px;color:#444933;margin:0 0 10px;text-align:center">Für Weitergabe an andere Person</p>
+        <button onclick="resetAppData()" style="width:100%;height:44px;background:transparent;border:1px solid #3d1515;border-radius:12px;color:#c04040;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
+          <span class="material-symbols-outlined" style="font-size:18px">restart_alt</span>
+          App komplett zurücksetzen
+        </button>
+      </div>
     </div>
 
     <!-- ─ EDIT-MODUS ─ -->
@@ -1171,7 +1180,7 @@ tailwind.config = {
     <span class="nav-label">Pläne</span>
   </div>
   <div class="nav-item nav-center" id="nav-workout" onclick="navigate('workout')">
-    <span class="material-symbols-outlined" style="font-size:26px">play_arrow</span>
+    <span class="material-symbols-outlined" style="font-size:22px">bolt</span>
   </div>
   <div class="nav-item" id="nav-historie" onclick="navigate('historie')">
     <span class="material-symbols-outlined">history</span>
@@ -1321,10 +1330,45 @@ function finishWorkout() {
   // Letzte Übung der Session speichern
   if (wktUebungen[wktIdx]) saveCurrentExerciseSets(wktUebungen[wktIdx].name);
 
+  // History-Eintrag erstellen
+  var histEntry = {
+    date: new Date().toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
+    dauer: Math.round(workoutSeconds / 60),
+    uebungen: wktUebungen.length,
+    name: wktUebungen.length ? wktUebungen[0].name + (wktUebungen.length > 1 ? ' + ' + (wktUebungen.length - 1) + ' weitere' : '') : 'Training'
+  };
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    hist.unshift(histEntry);
+    if (hist.length > 20) hist = hist.slice(0, 20);
+    localStorage.setItem('kp_activityHistory', JSON.stringify(hist));
+    // Trainingstag speichern
+    var today = new Date().getDate();
+    var days = JSON.parse(localStorage.getItem('kp_workoutDays') || '[]');
+    if (days.indexOf(today) === -1) { days.push(today); localStorage.setItem('kp_workoutDays', JSON.stringify(days)); }
+  } catch(e) {}
+
   stopTimer();
   if (workoutInterval) clearInterval(workoutInterval);
   workoutInterval = null;
   workoutSeconds = 0;
+
+  // Workout-State vollständig zurücksetzen
+  wktUebungen = [];
+  wktIdx = 0;
+  var sc = document.getElementById('sets-container');
+  if (sc) sc.innerHTML = '';
+  var ctrEl = document.getElementById('wkt-counter');
+  if (ctrEl) ctrEl.textContent = '';
+  var nameEl = document.getElementById('wkt-name');
+  if (nameEl) nameEl.textContent = 'Kein Training aktiv';
+  var subEl = document.getElementById('wkt-sub');
+  if (subEl) subEl.textContent = 'Plan auswählen um zu starten';
+  var nextBtn = document.getElementById('wkt-next-btn');
+  if (nextBtn) nextBtn.style.display = 'none';
+  var wtEl = document.getElementById('workout-time');
+  if (wtEl) wtEl.textContent = '00:00';
+
   navigate('social');
   setTimeout(function() { showShareCard('workout'); }, 300);
 }
@@ -1605,12 +1649,13 @@ function startPlan(planId) {
     if (!plan || !plan.uebungen || !plan.uebungen.length) { navigate('workout'); return; }
     wktUebungen = plan.uebungen;
     wktIdx = 0;
-    renderWorkoutExercise(0);
-    // Stoppuhr explizit zurücksetzen und starten
+    // Stoppuhr und Pausentimer zurücksetzen
     if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
     workoutSeconds = 0;
+    stopTimer();
     var wtEl = document.getElementById('workout-time');
     if (wtEl) wtEl.textContent = '00:00';
+    renderWorkoutExercise(0);
     navigate('workout');
     setTimeout(function() {
       if (workoutInterval) clearInterval(workoutInterval);
@@ -1733,6 +1778,22 @@ function saveCurrentExerciseSets(uName) {
       localStorage.setItem('kp_lastSets', JSON.stringify(lastSets));
     }
   } catch(e) {}
+}
+
+// ─── App komplett zurücksetzen ─────────────────────────────────────
+function resetAppData() {
+  if (!confirm('Alle Daten löschen? Das kann nicht rückgängig gemacht werden.')) return;
+  var keys = ['kp_plaene','kp_lastSets','kp_activityHistory','kp_workoutDays',
+              'kp_gewicht','kp_gewicht_hist','kp_name','kp_sub','kp_ziel',
+              'kp_startgewicht','kp_avatar'];
+  for (var ki = 0; ki < keys.length; ki++) { localStorage.removeItem(keys[ki]); }
+  // Workout-State zurücksetzen
+  wktUebungen = []; wktIdx = 0;
+  if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
+  workoutSeconds = 0;
+  stopTimer();
+  // App neu laden
+  window.location.reload();
 }
 
 // ─── Plan löschen ─────────────────────────────────────────────────
@@ -1916,15 +1977,16 @@ function updateAvatarDisplay(avatarSrc, name) {
   // Auch Dashboard-Avatar
   var dashAvatar = document.querySelector('.avatar');
 
-  displays.forEach(function(el) {
-    if (!el) return;
+  for (var di = 0; di < displays.length; di++) {
+    var del = displays[di];
+    if (!del) continue;
     if (avatarSrc) {
-      el.innerHTML = '<img src="' + avatarSrc + '" style="width:100%;height:100%;object-fit:cover">';
+      del.innerHTML = '<img src="' + avatarSrc + '" style="width:100%;height:100%;object-fit:cover">';
     } else {
-      el.innerHTML = initial;
-      el.style.background = 'linear-gradient(135deg,#ccff00,#556d00)';
+      del.innerHTML = initial;
+      del.style.background = 'linear-gradient(135deg,#ccff00,#556d00)';
     }
-  });
+  }
 
   if (dashAvatar) {
     if (avatarSrc) {
