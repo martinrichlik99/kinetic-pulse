@@ -383,11 +383,6 @@ tailwind.config = {
       </div>
     </div>
 
-    <!-- Training Beenden Button -->
-    <button class="volt-bg" onclick="finishWorkout()" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
-      <span class="material-symbols-outlined" style="font-size:20px">flag</span>
-      Training beenden
-    </button>
   </div>
 </div>
 
@@ -1751,7 +1746,7 @@ function renderDashboardPlaene() {
         div.innerHTML =
           '<div style="flex:1;min-width:0">' +
             '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</p>' +
-            '<p style="margin:0;font-size:11px;color:#8e9379">' + (p.fokus ? p.fokus : 'Kein Fokus angegeben') + '</p>' +
+            '<p style="margin:0;font-size:11px;color:#8e9379">' + (p.fokus ? p.fokus : 'Kein Fokus angegeben') + (p.lastUsed ? ' · ' + (function(iso){ var diff = Math.round((Date.now() - new Date(iso)) / 86400000); return diff === 0 ? 'heute' : diff === 1 ? 'gestern' : 'vor ' + diff + ' Tagen'; })(p.lastUsed) : '') + '</p>' +
           '</div>' +
           '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#74d604;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">' +
             '<span class="material-symbols-outlined" style="font-size:20px;color:#162000">play_arrow</span>' +
@@ -1824,6 +1819,9 @@ function startPlan(planId) {
     var plan = null;
     for (var i = 0; i < plaene.length; i++) { if (plaene[i].id === planId) { plan = plaene[i]; break; } }
     if (!plan || !plan.uebungen || !plan.uebungen.length) { navigate('workout'); return; }
+    // lastUsed speichern
+    plan.lastUsed = new Date().toISOString();
+    localStorage.setItem('kp_plaene', JSON.stringify(plaene));
     wktUebungen = plan.uebungen;
     wktIdx = 0;
     workoutSeconds = 0;
