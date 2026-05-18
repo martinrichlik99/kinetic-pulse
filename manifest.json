@@ -1,0 +1,19 @@
+{
+  "name": "Kinetic Pulse",
+  "short_name": "Kinetic Pulse",
+  "description": "Dein persönlicher Fitness Tracker",
+  "start_url": "/kinetic-pulse/index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111508",
+  "theme_color": "#111508",
+  "icons": [
+    {
+      "src": "/kinetic-pulse/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "fitness", "sports"]
+}
