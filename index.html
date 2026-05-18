@@ -32,9 +32,9 @@ tailwind.config = {
         'on-surface-var':   '#c4c9ac',
         'outline':          '#8e9379',
         'outline-var':      '#444933',
-        'volt':             '#ccff00',
-        'volt-dim':         '#abd600',
-        'on-volt':          '#1a2200',
+        'volt':             '#74d604',
+        'volt-dim':         '#5aaa00',
+        'on-volt':          '#162000',
         'error':            '#ffb4ab',
       },
       fontFamily: {
@@ -63,15 +63,15 @@ tailwind.config = {
   .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(30,33,19,0.92); backdrop-filter: blur(20px); border-top: 1px solid #444933; display: flex; justify-content: space-around; align-items: center; padding: 8px 4px 12px; }
   .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: #8e9379; cursor: pointer; min-width: 56px; padding: 4px; border-radius: 12px; transition: all .2s; }
   .nav-item:active { transform: scale(.9); }
-  .nav-item.active { color: #ccff00; }
+  .nav-item.active { color: #74d604; }
   .nav-item .nav-label { font-size: 10px; font-weight: 600; letter-spacing: .03em; }
-  .nav-center { background: #ccff00; border-radius: 50%; width: 48px !important; height: 48px; min-width: 48px !important; display: flex; align-items: center; justify-content: center; color: #1a2200; margin-top: -6px; box-shadow: 0 0 20px rgba(204,255,0,.4); transition: all .2s; padding: 0; }
+  .nav-center { background: #74d604; border-radius: 50%; width: 48px !important; height: 48px; min-width: 48px !important; display: flex; align-items: center; justify-content: center; color: #162000; margin-top: -6px; box-shadow: 0 0 20px rgba(116,214,4,.4); transition: all .2s; padding: 0; }
   .nav-center:active { transform: scale(.92); }
-  .nav-center.active { box-shadow: 0 0 32px rgba(204,255,0,.6); }
+  .nav-center.active { box-shadow: 0 0 32px rgba(116,214,4,.6); }
 
   /* Header */
   .app-header { position: sticky; top: 0; z-index: 50; background: rgba(17,21,8,.9); backdrop-filter: blur(16px); border-bottom: 1px solid #444933; padding: 0 20px; padding-top: env(safe-area-inset-top, 0px); height: calc(56px + env(safe-area-inset-top, 0px)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
-  .brand { font-size: 20px; font-weight: 900; font-style: italic; color: #ccff00; text-transform: uppercase; letter-spacing: -.03em; justify-self: center; }
+  .brand { font-size: 20px; font-weight: 900; font-style: italic; color: #74d604; text-transform: uppercase; letter-spacing: -.03em; justify-self: center; }
   .avatar { width: 32px; height: 32px; border-radius: 50%; background: #333627; overflow: hidden; border: 1px solid #444933; }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
   .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #c4c9ac; cursor: pointer; transition: all .2s; }
@@ -83,21 +83,21 @@ tailwind.config = {
   .card-dark { background: #161a0c; border: 1px solid #333627; border-radius: 16px; padding: 20px; }
 
   /* Volt Glow */
-  .volt-glow { box-shadow: 0 0 12px rgba(204,255,0,.35); }
-  .volt-text { color: #ccff00; }
-  .volt-bg { background: #ccff00; color: #1a2200; }
+  .volt-glow { box-shadow: 0 0 12px rgba(116,214,4,.35); }
+  .volt-text { color: #74d604; }
+  .volt-bg { background: #74d604; color: #162000; }
 
   /* Progress Bar */
   .progress-track { background: #333627; border-radius: 99px; overflow: hidden; }
-  .progress-fill { background: #ccff00; border-radius: 99px; height: 100%; box-shadow: 0 0 8px rgba(204,255,0,.4); transition: width .6s ease; }
+  .progress-fill { background: #74d604; border-radius: 99px; height: 100%; box-shadow: 0 0 8px rgba(116,214,4,.4); transition: width .6s ease; }
 
   /* Stealth Input */
-  .stealth-input { background: transparent; border: none; border-bottom: 2px solid #333627; color: #ccff00; font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 600; text-align: center; width: 100%; padding: 4px 0; }
-  .stealth-input:focus { outline: none; border-bottom-color: #ccff00; }
+  .stealth-input { background: transparent; border: none; border-bottom: 2px solid #333627; color: #74d604; font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 600; text-align: center; width: 100%; padding: 4px 0; }
+  .stealth-input:focus { outline: none; border-bottom-color: #74d604; }
 
   /* Pill */
   .pill { display: inline-flex; align-items: center; background: #1e2113; border: 1px solid #333627; border-radius: 99px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #c4c9ac; cursor: pointer; transition: all .2s; }
-  .pill.active { background: #ccff00; color: #1a2200; border-color: #ccff00; }
+  .pill.active { background: #74d604; color: #162000; border-color: #74d604; }
   .pill:active { transform: scale(.95); }
 
   /* Timer */
@@ -106,25 +106,25 @@ tailwind.config = {
 
   /* Animations */
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse-volt { 0%,100% { box-shadow: 0 0 12px rgba(204,255,0,.3); } 50% { box-shadow: 0 0 24px rgba(204,255,0,.6); } }
+  @keyframes pulse-volt { 0%,100% { box-shadow: 0 0 12px rgba(116,214,4,.3); } 50% { box-shadow: 0 0 24px rgba(116,214,4,.6); } }
   .screen.active { animation: fadeIn .25s ease; }
   .pulse { animation: pulse-volt 2s infinite; }
 
   /* Share Card */
-  .share-card { background: linear-gradient(135deg, #1a2200 0%, #111508 50%, #0c0f04 100%); border: 1px solid #ccff00; border-radius: 20px; padding: 24px; position: relative; overflow: hidden; }
-  .share-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(204,255,0,.15) 0%, transparent 70%); }
+  .share-card { background: linear-gradient(135deg, #162000 0%, #111508 50%, #0c0f04 100%); border: 1px solid #74d604; border-radius: 20px; padding: 24px; position: relative; overflow: hidden; }
+  .share-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(116,214,4,.15) 0%, transparent 70%); }
 
   /* Chart */
   .chart-bar { background: #333627; border-radius: 4px 4px 0 0; width: 100%; transition: all .3s; position: relative; }
-  .chart-bar .fill { background: #ccff00; border-radius: 4px 4px 0 0; width: 100%; position: absolute; bottom: 0; box-shadow: 0 0 8px rgba(204,255,0,.3); }
+  .chart-bar .fill { background: #74d604; border-radius: 4px 4px 0 0; width: 100%; position: absolute; bottom: 0; box-shadow: 0 0 8px rgba(116,214,4,.3); }
 
   /* Set Row */
   .set-row { display: grid; grid-template-columns: 32px 1fr 1fr auto; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 10px; background: #161a0c; border: 1px solid #333627; margin-bottom: 6px; }
   .set-num { font-size: 12px; color: #8e9379; font-weight: 700; text-align: center; }
   .set-input { background: transparent; border: none; border-bottom: 1px solid #333627; color: #e2e4cf; font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; text-align: center; width: 100%; padding: 4px 0; }
-  .set-input:focus { outline: none; border-bottom-color: #ccff00; color: #ccff00; }
+  .set-input:focus { outline: none; border-bottom-color: #74d604; color: #74d604; }
   .set-done { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #444933; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; color: transparent; font-size: 16px; }
-  .set-done.done { background: #ccff00; border-color: #ccff00; color: #1a2200; box-shadow: 0 0 8px rgba(204,255,0,.4); }
+  .set-done.done { background: #74d604; border-color: #74d604; color: #162000; box-shadow: 0 0 8px rgba(116,214,4,.4); }
 
   /* Numpad */
   .numpad-btn { background:#1e2113;border:1px solid #333627;border-radius:12px;height:52px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;transition:all .15s; }
@@ -143,7 +143,7 @@ tailwind.config = {
 <!-- ═══════════════════════════ SCREEN: DASHBOARD ═══════════════════════════ -->
 <div id="screen-dashboard" class="screen active">
   <header class="app-header">
-    <div class="avatar" onclick="navigate('profil')" style="background:linear-gradient(135deg,#ccff00,#556d00);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#1a2200">M</div>
+    <div class="avatar" onclick="navigate('profil')" style="background:linear-gradient(135deg,#74d604,#556d00);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#162000">M</div>
     <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
     <div style="display:flex;justify-content:flex-end">
       <div class="icon-btn" onclick="navigate('profil')"><span class="material-symbols-outlined">settings</span></div>
@@ -160,7 +160,7 @@ tailwind.config = {
     <!-- Weekly Stats Row -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
       <div class="card-sm" style="text-align:center">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#ccff00">0</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#74d604">0</div>
         <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Einheiten</div>
       </div>
       <div class="card-sm" style="text-align:center">
@@ -215,13 +215,13 @@ tailwind.config = {
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Schnellstart</h3>
-        <span onclick="navigate('plaene')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600;touch-action:manipulation">Pläne →</span>
+        <span onclick="navigate('plaene')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600;touch-action:manipulation">Pläne →</span>
       </div>
       <div id="dashboard-plaene-list" style="display:flex;flex-direction:column;gap:8px">
         <!-- Leer-Zustand -->
         <div id="plaene-empty-state" style="text-align:center;padding:20px 0">
           <span class="material-symbols-outlined" style="font-size:40px;color:#444933">fitness_center</span>
-          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine Pläne — erstelle einen unter <strong style="color:#ccff00">Pläne</strong>.</p>
+          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine Pläne — erstelle einen unter <strong style="color:#74d604">Pläne</strong>.</p>
         </div>
       </div>
     </div>
@@ -231,7 +231,7 @@ tailwind.config = {
       <div>
         <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Körpergewicht</p>
         <div style="display:flex;align-items:baseline;gap:6px">
-          <span id="dash-gewicht" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#ccff00">—</span>
+          <span id="dash-gewicht" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#74d604">—</span>
           <span style="color:#8e9379;font-size:14px">kg</span>
         </div>
       </div>
@@ -244,7 +244,7 @@ tailwind.config = {
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Aktuelle PRs</h3>
-        <span onclick="navigate('historie')" style="font-size:12px;color:#ccff00;cursor:pointer;font-weight:600">Alle →</span>
+        <span onclick="navigate('historie')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600">Alle →</span>
       </div>
       <div style="text-align:center;padding:16px 0">
         <span class="material-symbols-outlined" style="font-size:36px;color:#444933">emoji_events</span>
@@ -271,13 +271,13 @@ tailwind.config = {
     <!-- Pausentimer Einstellung -->
     <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
       <div style="display:flex;align-items:center;gap:8px">
-        <span class="material-symbols-outlined" style="font-size:18px;color:#ccff00">timer</span>
+        <span class="material-symbols-outlined" style="font-size:18px;color:#74d604">timer</span>
         <span style="font-size:13px;font-weight:700;color:#e2e4cf">Pausentimer</span>
       </div>
       <div style="display:flex;gap:6px" id="pause-timer-btns">
         <button onclick="setPauseTimer(120)" id="ptbtn-120" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">120s</button>
         <button onclick="setPauseTimer(150)" id="ptbtn-150" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">150s</button>
-        <button onclick="setPauseTimer(180)" id="ptbtn-180" style="height:30px;padding:0 12px;background:#ccff00;border:none;border-radius:99px;color:#1a2200;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">180s</button>
+        <button onclick="setPauseTimer(180)" id="ptbtn-180" style="height:30px;padding:0 12px;background:#74d604;border:none;border-radius:99px;color:#162000;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">180s</button>
       </div>
     </div>
 
@@ -304,11 +304,11 @@ tailwind.config = {
     <div class="icon-btn" onclick="navigate('dashboard')"><span class="material-symbols-outlined">close</span></div>
     <div style="display:flex;align-items:center;gap:8px">
       <span class="material-symbols-outlined" style="font-size:16px;color:#8e9379">timer</span>
-      <span id="workout-time" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#ccff00;letter-spacing:.02em">00:00</span>
+      <span id="workout-time" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#74d604;letter-spacing:.02em">00:00</span>
     </div>
     <div style="display:flex;justify-content:flex-end">
-      <div id="workout-active-indicator" style="display:none;align-items:center;gap:4px;background:#1a3300;border:1px solid #ccff00;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;color:#ccff00">
-        <span style="width:6px;height:6px;background:#ccff00;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite"></span>
+      <div id="workout-active-indicator" style="display:none;align-items:center;gap:4px;background:#1a3300;border:1px solid #74d604;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;color:#74d604">
+        <span style="width:6px;height:6px;background:#74d604;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite"></span>
         AKTIV
       </div>
     </div>
@@ -318,7 +318,7 @@ tailwind.config = {
 
     <!-- Übung Header -->
     <div>
-      <p id="wkt-counter" style="font-size:11px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px">Übung 1 von 1</p>
+      <p id="wkt-counter" style="font-size:11px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px">Übung 1 von 1</p>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
         <div style="flex:1">
           <h2 id="wkt-name" style="font-size:28px;font-weight:900;font-style:italic;margin:0 0 2px;letter-spacing:-.02em">—</h2>
@@ -331,9 +331,9 @@ tailwind.config = {
           </div>
           <!-- Übungs-Notiz -->
           <div id="uebung-note-box" style="display:none;margin-bottom:10px">
-            <input id="uebung-note-input" type="text" placeholder="Hinweis, Technik-Tipp..." style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:8px;padding:8px 10px;color:#c4c9ac;font-size:16px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+            <input id="uebung-note-input" type="text" placeholder="Hinweis, Technik-Tipp..." style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:8px;padding:8px 10px;color:#c4c9ac;font-size:16px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
           </div>
-          <span id="wkt-pr" style="display:none;align-items:center;gap:6px;background:#1a2200;border:1px solid #ccff00;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;color:#ccff00">
+          <span id="wkt-pr" style="display:none;align-items:center;gap:6px;background:#162000;border:1px solid #74d604;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;color:#74d604">
             <span class="material-symbols-outlined" style="font-size:14px">emoji_events</span>
             PR: —
           </span>
@@ -361,8 +361,8 @@ tailwind.config = {
           <div class="set-done done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
         </div>
         <!-- Satz 2 — aktiv, volt-Rahmen -->
-        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:2px solid #ccff00;border-radius:12px;padding:10px 12px;box-shadow:0 0 12px rgba(204,255,0,.15)">
-          <span style="font-size:15px;color:#ccff00;font-weight:700;text-align:center">2</span>
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:2px solid #74d604;border-radius:12px;padding:10px 12px;box-shadow:0 0 12px rgba(116,214,4,.15)">
+          <span style="font-size:15px;color:#74d604;font-weight:700;text-align:center">2</span>
           <input type="text" placeholder="" style="background:#fff;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#111508;text-align:center;width:100%" />
           <input type="text" placeholder="" style="background:#fff;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#111508;text-align:center;width:100%" />
           <div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
@@ -393,7 +393,7 @@ tailwind.config = {
         <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
         Zurück
       </button>
-      <button id="wkt-next-btn" style="flex:1;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+      <button id="wkt-next-btn" style="flex:1;height:52px;background:#1e2113;border:1px solid #74d604;border-radius:12px;color:#74d604;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
         Nächste Übung
         <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
       </button>
@@ -401,12 +401,12 @@ tailwind.config = {
 
     <!-- Timer Leiste -->
     <div style="display:flex;align-items:center;gap:10px">
-      <span class="material-symbols-outlined" style="color:#ccff00;font-size:20px;flex-shrink:0">timer</span>
-      <span id="timer-display" style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#ccff00;min-width:52px">3:00</span>
+      <span class="material-symbols-outlined" style="color:#74d604;font-size:20px;flex-shrink:0">timer</span>
+      <span id="timer-display" style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#74d604;min-width:52px">3:00</span>
       <div style="display:flex;gap:6px;flex:1;justify-content:flex-end">
         <button onclick="startTimer(120)" id="tbtn-120" style="height:32px;padding:0 14px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">120s</button>
         <button onclick="startTimer(150)" id="tbtn-150" style="height:32px;padding:0 14px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">150s</button>
-        <button onclick="startTimer(180)" id="tbtn-180" style="height:32px;padding:0 14px;background:#ccff00;border:none;border-radius:99px;color:#1a2200;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">180s</button>
+        <button onclick="startTimer(180)" id="tbtn-180" style="height:32px;padding:0 14px;background:#74d604;border:none;border-radius:99px;color:#162000;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">180s</button>
       </div>
     </div>
 
@@ -432,7 +432,7 @@ tailwind.config = {
   <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
     <!-- Tab Switcher -->
     <div style="display:grid;grid-template-columns:1fr 1fr;background:#1e2113;border-radius:12px;padding:4px;border:1px solid #333627">
-      <button id="tab-history" onclick="switchHistoryTab('history')" style="height:36px;background:#ccff00;border:none;border-radius:9px;color:#1a2200;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">Einheiten</button>
+      <button id="tab-history" onclick="switchHistoryTab('history')" style="height:36px;background:#74d604;border:none;border-radius:9px;color:#162000;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">Einheiten</button>
       <button id="tab-prs" onclick="switchHistoryTab('prs')" style="height:36px;background:transparent;border:none;color:#8e9379;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">PRs</button>
     </div>
 
@@ -465,13 +465,12 @@ tailwind.config = {
     <!-- ─ ANSICHT-MODUS ─ -->
     <div id="profil-view">
       <div class="card" style="display:flex;align-items:center;gap:16px">
-        <div id="avatar-display" onclick="toggleProfilEdit()" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ccff00,#556d00);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#1a2200;flex-shrink:0;border:2px solid #ccff00;overflow:hidden;cursor:pointer">M</div>
+        <div id="avatar-display" onclick="toggleProfilEdit()" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#74d604,#556d00);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#162000;flex-shrink:0;border:2px solid #74d604;overflow:hidden;cursor:pointer">M</div>
         <div style="flex:1">
           <h2 id="profil-name-display" style="font-size:20px;font-weight:800;font-style:italic;margin:0 0 2px">Martin R.</h2>
           <p id="profil-sub-display" style="font-size:12px;color:#8e9379;margin:0 0 8px">Trainiert seit 18 Monaten · PPL-Split</p>
           <div style="display:flex;gap:16px">
-            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#ccff00">0</span><span style="font-size:10px;color:#8e9379;display:block">Einheiten</span></div>
-            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">0</span><span style="font-size:10px;color:#8e9379;display:block">Freunde</span></div>
+            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#74d604">0</span><span style="font-size:10px;color:#8e9379;display:block">Einheiten</span></div>
             <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">0</span><span style="font-size:10px;color:#8e9379;display:block">PRs</span></div>
           </div>
         </div>
@@ -484,7 +483,7 @@ tailwind.config = {
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
           <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
-            <span id="profil-gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#ccff00">82.4</span>
+            <span id="profil-gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#74d604">82.4</span>
             <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Aktuell kg</p>
           </div>
           <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
@@ -492,7 +491,7 @@ tailwind.config = {
             <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Ziel kg</p>
           </div>
           <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
-            <span id="profil-diff-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#abd600">–4.4</span>
+            <span id="profil-diff-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#5aaa00">–4.4</span>
             <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Noch kg</p>
           </div>
         </div>
@@ -500,7 +499,7 @@ tailwind.config = {
         <div style="margin-top:12px">
           <div style="display:flex;justify-content:space-between;margin-bottom:6px">
             <span style="font-size:12px;color:#8e9379">Fortschritt zum Ziel</span>
-            <span id="profil-progress-pct" style="font-size:12px;color:#ccff00;font-weight:700">65%</span>
+            <span id="profil-progress-pct" style="font-size:12px;color:#74d604;font-weight:700">65%</span>
           </div>
           <div class="progress-track" style="height:8px">
             <div id="profil-progress-bar" class="progress-fill" style="width:65%;height:100%"></div>
@@ -520,15 +519,6 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- Quick Links -->
-      <div style="display:flex;gap:10px;margin-top:16px">
-        <button onclick="navigate('social')" style="flex:1;height:48px;background:#1e2113;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-          <span class="material-symbols-outlined" style="font-size:18px;color:#ccff00">share</span>Teilen
-        </button>
-        <button style="flex:1;height:48px;background:#1e2113;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-          <span class="material-symbols-outlined" style="font-size:18px;color:#abd600">group</span>Freunde
-        </button>
-      </div>
 
       <!-- App-Reset -->
       <div style="margin-top:24px;padding-top:20px;border-top:1px solid #2a2d1e">
@@ -545,8 +535,8 @@ tailwind.config = {
 
       <!-- Profilbild -->
       <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:14px">
-        <div id="avatar-edit-preview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#ccff00,#556d00);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#1a2200;border:2px solid #ccff00;overflow:hidden">M</div>
-        <label style="display:flex;align-items:center;gap:8px;background:#1e2113;border:1px solid #ccff00;border-radius:10px;padding:10px 20px;cursor:pointer;color:#ccff00;font-size:13px;font-weight:700;touch-action:manipulation">
+        <div id="avatar-edit-preview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#74d604,#556d00);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#162000;border:2px solid #74d604;overflow:hidden">M</div>
+        <label style="display:flex;align-items:center;gap:8px;background:#1e2113;border:1px solid #74d604;border-radius:10px;padding:10px 20px;cursor:pointer;color:#74d604;font-size:13px;font-weight:700;touch-action:manipulation">
           <span class="material-symbols-outlined" style="font-size:18px">photo_camera</span>
           Foto wählen
           <input type="file" accept="image/*" id="avatar-input" style="display:none" onchange="handleAvatarUpload(this)">
@@ -558,11 +548,11 @@ tailwind.config = {
         <h3 style="font-size:15px;font-weight:700;margin:0;color:#8e9379;text-transform:uppercase;letter-spacing:.05em">Persönliche Daten</h3>
         <div>
           <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Name</label>
-          <input id="edit-name" type="text" placeholder="Dein Name" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+          <input id="edit-name" type="text" placeholder="Dein Name" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
         </div>
         <div>
           <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Trainingsplan / Notiz</label>
-          <input id="edit-sub" type="text" placeholder="z.B. PPL-Split · 3 Jahre Erfahrung" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+          <input id="edit-sub" type="text" placeholder="z.B. PPL-Split · 3 Jahre Erfahrung" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
         </div>
       </div>
 
@@ -572,11 +562,11 @@ tailwind.config = {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div>
             <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Aktuell (kg)</label>
-            <input id="edit-gewicht" type="number" step="0.1" placeholder="82.4" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#ccff00;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+            <input id="edit-gewicht" type="number" step="0.1" placeholder="82.4" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
           </div>
           <div>
             <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Ziel (kg)</label>
-            <input id="edit-ziel" type="number" step="0.1" placeholder="78.0" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+            <input id="edit-ziel" type="number" step="0.1" placeholder="78.0" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
           </div>
         </div>
       </div>
@@ -609,12 +599,12 @@ tailwind.config = {
     <!-- Card Auswahl -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <button onclick="showShareCard('workout')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-workout-btn">
-        <span class="material-symbols-outlined" style="color:#ccff00;font-size:24px;display:block;margin-bottom:6px">fitness_center</span>
+        <span class="material-symbols-outlined" style="color:#74d604;font-size:24px;display:block;margin-bottom:6px">fitness_center</span>
         <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Workout</p>
         <p style="margin:0;font-size:11px;color:#8e9379">Letztes Training</p>
       </button>
       <button onclick="showShareCard('pr')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-pr-btn">
-        <span class="material-symbols-outlined" style="color:#abd600;font-size:24px;display:block;margin-bottom:6px">emoji_events</span>
+        <span class="material-symbols-outlined" style="color:#5aaa00;font-size:24px;display:block;margin-bottom:6px">emoji_events</span>
         <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Persönlicher Rekord</p>
         <p style="margin:0;font-size:11px;color:#8e9379">Neuer PR</p>
       </button>
@@ -637,16 +627,16 @@ tailwind.config = {
       <div id="card-workout" class="share-card" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
           <div>
-            <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+            <p style="margin:0;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
             <h2 id="erfolge-workout-title" style="margin:4px 0 0;font-size:22px;font-weight:900;font-style:italic;color:#e2e4cf;letter-spacing:-.02em">Push A Completed! 💪</h2>
           </div>
           <svg width="36" height="36" viewBox="0 0 100 100">
-            <path d="M20 50 L40 50 L50 20 L60 80 L70 50 L90 50" fill="none" stroke="#ccff00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 50 L40 50 L50 20 L60 80 L70 50 L90 50" fill="none" stroke="#74d604" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
           <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
-            <span id="erfolge-dauer" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#ccff00">—</span>
+            <span id="erfolge-dauer" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#74d604">—</span>
             <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Dauer</p>
           </div>
           <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
@@ -664,13 +654,13 @@ tailwind.config = {
       <div id="card-pr" class="share-card" style="display:none">
         <div style="text-align:center;margin-bottom:16px">
           <span style="font-size:48px">🏆</span>
-          <p style="margin:4px 0 0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Neuer PR</p>
+          <p style="margin:4px 0 0;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Neuer PR</p>
         </div>
         <h2 style="text-align:center;font-size:20px;font-weight:900;font-style:italic;margin:0 0 16px;letter-spacing:-.02em">Kreuzheben</h2>
         <div style="text-align:center;background:rgba(0,0,0,.5);border-radius:14px;padding:20px;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#ccff00;line-height:1">180</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#74d604;line-height:1">180</span>
           <span style="font-size:20px;color:#c4c9ac;font-weight:600"> kg</span>
-          <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#abd600;margin:8px 0 0">▲ +5 kg Personal Best</p>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#5aaa00;margin:8px 0 0">▲ +5 kg Personal Best</p>
         </div>
         <p style="text-align:center;font-size:12px;color:#8e9379;margin:0">15. Mai 2026 · 1 Wiederholung</p>
       </div>
@@ -679,28 +669,28 @@ tailwind.config = {
       <div id="card-progress" class="share-card" style="display:none">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <div>
-            <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+            <p style="margin:0;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
             <h2 style="margin:4px 0 0;font-size:20px;font-weight:900;font-style:italic;letter-spacing:-.02em">30-Tage Trend 📈</h2>
           </div>
         </div>
         <svg width="100%" height="70" viewBox="0 0 300 70" preserveAspectRatio="none">
-          <path d="M0,60 Q50,50 100,42 T200,30 T300,25" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="300" cy="25" r="5" fill="#ccff00"/>
+          <path d="M0,60 Q50,50 100,42 T200,30 T300,25" fill="none" stroke="#74d604" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="300" cy="25" r="5" fill="#74d604"/>
         </svg>
       </div>
 
       <!-- Streak Card -->
       <div id="card-streak" class="share-card" style="display:none">
         <div style="text-align:center">
-          <p style="margin:0 0 8px;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Streak</p>
+          <p style="margin:0 0 8px;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Streak</p>
           <div style="font-size:72px;line-height:1;margin-bottom:8px">🔥</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#ccff00;line-height:1">14</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#74d604;line-height:1">14</div>
           <p style="font-size:18px;color:#c4c9ac;font-weight:700;margin:4px 0">Tage in Folge</p>
         </div>
       </div>
 
       <!-- Speichern Button -->
-      <button onclick="saveShareCard()" style="width:100%;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" id="erfolge-save-btn" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+      <button onclick="saveShareCard()" style="width:100%;height:52px;background:#1e2113;border:1px solid #74d604;border-radius:12px;color:#74d604;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" id="erfolge-save-btn" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
         <span class="material-symbols-outlined" style="font-size:20px">download</span>
         Als Bild speichern
       </button>
@@ -724,7 +714,7 @@ tailwind.config = {
     <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:12px">
       <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0">Heutiges Gewicht</p>
       <div style="display:flex;align-items:baseline;gap:6px">
-        <span id="gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:600;color:#ccff00;line-height:1">82.4</span>
+        <span id="gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:600;color:#74d604;line-height:1">82.4</span>
         <span style="font-size:16px;color:#8e9379;font-weight:600">kg</span>
       </div>
       <!-- Numpad -->
@@ -753,7 +743,7 @@ tailwind.config = {
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
       <div class="card-sm" style="text-align:center;padding:10px 6px">
         <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Aktuell</p>
-        <span id="gewicht-aktuell-stat" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#ccff00">—</span>
+        <span id="gewicht-aktuell-stat" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#74d604">—</span>
       </div>
       <div class="card-sm" style="text-align:center;padding:10px 6px">
         <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Gleit. Ø</p>
@@ -761,7 +751,7 @@ tailwind.config = {
       </div>
       <div class="card-sm" style="text-align:center;padding:10px 6px">
         <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Wöchentl.</p>
-        <span id="gewicht-weekly" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#abd600">—</span>
+        <span id="gewicht-weekly" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#5aaa00">—</span>
       </div>
     </div>
 
@@ -775,8 +765,8 @@ tailwind.config = {
         <svg id="gewicht-chart-svg" width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
           <defs>
             <linearGradient id="gGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#ccff00" stop-opacity="0.25"/>
-              <stop offset="100%" stop-color="#ccff00" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#74d604" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#74d604" stop-opacity="0"/>
             </linearGradient>
           </defs>
           <text x="150" y="45" text-anchor="middle" fill="#444933" font-size="11" font-family="Inter,sans-serif">Noch keine Daten</text>
@@ -799,13 +789,13 @@ tailwind.config = {
       <div id="startgewicht-edit" style="display:none;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px;margin-bottom:12px">
         <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Startgewicht (kg)</label>
         <div style="display:flex;gap:8px">
-          <input id="startgewicht-input" type="number" step="0.1" placeholder="90.0" style="flex:1;background:#1e2113;border:1px solid #444933;border-radius:8px;padding:8px 12px;color:#ccff00;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;text-align:center" onfocus="this.select();this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
-          <button onclick="saveStartgewicht()" style="background:#ccff00;border:none;border-radius:8px;padding:6px 12px;color:#1a2200;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap">OK</button>
+          <input id="startgewicht-input" type="number" step="0.1" placeholder="90.0" style="flex:1;background:#1e2113;border:1px solid #444933;border-radius:8px;padding:8px 12px;color:#74d604;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;text-align:center" onfocus="this.select();this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+          <button onclick="saveStartgewicht()" style="background:#74d604;border:none;border-radius:8px;padding:6px 12px;color:#162000;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap">OK</button>
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:12px;color:#8e9379;margin-bottom:6px">
         <span>Start: <span id="gw-start" style="color:#e2e4cf">90 kg</span></span>
-        <span style="color:#ccff00;font-weight:700" id="gw-aktuell">Aktuell: 82.4 kg</span>
+        <span style="color:#74d604;font-weight:700" id="gw-aktuell">Aktuell: 82.4 kg</span>
         <span>Ziel: <span id="gw-ziel-label" style="color:#e2e4cf">78 kg</span></span>
       </div>
       <div class="progress-track" style="height:8px;margin-bottom:14px">
@@ -839,19 +829,19 @@ tailwind.config = {
     <div style="display:flex;flex-direction:column;gap:14px">
       <div>
         <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Planname</label>
-        <input id="new-plan-name" type="text" placeholder="z.B. Push Pull Legs" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+        <input id="new-plan-name" type="text" placeholder="z.B. Push Pull Legs" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
       </div>
       <!-- Tage/Woche + Dauer entfernt -->
       <div>
         <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Fokus (optional)</label>
-        <input id="new-plan-fokus" type="text" placeholder="z.B. Brust, Rücken, Beine" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+        <input id="new-plan-fokus" type="text" placeholder="z.B. Brust, Rücken, Beine" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
       </div>
 
       <!-- Übungen -->
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Übungen</label>
-          <button type="button" onclick="addUebungRow()" style="background:transparent;border:1px solid #ccff00;border-radius:8px;color:#ccff00;font-size:12px;font-weight:700;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;touch-action:manipulation">
+          <button type="button" onclick="addUebungRow()" style="background:transparent;border:1px solid #74d604;border-radius:8px;color:#74d604;font-size:12px;font-weight:700;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;touch-action:manipulation">
             <span class="material-symbols-outlined" style="font-size:14px">add</span> Übung
           </button>
         </div>
@@ -907,13 +897,13 @@ tailwind.config = {
 </div>
 
 <!-- ═══ AKTIVES TRAINING BANNER ═══ -->
-<div id="workout-return-banner" onclick="navigate('workout')" style="display:none;position:fixed;bottom:80px;left:16px;right:16px;z-index:110;background:rgba(26,51,0,.95);border:1px solid rgba(204,255,0,.4);border-radius:10px;padding:7px 12px;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 2px 12px rgba(204,255,0,.12)">
+<div id="workout-return-banner" onclick="navigate('workout')" style="display:none;position:fixed;bottom:80px;left:16px;right:16px;z-index:110;background:rgba(26,51,0,.95);border:1px solid rgba(116,214,4,.4);border-radius:10px;padding:7px 12px;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 2px 12px rgba(116,214,4,.12)">
   <div style="display:flex;align-items:center;gap:8px">
-    <span style="width:6px;height:6px;background:#ccff00;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite;flex-shrink:0"></span>
-    <span style="font-size:12px;font-weight:700;color:#abd600">Training läuft</span>
+    <span style="width:6px;height:6px;background:#74d604;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite;flex-shrink:0"></span>
+    <span style="font-size:12px;font-weight:700;color:#5aaa00">Training läuft</span>
     <span style="font-size:11px;color:#8e9379;font-family:'JetBrains Mono',monospace" id="banner-time">00:00</span>
   </div>
-  <span class="material-symbols-outlined" style="color:#abd600;font-size:16px">arrow_forward</span>
+  <span class="material-symbols-outlined" style="color:#5aaa00;font-size:16px">arrow_forward</span>
 </div>
 
 <!-- ═══════════════════════════ BOTTOM NAVIGATION ═══════════════════════════ -->
@@ -1029,8 +1019,8 @@ function setPauseTimer(seconds) {
     var btn = document.getElementById('ptbtn-' + s);
     if (!btn) return;
     if (s === seconds) {
-      btn.style.background = '#ccff00';
-      btn.style.color = '#1a2200';
+      btn.style.background = '#74d604';
+      btn.style.color = '#162000';
       btn.style.border = 'none';
       btn.style.fontWeight = '700';
     } else {
@@ -1060,8 +1050,8 @@ function toggleUebungNote() {
   if (!box) return;
   var isOpen = box.style.display !== 'none';
   box.style.display = isOpen ? 'none' : 'block';
-  if (icon) icon.style.color = isOpen ? '#8e9379' : '#ccff00';
-  if (label) label.style.color = isOpen ? '#8e9379' : '#ccff00';
+  if (icon) icon.style.color = isOpen ? '#8e9379' : '#74d604';
+  if (label) label.style.color = isOpen ? '#8e9379' : '#74d604';
   if (!isOpen) {
     var inp = document.getElementById('uebung-note-input');
     if (inp) setTimeout(function() { inp.focus(); }, 50);
@@ -1088,8 +1078,8 @@ function startTimer(seconds) {
     var btn = document.getElementById('tbtn-' + chips[ci]);
     if (!btn) continue;
     if (chips[ci] === seconds) {
-      btn.style.background = '#ccff00';
-      btn.style.color = '#1a2200';
+      btn.style.background = '#74d604';
+      btn.style.color = '#162000';
       btn.style.border = 'none';
     } else {
       btn.style.background = '#1e2113';
@@ -1188,7 +1178,7 @@ function toggleSet(el) {
   el.classList.toggle('done');
   if (el.classList.contains('done')) {
     el.textContent = '✓';
-    el.style.color = '#1a2200';
+    el.style.color = '#162000';
     startTimer(getPauseTimer());
     // Grünen Rahmen auf nächsten Satz verschieben
     var sc = document.getElementById('sets-container');
@@ -1208,10 +1198,10 @@ function toggleSet(el) {
       // Nächsten aktivieren
       var nextRow = rows[currentIdx + 1];
       if (nextRow && !nextRow.querySelector('.set-done.done')) {
-        nextRow.style.border = '2px solid #ccff00';
-        nextRow.style.boxShadow = '0 0 12px rgba(204,255,0,.15)';
+        nextRow.style.border = '2px solid #74d604';
+        nextRow.style.boxShadow = '0 0 12px rgba(116,214,4,.15)';
         var nextNum = nextRow.querySelector('span[style*="font-size:15px"]');
-        if (nextNum) nextNum.style.color = '#ccff00';
+        if (nextNum) nextNum.style.color = '#74d604';
         // Focus erstes Input
         var firstInput = nextRow.querySelector('input[type="number"]');
         if (firstInput) setTimeout(function() { firstInput.focus(); firstInput.select(); }, 100);
@@ -1234,7 +1224,7 @@ function toggleSetNote(el) {
     noteRow.style.gridColumn = '1 / -1';
     var inp = noteRow.querySelector('input');
     if (inp) setTimeout(function() { inp.focus(); }, 50);
-    el.querySelector('.material-symbols-outlined').style.color = '#ccff00';
+    el.querySelector('.material-symbols-outlined').style.color = '#74d604';
   } else {
     noteRow.style.display = 'none';
     el.querySelector('.material-symbols-outlined').style.color = '#8e9379';
@@ -1251,15 +1241,15 @@ function switchHistoryTab(tab) {
   if (tab === 'history') {
     historyList.style.display = 'block';
     prsList.style.display = 'none';
-    tabHistory.style.background = '#ccff00';
-    tabHistory.style.color = '#1a2200';
+    tabHistory.style.background = '#74d604';
+    tabHistory.style.color = '#162000';
     tabPrs.style.background = 'transparent';
     tabPrs.style.color = '#8e9379';
   } else {
     historyList.style.display = 'none';
     prsList.style.display = 'flex';
-    tabPrs.style.background = '#ccff00';
-    tabPrs.style.color = '#1a2200';
+    tabPrs.style.background = '#74d604';
+    tabPrs.style.color = '#162000';
     tabHistory.style.background = 'transparent';
     tabHistory.style.color = '#8e9379';
   }
@@ -1327,8 +1317,8 @@ function switchSocialTab(tab) {
   var activeBtn = document.getElementById('social-tab-' + tab);
   if (activeContent) activeContent.style.display = 'flex';
   if (activeBtn) {
-    activeBtn.style.background = '#ccff00';
-    activeBtn.style.color = '#1a2200';
+    activeBtn.style.background = '#74d604';
+    activeBtn.style.color = '#162000';
   }
 }
 
@@ -1353,8 +1343,8 @@ function showShareCard(type) {
   ['workout','pr','progress','streak'].forEach(function(t) {
     var btn = document.getElementById('share-' + t + '-btn');
     if (btn) {
-      btn.style.border = t === type ? '1px solid #ccff00' : '1px solid #333627';
-      btn.style.background = t === type ? '#1a2200' : '#1e2113';
+      btn.style.border = t === type ? '1px solid #74d604' : '1px solid #333627';
+      btn.style.background = t === type ? '#162000' : '#1e2113';
     }
   });
 
@@ -1519,9 +1509,9 @@ function addUebungRow() {
   var row = document.createElement('div');
   row.style.cssText = 'display:grid;grid-template-columns:1fr 56px 56px 36px;gap:6px;align-items:center';
   row.innerHTML =
-    '<input type="text" list="uebungen-vorschlaege" placeholder="Übungsname" autocomplete="off" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 10px;color:#e2e4cf;font-size:16px;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
-    '<input type="number" placeholder="3" min="1" max="20" value="3" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#ccff00;font-size:16px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
-    '<input type="number" placeholder="10" min="1" max="100" value="10" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#e2e4cf;font-size:16px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="text" list="uebungen-vorschlaege" placeholder="Übungsname" autocomplete="off" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 10px;color:#e2e4cf;font-size:16px;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#74d604\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="number" placeholder="3" min="1" max="20" value="3" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#74d604;font-size:16px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#74d604\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="number" placeholder="10" min="1" max="100" value="10" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#e2e4cf;font-size:16px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#74d604\'" onblur="this.style.borderColor=\'#444933\'">' +
     '<button type="button" onclick="this.parentNode.remove();checkUebungenLeer()" style="width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:16px">delete</span></button>';
   liste.appendChild(row);
 }
@@ -1593,8 +1583,8 @@ function renderDashboardPlaene() {
             '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</p>' +
             '<p style="margin:0;font-size:11px;color:#8e9379">' + (p.fokus ? p.fokus : 'Kein Fokus angegeben') + '</p>' +
           '</div>' +
-          '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#ccff00;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">' +
-            '<span class="material-symbols-outlined" style="font-size:20px;color:#1a2200">play_arrow</span>' +
+          '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#74d604;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">' +
+            '<span class="material-symbols-outlined" style="font-size:20px;color:#162000">play_arrow</span>' +
           '</button>';
         container.appendChild(div);
       });
@@ -1614,7 +1604,7 @@ function renderDashboardPlaene() {
         if (p.uebungen && p.uebungen.length) {
           uebPills = '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">' +
             p.uebungen.map(function(u) {
-              return '<span class="pill" style="font-size:10px">' + u.name + ' <span style="color:#ccff00;font-weight:700">' + u.saetze + '\xd7' + u.wdh + '</span></span>';
+              return '<span class="pill" style="font-size:10px">' + u.name + ' <span style="color:#74d604;font-weight:700">' + u.saetze + '\xd7' + u.wdh + '</span></span>';
             }).join('') +
           '</div>';
         }
@@ -1763,9 +1753,9 @@ function renderWorkoutExercise(idx) {
       var prevWdh = (prevSets[s-1] && prevSets[s-1].wdh > 0) ? prevSets[s-1].wdh : wdh;
       var row = document.createElement('div');
       var active = s === 1;
-      row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #ccff00;box-shadow:0 0 12px rgba(204,255,0,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
+      row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #74d604;box-shadow:0 0 12px rgba(116,214,4,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
       row.innerHTML =
-        '<span style="font-size:15px;color:' + (active ? '#ccff00' : '#8e9379') + ';font-weight:700;text-align:center">' + s + '</span>' +
+        '<span style="font-size:15px;color:' + (active ? '#74d604' : '#8e9379') + ';font-weight:700;text-align:center">' + s + '</span>' +
         '<input type="number" value="' + prevKg + '" placeholder="kg" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
         '<input type="number" value="' + prevWdh + '" placeholder="Wdh" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
         '<div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>';
@@ -1790,8 +1780,8 @@ function renderWorkoutExercise(idx) {
   if (nextBtn) {
     if (idx < wktUebungen.length - 1) {
       nextBtn.style.background = '#1e2113';
-      nextBtn.style.border = '1px solid #ccff00';
-      nextBtn.style.color = '#ccff00';
+      nextBtn.style.border = '1px solid #74d604';
+      nextBtn.style.color = '#74d604';
       nextBtn.innerHTML = 'Nächste Übung <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>';
       nextBtn.style.display = 'flex';
       nextBtn.onclick = function() {
@@ -1802,9 +1792,9 @@ function renderWorkoutExercise(idx) {
       };
     } else {
       // Letzte Übung — Button wird zu "Training beenden"
-      nextBtn.style.background = '#ccff00';
+      nextBtn.style.background = '#74d604';
       nextBtn.style.border = 'none';
-      nextBtn.style.color = '#1a2200';
+      nextBtn.style.color = '#162000';
       nextBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">flag</span> Training beenden';
       nextBtn.style.display = 'flex';
       nextBtn.onclick = function() { finishWorkout(); };
@@ -2097,7 +2087,7 @@ function updateGewichtScreen(val) {
       var oldest = hist[Math.max(0, hist.length - 8)].val;
       var diff7 = val - oldest;
       weekly.textContent = (diff7 <= 0 ? '' : '+') + diff7.toFixed(1) + ' kg';
-      weekly.style.color = diff7 <= 0 ? '#abd600' : '#ffb4ab';
+      weekly.style.color = diff7 <= 0 ? '#5aaa00' : '#ffb4ab';
     }
   } catch(e) {}
 
@@ -2137,7 +2127,7 @@ function renderMeilensteine(start, aktuell, ziel) {
     div.innerHTML =
       '<span style="font-size:14px">' + (isReached ? '✅' : '⭕') + '</span>' +
       '<span style="font-size:12px;font-weight:700;flex:1;color:' + (isReached ? '#e2e4cf' : '#8e9379') + '">' + label + '</span>' +
-      '<span style="font-size:10px;font-weight:600;color:' + (isReached ? '#ccff00' : '#8e9379') + '">' + statusText + '</span>';
+      '<span style="font-size:10px;font-weight:600;color:' + (isReached ? '#74d604' : '#8e9379') + '">' + statusText + '</span>';
     container.appendChild(div);
   });
 }
@@ -2161,9 +2151,9 @@ function renderMessprotokoll() {
     var d = entry.date ? new Date(entry.date) : null;
     var dateStr = d && !isNaN(d) ? days[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear() : (entry.label || '—');
     var isFirst = i === 0;
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid #2a2d1e' + (isFirst ? ';background:#1a2200' : '') + '">' +
-      '<span style="font-size:12px;color:' + (isFirst ? '#ccff00' : '#8e9379') + '">' + dateStr + '</span>' +
-      '<span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:600;color:' + (isFirst ? '#ccff00' : '#e2e4cf') + '">' + entry.val.toFixed(1) + ' kg</span>' +
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid #2a2d1e' + (isFirst ? ';background:#162000' : '') + '">' +
+      '<span style="font-size:12px;color:' + (isFirst ? '#74d604' : '#8e9379') + '">' + dateStr + '</span>' +
+      '<span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:600;color:' + (isFirst ? '#74d604' : '#e2e4cf') + '">' + entry.val.toFixed(1) + ' kg</span>' +
       '</div>';
   });
   container.innerHTML = html;
@@ -2262,11 +2252,11 @@ function renderGewichtChart() {
     var svg = document.getElementById('gewicht-chart-svg');
     if (svg) {
       svg.innerHTML =
-        '<defs><linearGradient id="gGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ccff00" stop-opacity="0.25"/><stop offset="100%" stop-color="#ccff00" stop-opacity="0"/></linearGradient></defs>' +
+        '<defs><linearGradient id="gGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#74d604" stop-opacity="0.25"/><stop offset="100%" stop-color="#74d604" stop-opacity="0"/></linearGradient></defs>' +
         '<path d="' + areaD + '" fill="url(#gGrad)" stroke="none"/>' +
-        '<path d="' + pathD + '" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#74d604" stroke-width="2.5" stroke-linecap="round"/>' +
         '<circle cx="0" cy="' + pts[0].split(',')[1] + '" r="3" fill="#8e9379"/>' +
-        '<circle cx="' + w + '" cy="' + pts[pts.length-1].split(',')[1] + '" r="4" fill="#ccff00"/>';
+        '<circle cx="' + w + '" cy="' + pts[pts.length-1].split(',')[1] + '" r="4" fill="#74d604"/>';
     }
     // Datum-Labels
     var labDiv = document.getElementById('gewicht-chart-labels');
@@ -2349,7 +2339,7 @@ function updateAvatarDisplay(avatarSrc, name) {
       del.innerHTML = '<img src="' + avatarSrc + '" style="width:100%;height:100%;object-fit:cover">';
     } else {
       del.innerHTML = initial;
-      del.style.background = 'linear-gradient(135deg,#ccff00,#556d00)';
+      del.style.background = 'linear-gradient(135deg,#74d604,#556d00)';
     }
   }
 
@@ -2359,7 +2349,7 @@ function updateAvatarDisplay(avatarSrc, name) {
       dashAvatar.style.background = 'none';
     } else {
       dashAvatar.innerHTML = initial;
-      dashAvatar.style.background = 'linear-gradient(135deg,#ccff00,#556d00)';
+      dashAvatar.style.background = 'linear-gradient(135deg,#74d604,#556d00)';
     }
   }
 }
