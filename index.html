@@ -12,6 +12,7 @@
 <meta name="theme-color" content="#111508"/>
 <link rel="manifest" href="manifest.json"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script>
@@ -436,80 +437,7 @@ tailwind.config = {
     </div>
 
     <!-- Einheiten Liste -->
-    <div id="history-list">
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <!-- Entry 1 -->
-        <div class="card-sm" onclick="navigate('social')" style="cursor:pointer">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-            <div>
-              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Push A</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">Fr, 15. Mai · 58 min</p>
-            </div>
-            <div style="text-align:right">
-              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#ccff00">4.2 t</p>
-              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <span class="pill">Brust</span>
-            <span class="pill">Schultern</span>
-            <span class="pill">Trizeps</span>
-            <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#ccff00;font-weight:600;cursor:pointer" onclick="event.stopPropagation();navigate('social')">
-              <span class="material-symbols-outlined" style="font-size:14px">share</span> Teilen
-            </span>
-          </div>
-        </div>
-        <!-- Entry 2 -->
-        <div class="card-sm">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-            <div>
-              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Beine A</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">Mi, 13. Mai · 65 min</p>
-            </div>
-            <div style="text-align:right">
-              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">5.8 t</p>
-              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <span class="pill">Beine</span>
-            <span class="pill">Waden</span>
-          </div>
-        </div>
-        <!-- Entry 3 -->
-        <div class="card-sm">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-            <div>
-              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Pull A</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">Mo, 11. Mai · 52 min</p>
-            </div>
-            <div style="text-align:right">
-              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">3.9 t</p>
-              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <span class="pill">Rücken</span>
-            <span class="pill">Bizeps</span>
-          </div>
-        </div>
-
-        <!-- Month Separator -->
-        <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:8px 0 4px">April 2026</p>
-        <div class="card-sm">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div>
-              <p style="margin:0;font-size:15px;font-weight:800;font-style:italic">Push B</p>
-              <p style="margin:0;font-size:11px;color:#8e9379">Sa, 27. Apr · 61 min</p>
-            </div>
-            <div style="text-align:right">
-              <p style="margin:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">4.1 t</p>
-              <p style="margin:0;font-size:10px;color:#8e9379">Volumen</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div id="history-list"></div>
 
     <!-- PRs Liste (hidden by default) -->
     <div id="prs-list" style="display:none;flex-direction:column;gap:10px">
@@ -728,283 +656,115 @@ tailwind.config = {
 </div>
 
 
-<!-- ═══════════════════════════ SCREEN: SOCIAL / SHARE ═══════════════════════════ -->
+<!-- ═══════════════════════════ SCREEN: ERFOLGE ═══════════════════════════ -->
 <div id="screen-social" class="screen">
   <header class="app-header">
-    <div class="icon-btn" id="social-back-btn" onclick="goBack()" style="cursor:pointer"><span class="material-symbols-outlined">arrow_back</span></div>
+    <div class="icon-btn" onclick="navigate('dashboard')" style="cursor:pointer"><span class="material-symbols-outlined">arrow_back</span></div>
     <span class="brand">Kinetic Pulse</span>
     <div style="width:40px"></div>
   </header>
 
   <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
-    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Teilen & Vergleichen</h1>
+    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Erfolge</h1>
 
-    <!-- Tab Switcher -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:#1e2113;border-radius:12px;padding:4px;border:1px solid #333627">
-      <button id="social-tab-share" onclick="switchSocialTab('share')" style="height:34px;background:#ccff00;border:none;border-radius:9px;color:#1a2200;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s">Share Card</button>
-      <button id="social-tab-feed" onclick="switchSocialTab('feed')" style="height:34px;background:transparent;border:none;color:#8e9379;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s">Feed</button>
-      <button id="social-tab-bench" onclick="switchSocialTab('bench')" style="height:34px;background:transparent;border:none;color:#8e9379;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s">Vergleich</button>
-    </div>
-
-    <!-- Share Card Tab -->
-    <div id="social-share" style="display:flex;flex-direction:column;gap:14px">
-      <p style="font-size:13px;color:#8e9379;margin:0">Wähle was du teilen möchtest:</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <button onclick="showShareCard('workout')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-workout-btn">
-          <span class="material-symbols-outlined" style="color:#ccff00;font-size:24px;display:block;margin-bottom:6px">fitness_center</span>
-          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Workout</p>
-          <p style="margin:0;font-size:11px;color:#8e9379">Letztes Training teilen</p>
-        </button>
-        <button onclick="showShareCard('pr')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-pr-btn">
-          <span class="material-symbols-outlined" style="color:#abd600;font-size:24px;display:block;margin-bottom:6px">emoji_events</span>
-          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Persönlicher Rekord</p>
-          <p style="margin:0;font-size:11px;color:#8e9379">Neuen PR teilen</p>
-        </button>
-        <button onclick="showShareCard('progress')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-progress-btn">
-          <span class="material-symbols-outlined" style="color:#556d00;font-size:24px;display:block;margin-bottom:6px">trending_up</span>
-          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Fortschritt</p>
-          <p style="margin:0;font-size:11px;color:#8e9379">30-Tage-Verlauf</p>
-        </button>
-        <button onclick="showShareCard('streak')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s" id="share-streak-btn">
-          <span class="material-symbols-outlined" style="color:#ffb4ab;font-size:24px;display:block;margin-bottom:6px">local_fire_department</span>
-          <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Streak</p>
-          <p style="margin:0;font-size:11px;color:#8e9379">Trainingsserie</p>
-        </button>
-      </div>
-
-      <!-- Share Card Preview -->
-      <div id="share-card-preview" style="display:none">
-        <!-- Workout Share Card -->
-        <div id="card-workout" class="share-card" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
-            <div>
-              <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
-              <h2 style="margin:4px 0 0;font-size:22px;font-weight:900;font-style:italic;color:#e2e4cf;letter-spacing:-.02em">Push A Completed! 💪</h2>
-            </div>
-            <svg width="36" height="36" viewBox="0 0 100 100">
-              <path d="M20 50 L40 50 L50 20 L60 80 L70 50 L90 50" fill="none" stroke="#ccff00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
-            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#ccff00">58'</span>
-              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Dauer</p>
-            </div>
-            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf">4.2t</span>
-              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Volumen</p>
-            </div>
-            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf">7</span>
-              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Übungen</p>
-            </div>
-          </div>
-          <div style="border-top:1px solid rgba(204,255,0,.2);padding-top:12px;display:flex;justify-content:space-between;align-items:center">
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <span style="background:rgba(204,255,0,.15);color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid rgba(204,255,0,.3)">Brust</span>
-              <span style="background:rgba(204,255,0,.15);color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid rgba(204,255,0,.3)">Schultern</span>
-              <span style="background:rgba(204,255,0,.15);color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid rgba(204,255,0,.3)">Trizeps</span>
-            </div>
-            <span style="font-size:10px;color:#8e9379">15. Mai '26</span>
-          </div>
-        </div>
-
-        <!-- PR Share Card -->
-        <div id="card-pr" class="share-card" style="display:none">
-          <div style="text-align:center;margin-bottom:16px">
-            <span style="font-size:48px">🏆</span>
-            <p style="margin:4px 0 0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Neuer PR</p>
-          </div>
-          <h2 style="text-align:center;font-size:20px;font-weight:900;font-style:italic;margin:0 0 16px;letter-spacing:-.02em">Kreuzheben</h2>
-          <div style="text-align:center;background:rgba(0,0,0,.5);border-radius:14px;padding:20px;margin-bottom:16px">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#ccff00;line-height:1">180</span>
-            <span style="font-size:20px;color:#c4c9ac;font-weight:600"> kg</span>
-            <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#abd600;margin:8px 0 0">▲ +5 kg Personal Best</p>
-          </div>
-          <p style="text-align:center;font-size:12px;color:#8e9379;margin:0">15. Mai 2026 · 1 Wiederholung</p>
-        </div>
-
-        <!-- Progress Share Card -->
-        <div id="card-progress" class="share-card" style="display:none">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-            <div>
-              <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
-              <h2 style="margin:4px 0 0;font-size:20px;font-weight:900;font-style:italic;letter-spacing:-.02em">30-Tage Trend 📈</h2>
-            </div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#8e9379">Apr – Mai</span>
-          </div>
-          <svg width="100%" height="70" viewBox="0 0 300 70" preserveAspectRatio="none">
-            <path d="M0,60 Q50,50 100,42 T200,30 T300,25" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="300" cy="25" r="5" fill="#ccff00"/>
-          </svg>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
-            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:8px">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#ccff00">18</span>
-              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;font-weight:600">Einheiten</p>
-            </div>
-            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:8px">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#abd600">–1.6</span>
-              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;font-weight:600">kg</p>
-            </div>
-            <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:8px">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">3</span>
-              <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;font-weight:600">Neue PRs</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Streak Share Card -->
-        <div id="card-streak" class="share-card" style="display:none">
-          <div style="text-align:center">
-            <p style="margin:0 0 8px;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Streak</p>
-            <div style="font-size:72px;line-height:1;margin-bottom:8px">🔥</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#ccff00;line-height:1">14</div>
-            <p style="font-size:18px;color:#c4c9ac;font-weight:700;margin:4px 0">Tage in Folge</p>
-            <p style="font-size:12px;color:#8e9379;margin:8px 0 0">Seit 2. Mai 2026</p>
-          </div>
-        </div>
-
-        <!-- Share Actions -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
-          <button style="height:48px;background:#1e2113;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-            <span class="material-symbols-outlined" style="font-size:18px">download</span>
-            Speichern
-          </button>
-          <button style="height:48px;background:#ccff00;border:none;border-radius:12px;color:#1a2200;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-            <span class="material-symbols-outlined" style="font-size:18px">share</span>
-            Teilen
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Feed Tab -->
-    <div id="social-feed" style="display:none;flex-direction:column;gap:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Freundes-Feed</h3>
-        <span style="font-size:12px;color:#ccff00;font-weight:600">5 Freunde</span>
-      </div>
-
-      <div class="card-sm">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0">L</div>
-          <div style="flex:1">
-            <p style="margin:0;font-size:14px;font-weight:700">Lukas H.</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">vor 2 Stunden</p>
-          </div>
-          <span style="background:#1a3300;color:#ccff00;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid #ccff00">Neuer PR 🏆</span>
-        </div>
-        <div style="background:#161a0c;border-radius:10px;padding:12px">
-          <p style="margin:0 0 4px;font-size:13px;font-weight:700">Kniebeuge</p>
-          <div style="display:flex;align-items:baseline;gap:6px">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#ccff00">160 kg</span>
-            <span style="font-size:11px;color:#abd600">▲ +5 kg</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card-sm">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#dc2626,#f97316);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0">S</div>
-          <div style="flex:1">
-            <p style="margin:0;font-size:14px;font-weight:700">Stefan M.</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">vor 5 Stunden</p>
-          </div>
-          <span style="background:#1e2113;color:#8e9379;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid #333627">Training</span>
-        </div>
-        <div style="background:#161a0c;border-radius:10px;padding:12px">
-          <p style="margin:0 0 2px;font-size:13px;font-weight:700">Pull B abgeschlossen</p>
-          <p style="margin:0;font-size:11px;color:#8e9379">55 min · 4.1 Tonnen · 6 Übungen</p>
-        </div>
-      </div>
-
-      <div class="card-sm">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0">K</div>
-          <div style="flex:1">
-            <p style="margin:0;font-size:14px;font-weight:700">Katrin W.</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">Gestern</p>
-          </div>
-          <span style="background:#200010;color:#ffb4ab;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;border:1px solid #93000a">Streak 🔥</span>
-        </div>
-        <div style="background:#161a0c;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px">
-          <span style="font-size:28px">🔥</span>
-          <div>
-            <p style="margin:0;font-size:13px;font-weight:700">21 Tage Streak!</p>
-            <p style="margin:0;font-size:11px;color:#8e9379">Persönlicher Rekord</p>
-          </div>
-        </div>
-      </div>
-
-      <button style="width:100%;height:48px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span class="material-symbols-outlined" style="font-size:18px">person_add</span>
-        Freunde einladen
+    <!-- Card Auswahl -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="showShareCard('workout')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-workout-btn">
+        <span class="material-symbols-outlined" style="color:#ccff00;font-size:24px;display:block;margin-bottom:6px">fitness_center</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Workout</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">Letztes Training</p>
+      </button>
+      <button onclick="showShareCard('pr')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-pr-btn">
+        <span class="material-symbols-outlined" style="color:#abd600;font-size:24px;display:block;margin-bottom:6px">emoji_events</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Persönlicher Rekord</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">Neuer PR</p>
+      </button>
+      <button onclick="showShareCard('progress')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-progress-btn">
+        <span class="material-symbols-outlined" style="color:#556d00;font-size:24px;display:block;margin-bottom:6px">trending_up</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Fortschritt</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">30-Tage-Verlauf</p>
+      </button>
+      <button onclick="showShareCard('streak')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-streak-btn">
+        <span class="material-symbols-outlined" style="color:#ffb4ab;font-size:24px;display:block;margin-bottom:6px">local_fire_department</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Streak</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">Trainingsserie</p>
       </button>
     </div>
 
-    <!-- Benchmark Tab -->
-    <div id="social-bench" style="display:none;flex-direction:column;gap:12px">
-      <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Kraft-Benchmarking</h3>
-      <p style="font-size:13px;color:#8e9379;margin:0">Deine Werte vs. Freundes-Durchschnitt</p>
+    <!-- Card Preview -->
+    <div id="share-card-preview" style="display:none;flex-direction:column;gap:12px">
 
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <!-- Bankdrücken -->
-        <div class="card-sm">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <span style="font-size:15px;font-weight:700">Bankdrücken</span>
-            <span style="font-size:11px;color:#8e9379">1 WH Max</span>
+      <!-- Workout Card -->
+      <div id="card-workout" class="share-card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+          <div>
+            <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+            <h2 id="erfolge-workout-title" style="margin:4px 0 0;font-size:22px;font-weight:900;font-style:italic;color:#e2e4cf;letter-spacing:-.02em">Push A Completed! 💪</h2>
           </div>
-          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden;margin-bottom:6px">
-            <div style="position:absolute;left:0;top:0;height:100%;width:72%;background:linear-gradient(90deg,#1a3300,#ccff00);border-radius:8px;display:flex;align-items:center;padding:0 12px">
-              <span style="font-size:12px;font-weight:700;color:#1a2200">Du: 130 kg</span>
-            </div>
-          </div>
-          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden">
-            <div style="position:absolute;left:0;top:0;height:100%;width:58%;background:#1e2113;border:1px solid #333627;border-radius:8px;display:flex;align-items:center;padding:0 12px">
-              <span style="font-size:12px;font-weight:600;color:#8e9379">Ø Freunde: 105 kg</span>
-            </div>
-          </div>
-          <p style="margin:6px 0 0;font-size:11px;color:#ccff00;font-weight:600;text-align:right">+24% über Gruppe 🏆</p>
+          <svg width="36" height="36" viewBox="0 0 100 100">
+            <path d="M20 50 L40 50 L50 20 L60 80 L70 50 L90 50" fill="none" stroke="#ccff00" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
-
-        <!-- Kniebeuge -->
-        <div class="card-sm">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <span style="font-size:15px;font-weight:700">Kniebeuge</span>
-            <span style="font-size:11px;color:#8e9379">1 WH Max</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+            <span id="erfolge-dauer" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#ccff00">—</span>
+            <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Dauer</p>
           </div>
-          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden;margin-bottom:6px">
-            <div style="position:absolute;left:0;top:0;height:100%;width:65%;background:linear-gradient(90deg,#1a3300,#ccff00);border-radius:8px;display:flex;align-items:center;padding:0 12px">
-              <span style="font-size:12px;font-weight:700;color:#1a2200">Du: 145 kg</span>
-            </div>
+          <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+            <span id="erfolge-uebungen" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf">—</span>
+            <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Übungen</p>
           </div>
-          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden">
-            <div style="position:absolute;left:0;top:0;height:100%;width:62%;background:#1e2113;border:1px solid #333627;border-radius:8px;display:flex;align-items:center;padding:0 12px">
-              <span style="font-size:12px;font-weight:600;color:#8e9379">Ø Freunde: 138 kg</span>
-            </div>
+          <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+            <span id="erfolge-datum" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">—</span>
+            <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Datum</p>
           </div>
-          <p style="margin:6px 0 0;font-size:11px;color:#abd600;font-weight:600;text-align:right">+5% über Gruppe</p>
-        </div>
-
-        <!-- Kreuzheben -->
-        <div class="card-sm">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <span style="font-size:15px;font-weight:700">Kreuzheben</span>
-            <span style="font-size:11px;color:#8e9379">1 WH Max</span>
-          </div>
-          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden;margin-bottom:6px">
-            <div style="position:absolute;left:0;top:0;height:100%;width:80%;background:linear-gradient(90deg,#1a3300,#ccff00);border-radius:8px;display:flex;align-items:center;padding:0 12px">
-              <span style="font-size:12px;font-weight:700;color:#1a2200">Du: 180 kg</span>
-            </div>
-          </div>
-          <div style="position:relative;height:32px;background:#161a0c;border-radius:8px;overflow:hidden">
-            <div style="position:absolute;left:0;top:0;height:100%;width:55%;background:#1e2113;border:1px solid #333627;border-radius:8px;display:flex;align-items:center;padding:0 12px">
-              <span style="font-size:12px;font-weight:600;color:#8e9379">Ø Freunde: 122 kg</span>
-            </div>
-          </div>
-          <p style="margin:6px 0 0;font-size:11px;color:#ccff00;font-weight:600;text-align:right">+48% über Gruppe 💪</p>
         </div>
       </div>
+
+      <!-- PR Card -->
+      <div id="card-pr" class="share-card" style="display:none">
+        <div style="text-align:center;margin-bottom:16px">
+          <span style="font-size:48px">🏆</span>
+          <p style="margin:4px 0 0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Neuer PR</p>
+        </div>
+        <h2 style="text-align:center;font-size:20px;font-weight:900;font-style:italic;margin:0 0 16px;letter-spacing:-.02em">Kreuzheben</h2>
+        <div style="text-align:center;background:rgba(0,0,0,.5);border-radius:14px;padding:20px;margin-bottom:16px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#ccff00;line-height:1">180</span>
+          <span style="font-size:20px;color:#c4c9ac;font-weight:600"> kg</span>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#abd600;margin:8px 0 0">▲ +5 kg Personal Best</p>
+        </div>
+        <p style="text-align:center;font-size:12px;color:#8e9379;margin:0">15. Mai 2026 · 1 Wiederholung</p>
+      </div>
+
+      <!-- Progress Card -->
+      <div id="card-progress" class="share-card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <p style="margin:0;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+            <h2 style="margin:4px 0 0;font-size:20px;font-weight:900;font-style:italic;letter-spacing:-.02em">30-Tage Trend 📈</h2>
+          </div>
+        </div>
+        <svg width="100%" height="70" viewBox="0 0 300 70" preserveAspectRatio="none">
+          <path d="M0,60 Q50,50 100,42 T200,30 T300,25" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="300" cy="25" r="5" fill="#ccff00"/>
+        </svg>
+      </div>
+
+      <!-- Streak Card -->
+      <div id="card-streak" class="share-card" style="display:none">
+        <div style="text-align:center">
+          <p style="margin:0 0 8px;font-size:10px;color:#ccff00;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Streak</p>
+          <div style="font-size:72px;line-height:1;margin-bottom:8px">🔥</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#ccff00;line-height:1">14</div>
+          <p style="font-size:18px;color:#c4c9ac;font-weight:700;margin:4px 0">Tage in Folge</p>
+        </div>
+      </div>
+
+      <!-- Speichern Button -->
+      <button onclick="saveShareCard()" style="width:100%;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" id="erfolge-save-btn" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span class="material-symbols-outlined" style="font-size:20px">download</span>
+        Als Bild speichern
+      </button>
     </div>
   </main>
 </div>
@@ -1024,9 +784,9 @@ tailwind.config = {
     <!-- Heutiges Gewicht Eingabe -->
     <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:12px">
       <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0">Heutiges Gewicht</p>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <span id="gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#ccff00;line-height:1">82.4</span>
-        <span style="font-size:20px;color:#8e9379;font-weight:600">kg</span>
+      <div style="display:flex;align-items:baseline;gap:6px">
+        <span id="gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:600;color:#ccff00;line-height:1">82.4</span>
+        <span style="font-size:16px;color:#8e9379;font-weight:600">kg</span>
       </div>
       <!-- Numpad -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:280px">
@@ -1051,14 +811,18 @@ tailwind.config = {
     </div>
 
     <!-- Stats -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="card-sm" style="text-align:center">
-        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Gleitender Ø</p>
-        <span id="gewicht-avg" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#ccff00">82.7 kg</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="card-sm" style="text-align:center;padding:10px 6px">
+        <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Aktuell</p>
+        <span id="gewicht-aktuell-stat" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#ccff00">—</span>
       </div>
-      <div class="card-sm" style="text-align:center">
-        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Wöchentlich</p>
-        <span id="gewicht-weekly" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#abd600">–0.4 kg</span>
+      <div class="card-sm" style="text-align:center;padding:10px 6px">
+        <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Gleit. Ø</p>
+        <span id="gewicht-avg" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#e2e4cf">—</span>
+      </div>
+      <div class="card-sm" style="text-align:center;padding:10px 6px">
+        <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Wöchentl.</p>
+        <span id="gewicht-weekly" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#abd600">—</span>
       </div>
     </div>
 
@@ -1097,7 +861,7 @@ tailwind.config = {
         <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Startgewicht (kg)</label>
         <div style="display:flex;gap:8px">
           <input id="startgewicht-input" type="number" step="0.1" placeholder="90.0" style="flex:1;background:#1e2113;border:1px solid #444933;border-radius:8px;padding:8px 12px;color:#ccff00;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;text-align:center" onfocus="this.select();this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
-          <button onclick="saveStartgewicht()" style="background:#ccff00;border:none;border-radius:8px;padding:8px 14px;color:#1a2200;font-weight:800;cursor:pointer">OK</button>
+          <button onclick="saveStartgewicht()" style="background:#ccff00;border:none;border-radius:8px;padding:6px 12px;color:#1a2200;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap">OK</button>
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:12px;color:#8e9379;margin-bottom:6px">
@@ -1109,6 +873,18 @@ tailwind.config = {
         <div id="gw-progress-bar" class="progress-fill" style="width:65%;height:100%"></div>
       </div>
       <div id="meilensteine-container" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <!-- Messprotokoll aufklappbar -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <button onclick="toggleMessprotokoll()" id="protokoll-toggle" style="width:100%;padding:14px 16px;background:transparent;border:none;color:#e2e4cf;cursor:pointer;display:flex;justify-content:space-between;align-items:center;touch-action:manipulation">
+        <span style="font-size:14px;font-weight:700;font-style:italic">Messprotokoll</span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8e9379">
+          <span id="protokoll-count">—</span>
+          <span class="material-symbols-outlined" id="protokoll-chevron" style="font-size:18px;transition:transform .2s">expand_more</span>
+        </span>
+      </button>
+      <div id="protokoll-list" style="display:none;border-top:1px solid #333627;max-height:300px;overflow-y:auto"></div>
     </div>
   </main>
 </div>
@@ -1216,7 +992,11 @@ tailwind.config = {
     <span class="nav-label">Historie</span>
   </div>
   <div class="nav-item" id="nav-gewicht" onclick="navigate('gewicht')">
-    <span class="material-symbols-outlined">monitor_weight</span>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" fill="currentColor" stroke="none"/>
+      <path d="M12 3c-4.4 0-8 1.8-8 4l1.5 10h13L20 7c0-2.2-3.6-4-8-4z"/>
+      <line x1="7" y1="10" x2="17" y2="10"/>
+    </svg>
     <span class="nav-label">Gewicht</span>
   </div>
   <div class="nav-item" id="nav-profil" onclick="navigate('profil')">
@@ -1243,6 +1023,10 @@ function navigate(target) {
   // Gewicht-Screen initialisieren
   if (target === 'gewicht') {
     setTimeout(function() { initGewichtScreen(); }, 50);
+  }
+  // Historie dynamisch rendern
+  if (target === 'historie') {
+    setTimeout(function() { renderHistoryList(); }, 50);
   }
 
   // Hide all screens
@@ -1402,9 +1186,12 @@ function finishWorkout() {
   if (wktUebungen[wktIdx]) saveCurrentExerciseSets(wktUebungen[wktIdx].name);
 
   // History-Eintrag erstellen
+  var now = new Date();
   var histEntry = {
-    date: new Date().toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
-    dauer: Math.round(workoutSeconds / 60),
+    date: now.toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
+    datum: now.toISOString(),
+    dauer: workoutSeconds,
+    dauerMin: Math.round(workoutSeconds / 60),
     uebungen: wktUebungen.length,
     name: wktUebungen.length ? wktUebungen[0].name + (wktUebungen.length > 1 ? ' + ' + (wktUebungen.length - 1) + ' weitere' : '') : 'Training'
   };
@@ -1539,6 +1326,52 @@ function switchHistoryTab(tab) {
   }
 }
 
+// ─── Historie aus localStorage rendern ────────────────────────────
+function renderHistoryList() {
+  var container = document.getElementById('history-list');
+  if (!container) return;
+  var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+  if (hist.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#444933"><span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px">history</span><p style="margin:0;font-size:14px">Noch keine Trainings aufgezeichnet</p></div>';
+    return;
+  }
+  var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var html = '<div style="display:flex;flex-direction:column;gap:10px">';
+  var lastMonth = '';
+  hist.forEach(function(entry) {
+    var d = entry.datum ? new Date(entry.datum) : null;
+    var dateStr = '';
+    var monthLabel = '';
+    if (d && !isNaN(d)) {
+      dateStr = days[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()];
+      monthLabel = months[d.getMonth()] + ' ' + d.getFullYear();
+    } else if (entry.date) {
+      dateStr = entry.date;
+    }
+    if (monthLabel && monthLabel !== lastMonth) {
+      html += '<p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:8px 0 4px">' + monthLabel + '</p>';
+      lastMonth = monthLabel;
+    }
+    var dauerStr = '';
+    if (entry.dauer && entry.dauer > 60) {
+      dauerStr = Math.floor(entry.dauer / 60) + ' min';
+    } else if (entry.dauerMin) {
+      dauerStr = entry.dauerMin + ' min';
+    } else if (entry.dauer) {
+      dauerStr = entry.dauer + ' min';
+    }
+    html += '<div class="card-sm">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+      '<div><p style="margin:0;font-size:15px;font-weight:800;font-style:italic">' + (entry.name || 'Training') + '</p>' +
+      '<p style="margin:0;font-size:11px;color:#8e9379">' + dateStr + (dauerStr ? ' · ' + dauerStr : '') + '</p></div>' +
+      '<div style="text-align:right"><p style="margin:0;font-size:12px;font-weight:700;color:#8e9379">' + (entry.uebungen || '—') + ' Übg.</p></div>' +
+      '</div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 // ─── Social Tab Switch ─────────────────────────────────────────────
 function switchSocialTab(tab) {
   var tabs = ['share','feed','bench'];
@@ -1586,9 +1419,124 @@ function showShareCard(type) {
     }
   });
 
+  // Workout card: Daten aus letztem Training befüllen
+  if (type === 'workout') {
+    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    if (hist.length > 0) {
+      var last = hist[0]; // unshift → neustes zuerst
+      var titleEl = document.getElementById('erfolge-workout-title');
+      var dauerEl = document.getElementById('erfolge-dauer');
+      var uebEl   = document.getElementById('erfolge-uebungen');
+      var datumEl = document.getElementById('erfolge-datum');
+
+      if (titleEl && last.name) titleEl.textContent = last.name + ' ✓';
+
+      if (dauerEl) {
+        if (last.dauer && last.dauer > 60) {
+          // Sekunden (neues Format)
+          var min = Math.floor(last.dauer / 60);
+          var sec = last.dauer % 60;
+          dauerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+        } else if (last.dauerMin) {
+          dauerEl.textContent = last.dauerMin + ' min';
+        } else if (last.dauer) {
+          dauerEl.textContent = last.dauer + ' min';
+        }
+      }
+
+      if (uebEl && last.uebungen != null) {
+        uebEl.textContent = last.uebungen;
+      }
+
+      if (datumEl) {
+        var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+        if (last.datum) {
+          var d = new Date(last.datum);
+          datumEl.textContent = d.getDate() + '. ' + months[d.getMonth()];
+        } else if (last.date) {
+          datumEl.textContent = last.date;
+        }
+      }
+    }
+  }
+
+  // Streak card: aktuellen Streak befüllen
+  if (type === 'streak') {
+    var streakEl = document.querySelector('#card-streak .streak-value');
+    if (!streakEl) {
+      // Streak aus activityHistory berechnen
+      var hist2 = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+      var streak = 0;
+      if (hist2.length > 0) {
+        var today = new Date(); today.setHours(0,0,0,0);
+        var prev = null;
+        for (var i = hist2.length - 1; i >= 0; i--) {
+          var dd = new Date(hist2[i].datum); dd.setHours(0,0,0,0);
+          if (prev === null) {
+            var diff0 = (today - dd) / 86400000;
+            if (diff0 > 1) break;
+            streak = 1; prev = dd;
+          } else {
+            var diff1 = (prev - dd) / 86400000;
+            if (diff1 === 1) { streak++; prev = dd; }
+            else if (diff1 === 0) { /* gleicher Tag */ }
+            else break;
+          }
+        }
+      }
+      var streakNumEl = document.querySelector('#card-streak div[style*="font-size:56px"]');
+      if (streakNumEl) streakNumEl.textContent = streak || '0';
+    }
+  }
+
   // Scroll to preview
   setTimeout(function() {
     preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+// ─── Als Bild speichern ────────────────────────────────────────────
+function saveShareCard() {
+  // Aktive Card finden
+  var cards = ['workout','pr','progress','streak'];
+  var activeCard = null;
+  for (var i = 0; i < cards.length; i++) {
+    var el = document.getElementById('card-' + cards[i]);
+    if (el && el.style.display !== 'none') { activeCard = el; break; }
+  }
+  if (!activeCard) { alert('Bitte zuerst eine Karte auswählen.'); return; }
+
+  var btn = document.getElementById('erfolge-save-btn');
+  if (btn) { btn.textContent = 'Wird erstellt…'; btn.disabled = true; }
+
+  // Kurz warten damit Fonts geladen sind
+  setTimeout(function() {
+    html2canvas(activeCard, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false
+    }).then(function(canvas) {
+      var link = document.createElement('a');
+      link.download = 'kinetic-pulse-' + new Date().toISOString().slice(0,10) + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">check</span> Gespeichert!';
+        btn.disabled = false;
+        setTimeout(function() {
+          btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">download</span> Als Bild speichern';
+        }, 2500);
+      }
+    }).catch(function(err) {
+      console.error('html2canvas Fehler:', err);
+      if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">download</span> Als Bild speichern';
+        btn.disabled = false;
+      }
+      alert('Speichern fehlgeschlagen. Bitte versuche es erneut.');
+    });
   }, 100);
 }
 
@@ -1963,7 +1911,7 @@ function resetAppData() {
   if (!confirm('Alle Daten löschen? Das kann nicht rückgängig gemacht werden.')) return;
   var keys = ['kp_plaene','kp_lastSets','kp_activityHistory','kp_workoutDays',
               'kp_gewicht','kp_gewicht_hist','kp_name','kp_sub','kp_ziel',
-              'kp_startgewicht','kp_avatar'];
+              'kp_startgewicht','kp_avatar','kp_pauseTimer'];
   for (var ki = 0; ki < keys.length; ki++) { localStorage.removeItem(keys[ki]); }
   // Workout-State zurücksetzen
   wktUebungen = []; wktIdx = 0;
@@ -2161,6 +2109,9 @@ function saveGewicht() {
   updateGewichtScreen(val);
   renderGewichtChart();
   loadProfilData();
+  // Protokoll aktualisieren falls offen
+  var prList2 = document.getElementById('protokoll-list');
+  if (prList2 && prList2.style.display !== 'none') renderMessprotokoll();
   // Kurzes Feedback
   var btn = document.querySelector('#screen-gewicht .volt-bg');
   if (btn) { btn.textContent = '✓ Gespeichert!'; setTimeout(function() { btn.textContent = 'Speichern'; }, 1500); }
@@ -2177,15 +2128,28 @@ function updateGewichtScreen(val) {
   var ms2lbl = document.getElementById('ms2-label');
   var avg = document.getElementById('gewicht-avg');
   var weekly = document.getElementById('gewicht-weekly');
+  var aktuellStat = document.getElementById('gewicht-aktuell-stat');
 
   if (display) display.textContent = val.toFixed(1);
   if (aktuell) aktuell.textContent = 'Aktuell: ' + val.toFixed(1) + ' kg';
+  if (aktuellStat) aktuellStat.textContent = val.toFixed(1) + ' kg';
   if (zielLabel) zielLabel.textContent = ziel.toFixed(1) + ' kg';
   if (startLabel) startLabel.textContent = start.toFixed(1) + ' kg';
 
   var pct = (start !== ziel) ? Math.max(0, Math.min(100, Math.round((start - val) / (start - ziel) * 100))) : 0;
   if (bar) bar.style.width = pct + '%';
-  if (avg) avg.textContent = val.toFixed(1) + ' kg';
+
+  // Gleitender Durchschnitt (7 Tage)
+  try {
+    var hist7 = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+    var last7 = hist7.slice(-7);
+    if (last7.length > 0) {
+      var sum7 = last7.reduce(function(s, e) { return s + e.val; }, 0);
+      if (avg) avg.textContent = (sum7 / last7.length).toFixed(1) + ' kg';
+    } else {
+      if (avg) avg.textContent = val.toFixed(1) + ' kg';
+    }
+  } catch(e) { if (avg) avg.textContent = val.toFixed(1) + ' kg'; }
 
   // Wöchentliche Veränderung aus Verlaufsdaten
   try {
@@ -2239,6 +2203,48 @@ function renderMeilensteine(start, aktuell, ziel) {
   });
 }
 
+// ─── Messprotokoll ────────────────────────────────────────────────
+function renderMessprotokoll() {
+  var container = document.getElementById('protokoll-list');
+  var countEl = document.getElementById('protokoll-count');
+  if (!container) return;
+  var hist = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+  var last50 = hist.slice(-50).reverse(); // neueste zuerst
+  if (countEl) countEl.textContent = last50.length + ' Einträge';
+  if (last50.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:#444933;font-size:13px;padding:16px;margin:0">Noch keine Messungen</p>';
+    return;
+  }
+  var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var html = '';
+  last50.forEach(function(entry, i) {
+    var d = entry.date ? new Date(entry.date) : null;
+    var dateStr = d && !isNaN(d) ? days[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear() : (entry.label || '—');
+    var isFirst = i === 0;
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid #2a2d1e' + (isFirst ? ';background:#1a2200' : '') + '">' +
+      '<span style="font-size:12px;color:' + (isFirst ? '#ccff00' : '#8e9379') + '">' + dateStr + '</span>' +
+      '<span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:600;color:' + (isFirst ? '#ccff00' : '#e2e4cf') + '">' + entry.val.toFixed(1) + ' kg</span>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function toggleMessprotokoll() {
+  var list = document.getElementById('protokoll-list');
+  var chevron = document.getElementById('protokoll-chevron');
+  if (!list) return;
+  var isOpen = list.style.display !== 'none';
+  if (isOpen) {
+    list.style.display = 'none';
+    if (chevron) chevron.style.transform = '';
+  } else {
+    renderMessprotokoll();
+    list.style.display = 'block';
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  }
+}
+
 function initGewichtScreen() {
   // Startgewicht aus Profil übernehmen falls noch nicht gesetzt
   var startLS = localStorage.getItem('kp_startgewicht');
@@ -2259,6 +2265,15 @@ function initGewichtScreen() {
     if (display2) display2.textContent = '—';
   }
   renderGewichtChart();
+  // Protokoll-Zähler aktualisieren (ohne zu öffnen)
+  var hist0 = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+  var countEl = document.getElementById('protokoll-count');
+  if (countEl) countEl.textContent = Math.min(hist0.length, 50) + ' Einträge';
+  // Protokoll schließen falls offen
+  var prList = document.getElementById('protokoll-list');
+  var chev = document.getElementById('protokoll-chevron');
+  if (prList) prList.style.display = 'none';
+  if (chev) chev.style.transform = '';
 }
 
 function toggleStartgewichtEdit() {
