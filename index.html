@@ -440,15 +440,24 @@ tailwind.config = {
     <div id="history-list"></div>
 
     <!-- PRs Liste (hidden by default) -->
-    <div id="prs-list" style="display:none;flex-direction:column;gap:10px">
-      <div style="text-align:center;padding:40px 20px;color:#444933">
-        <span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px">emoji_events</span>
-        <p style="margin:0;font-size:14px">Noch keine PRs — starte dein erstes Training!</p>
-      </div>
-    </div>
+    <div id="prs-list" style="display:none;flex-direction:column;gap:10px"></div>
   </main>
 </div>
 
+
+<!-- ═══════════════════════════ MODAL: TRAINING DETAIL ═══════════════════════════ -->
+<div id="modal-training-detail" onclick="if(event.target===this)closeTrainingDetail()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);align-items:flex-end;justify-content:center">
+  <div style="background:#13150e;border-radius:20px 20px 0 0;width:100%;max-width:430px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:16px 20px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2113;flex-shrink:0">
+      <div>
+        <p id="modal-detail-name" style="margin:0;font-size:17px;font-weight:800;font-style:italic;color:#f0f4e8"></p>
+        <p id="modal-detail-meta" style="margin:4px 0 0;font-size:12px;color:#8e9379"></p>
+      </div>
+      <button onclick="closeTrainingDetail()" style="background:#1e2113;border:none;border-radius:50%;width:32px;height:32px;color:#8e9379;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+    </div>
+    <div id="modal-detail-body" style="overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════ SCREEN: PROFIL ═══════════════════════════ -->
 <div id="screen-profil" class="screen">
@@ -1116,13 +1125,24 @@ function finishWorkout() {
 
   // History-Eintrag erstellen
   var now = new Date();
+  // Satz-Daten aus kp_lastSets sammeln
+  var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
+  var uebungsDaten = wktUebungen.map(function(u) {
+    var saetze = lastSets[u.name] || [];
+    var volumen = saetze.reduce(function(sum, s) { return sum + (s.kg * s.wdh); }, 0);
+    var maxKg = saetze.reduce(function(max, s) { return s.kg > max ? s.kg : max; }, 0);
+    return { name: u.name, saetze: saetze, volumen: volumen, maxKg: maxKg };
+  });
+  var gesamtVolumen = uebungsDaten.reduce(function(sum, u) { return sum + u.volumen; }, 0);
   var histEntry = {
     date: now.toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
     datum: now.toISOString(),
     dauer: workoutSeconds,
     dauerMin: Math.round(workoutSeconds / 60),
     uebungen: wktUebungen.length,
-    name: wktUebungen.length ? wktUebungen[0].name + (wktUebungen.length > 1 ? ' + ' + (wktUebungen.length - 1) + ' weitere' : '') : 'Training'
+    name: wktUebungen.length ? wktUebungen[0].name + (wktUebungen.length > 1 ? ' + ' + (wktUebungen.length - 1) + ' weitere' : '') : 'Training',
+    uebungsDaten: uebungsDaten,
+    gesamtVolumen: Math.round(gesamtVolumen)
   };
   try {
     var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
@@ -1252,7 +1272,93 @@ function switchHistoryTab(tab) {
     tabPrs.style.color = '#162000';
     tabHistory.style.background = 'transparent';
     tabHistory.style.color = '#8e9379';
+    renderPRsList();
   }
+}
+
+// ─── PRs aus History berechnen und rendern ─────────────────────────
+function renderPRsList() {
+  var container = document.getElementById('prs-list');
+  if (!container) return;
+  var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+
+  if (hist.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#444933"><span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px">emoji_events</span><p style="margin:0;font-size:14px">Noch keine PRs — starte dein erstes Training!</p></div>';
+    return;
+  }
+
+  // Bestes Gewicht pro Übung
+  var bestKg = {};
+  // Bestes Volumen pro Übung
+  var bestVol = {};
+  // Globale PRs
+  var bestGesamtVol = 0;
+  var bestDauer = 0;
+  var bestUebungen = 0;
+
+  hist.forEach(function(entry) {
+    if (entry.gesamtVolumen && entry.gesamtVolumen > bestGesamtVol) bestGesamtVol = entry.gesamtVolumen;
+    if (entry.dauer && entry.dauer > bestDauer) bestDauer = entry.dauer;
+    if (entry.uebungen && entry.uebungen > bestUebungen) bestUebungen = entry.uebungen;
+    if (entry.uebungsDaten) {
+      entry.uebungsDaten.forEach(function(u) {
+        if (u.maxKg && (!bestKg[u.name] || u.maxKg > bestKg[u.name])) bestKg[u.name] = u.maxKg;
+        if (u.volumen && (!bestVol[u.name] || u.volumen > bestVol[u.name])) bestVol[u.name] = u.volumen;
+      });
+    }
+  });
+
+  // Streak berechnen
+  var streak = 0;
+  var dates = hist.map(function(e) { return e.datum ? new Date(e.datum) : null; }).filter(Boolean);
+  dates.sort(function(a,b) { return b - a; });
+  if (dates.length) {
+    var prev = new Date(dates[0]); prev.setHours(0,0,0,0);
+    streak = 1;
+    for (var i = 1; i < dates.length; i++) {
+      var cur = new Date(dates[i]); cur.setHours(0,0,0,0);
+      var diff = (prev - cur) / 86400000;
+      if (diff === 1) { streak++; prev = cur; }
+      else if (diff === 0) { continue; }
+      else break;
+    }
+  }
+
+  var html = '';
+
+  // ── Globale Bestleistungen ──
+  html += '<p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:4px 0 2px">Globale Bestleistungen</p>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  html += prCard('emoji_events', 'Streak', streak + ' Tage', '');
+  html += prCard('timer', 'Längste Einheit', bestDauer > 60 ? Math.floor(bestDauer/60) + ' min' : '—', '');
+  html += prCard('fitness_center', 'Meiste Übungen', bestUebungen ? bestUebungen + ' Übg.' : '—', '');
+  html += prCard('weight', 'Bestes Volumen', bestGesamtVol >= 1000 ? (bestGesamtVol/1000).toFixed(1) + ' t' : (bestGesamtVol ? bestGesamtVol + ' kg' : '—'), '');
+  html += '</div>';
+
+  // ── Bestes Gewicht pro Übung ──
+  var uebNames = Object.keys(bestKg);
+  if (uebNames.length) {
+    html += '<p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:16px 0 2px">Bestes Gewicht · Übung</p>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px">';
+    uebNames.forEach(function(name) {
+      html += '<div style="background:#1a1d12;border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">' +
+        '<p style="margin:0;font-size:14px;font-weight:700;font-style:italic;color:#f0f4e8">' + name + '</p>' +
+        '<span style="font-size:16px;font-weight:800;color:#74d604">' + bestKg[name] + ' kg</span>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function prCard(icon, label, value, sub) {
+  return '<div style="background:#1a1d12;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px">' +
+    '<span class="material-symbols-outlined" style="font-size:22px;color:#74d604">' + icon + '</span>' +
+    '<p style="margin:0;font-size:11px;color:#8e9379;font-weight:600">' + label + '</p>' +
+    '<p style="margin:0;font-size:18px;font-weight:800;color:#f0f4e8">' + value + '</p>' +
+    (sub ? '<p style="margin:0;font-size:11px;color:#444933">' + sub + '</p>' : '') +
+    '</div>';
 }
 
 // ─── Historie aus localStorage rendern ────────────────────────────
@@ -1268,7 +1374,7 @@ function renderHistoryList() {
   var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
   var html = '<div style="display:flex;flex-direction:column;gap:10px">';
   var lastMonth = '';
-  hist.forEach(function(entry) {
+  hist.forEach(function(entry, idx) {
     var d = entry.datum ? new Date(entry.datum) : null;
     var dateStr = '';
     var monthLabel = '';
@@ -1290,15 +1396,67 @@ function renderHistoryList() {
     } else if (entry.dauer) {
       dauerStr = entry.dauer + ' min';
     }
-    html += '<div class="card-sm">' +
+    var volStr = entry.gesamtVolumen ? (entry.gesamtVolumen >= 1000 ? (entry.gesamtVolumen/1000).toFixed(1) + 't' : entry.gesamtVolumen + 'kg') : '';
+    html += '<div class="card-sm" onclick="openTrainingDetail(' + idx + ')" style="cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity=\'.7\'" onmouseup="this.style.opacity=\'1\'">' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
-      '<div><p style="margin:0;font-size:15px;font-weight:800;font-style:italic">' + (entry.name || 'Training') + '</p>' +
+      '<div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:800;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (entry.name || 'Training') + '</p>' +
       '<p style="margin:0;font-size:11px;color:#8e9379">' + dateStr + (dauerStr ? ' · ' + dauerStr : '') + '</p></div>' +
-      '<div style="text-align:right"><p style="margin:0;font-size:12px;font-weight:700;color:#8e9379">' + (entry.uebungen || '—') + ' Übg.</p></div>' +
-      '</div></div>';
+      '<div style="text-align:right;flex-shrink:0;margin-left:12px">' +
+      '<p style="margin:0;font-size:12px;font-weight:700;color:#8e9379">' + (entry.uebungen || '—') + ' Übg.</p>' +
+      (volStr ? '<p style="margin:2px 0 0;font-size:11px;color:#74d604;font-weight:700">' + volStr + '</p>' : '') +
+      '</div></div></div>';
   });
   html += '</div>';
   container.innerHTML = html;
+}
+
+function openTrainingDetail(idx) {
+  var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+  var entry = hist[idx];
+  if (!entry) return;
+  var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var d = entry.datum ? new Date(entry.datum) : null;
+  var dateStr = d && !isNaN(d) ? days[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear() : (entry.date || '');
+  var dauerStr = '';
+  if (entry.dauer && entry.dauer > 60) dauerStr = Math.floor(entry.dauer / 60) + ' min';
+  else if (entry.dauerMin) dauerStr = entry.dauerMin + ' min';
+  var meta = dateStr + (dauerStr ? ' · ' + dauerStr : '') + (entry.gesamtVolumen ? ' · ' + entry.gesamtVolumen + ' kg Volumen' : '');
+  document.getElementById('modal-detail-name').textContent = entry.name || 'Training';
+  document.getElementById('modal-detail-meta').textContent = meta;
+  var body = document.getElementById('modal-detail-body');
+  if (entry.uebungsDaten && entry.uebungsDaten.length) {
+    body.innerHTML = entry.uebungsDaten.map(function(u) {
+      var saetzeHtml = '';
+      if (u.saetze && u.saetze.length) {
+        saetzeHtml = u.saetze.map(function(s, si) {
+          return '<div style="display:flex;gap:16px;padding:6px 0;border-bottom:1px solid #1a1d12">' +
+            '<span style="font-size:12px;color:#444933;width:24px">S' + (si+1) + '</span>' +
+            '<span style="font-size:14px;font-weight:700;color:#f0f4e8">' + s.kg + ' kg</span>' +
+            '<span style="font-size:14px;color:#8e9379">× ' + s.wdh + ' Wdh.</span>' +
+            '<span style="font-size:12px;color:#74d604;margin-left:auto">' + Math.round(s.kg * s.wdh) + ' kg</span>' +
+            '</div>';
+        }).join('');
+      } else {
+        saetzeHtml = '<p style="font-size:12px;color:#444933;margin:8px 0 0">Keine Satzdaten</p>';
+      }
+      var volStr = u.volumen ? '<span style="font-size:11px;color:#74d604;font-weight:700">' + u.volumen + ' kg</span>' : '';
+      return '<div style="background:#1a1d12;border-radius:12px;padding:12px 14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#f0f4e8">' + u.name + '</p>' + volStr +
+        '</div>' + saetzeHtml + '</div>';
+    }).join('');
+  } else {
+    body.innerHTML = '<p style="color:#444933;font-size:14px;text-align:center;padding:24px 0">Keine Detaildaten — nur für neue Trainings verfügbar</p>';
+  }
+  var modal = document.getElementById('modal-training-detail');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTrainingDetail() {
+  document.getElementById('modal-training-detail').style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 // ─── Social Tab Switch ─────────────────────────────────────────────
