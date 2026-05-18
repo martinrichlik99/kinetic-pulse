@@ -244,11 +244,13 @@ tailwind.config = {
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Aktuelle PRs</h3>
-        <span onclick="navigate('historie')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600">Alle →</span>
+        <span onclick="navigate('erfolge')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600">Alle →</span>
       </div>
-      <div style="text-align:center;padding:16px 0">
-        <span class="material-symbols-outlined" style="font-size:36px;color:#444933">emoji_events</span>
-        <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine PRs — starte dein erstes Training!</p>
+      <div id="dashboard-prs-list">
+        <div style="text-align:center;padding:16px 0">
+          <span class="material-symbols-outlined" style="font-size:36px;color:#444933">emoji_events</span>
+          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine PRs — starte dein erstes Training!</p>
+        </div>
       </div>
     </div>
   </main>
@@ -665,13 +667,13 @@ tailwind.config = {
           <span style="font-size:48px">🏆</span>
           <p style="margin:4px 0 0;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Neuer PR</p>
         </div>
-        <h2 style="text-align:center;font-size:20px;font-weight:900;font-style:italic;margin:0 0 16px;letter-spacing:-.02em">Kreuzheben</h2>
+        <h2 id="pr-card-name" style="text-align:center;font-size:20px;font-weight:900;font-style:italic;margin:0 0 16px;letter-spacing:-.02em">—</h2>
         <div style="text-align:center;background:rgba(0,0,0,.5);border-radius:14px;padding:20px;margin-bottom:16px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#74d604;line-height:1">180</span>
+          <span id="pr-card-kg" style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#74d604;line-height:1">—</span>
           <span style="font-size:20px;color:#c4c9ac;font-weight:600"> kg</span>
-          <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#5aaa00;margin:8px 0 0">▲ +5 kg Personal Best</p>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#5aaa00;margin:8px 0 0" id="pr-card-sub">▲ Personal Best</p>
         </div>
-        <p style="text-align:center;font-size:12px;color:#8e9379;margin:0">15. Mai 2026 · 1 Wiederholung</p>
+        <p id="pr-card-meta" style="text-align:center;font-size:12px;color:#8e9379;margin:0">—</p>
       </div>
 
       <!-- Progress Card -->
@@ -1547,6 +1549,45 @@ function showShareCard(type) {
     }
   }
 
+  // PR card: besten PR aus History befüllen
+  if (type === 'pr') {
+    var histPR = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    var bestKgPR = {};
+    var bestKgDate = {};
+    histPR.forEach(function(entry) {
+      if (entry.uebungsDaten) {
+        entry.uebungsDaten.forEach(function(u) {
+          if (u.maxKg && u.maxKg > 0 && (!bestKgPR[u.name] || u.maxKg > bestKgPR[u.name])) {
+            bestKgPR[u.name] = u.maxKg;
+            bestKgDate[u.name] = entry.datum || entry.date || '';
+          }
+        });
+      }
+    });
+    var prNames2 = Object.keys(bestKgPR);
+    if (prNames2.length > 0) {
+      // Höchstes Gewicht insgesamt
+      var topName = prNames2.reduce(function(a, b) { return bestKgPR[a] >= bestKgPR[b] ? a : b; });
+      var nameEl = document.getElementById('pr-card-name');
+      var kgEl = document.getElementById('pr-card-kg');
+      var metaEl = document.getElementById('pr-card-meta');
+      if (nameEl) nameEl.textContent = topName;
+      if (kgEl) kgEl.textContent = bestKgPR[topName];
+      if (metaEl) {
+        var dateStr2 = '';
+        if (bestKgDate[topName]) {
+          var months2 = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+          var d2 = new Date(bestKgDate[topName]);
+          if (!isNaN(d2)) dateStr2 = d2.getDate() + '. ' + months2[d2.getMonth()] + ' ' + d2.getFullYear();
+        }
+        metaEl.textContent = dateStr2 ? dateStr2 + ' · Personal Best' : 'Personal Best';
+      }
+    } else {
+      var nameEl2 = document.getElementById('pr-card-name');
+      if (nameEl2) nameEl2.textContent = 'Noch kein PR';
+    }
+  }
+
   // Streak card: aktuellen Streak befüllen
   if (type === 'streak') {
     var streakEl = document.querySelector('#card-streak .streak-value');
@@ -2072,16 +2113,21 @@ function updateDashboardStats() {
     weekStart.setHours(0,0,0,0);
 
     var weekCount = 0;
-    var weekDauer = 0;
+    var weekDauer = 0; // in Sekunden
+    var weekVolumen = 0;
     hist.forEach(function(h) {
-      // date ist z.B. "18.05.2026"
-      var parts = h.date.split('.');
-      if (parts.length === 3) {
-        var d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
-        if (d >= weekStart) {
-          weekCount++;
-          weekDauer += (h.dauer || 0);
-        }
+      // datum ist ISO-String, date ist "18.05.2026" - beides versuchen
+      var d = null;
+      if (h.datum) {
+        d = new Date(h.datum);
+      } else if (h.date) {
+        var parts = h.date.split('.');
+        if (parts.length === 3) d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+      }
+      if (d && d >= weekStart) {
+        weekCount++;
+        weekDauer += (h.dauer || 0); // dauer ist in Sekunden
+        weekVolumen += (h.gesamtVolumen || 0);
       }
     });
 
@@ -2089,7 +2135,42 @@ function updateDashboardStats() {
     var statCards = document.querySelectorAll('#screen-dashboard .card-sm');
     if (statCards.length >= 3) {
       statCards[0].querySelector('div').textContent = weekCount;
-      statCards[2].querySelector('div').textContent = weekDauer > 0 ? weekDauer + 'm' : '0m';
+      // Volumen in t oder kg
+      var volStr = weekVolumen >= 1000 ? (weekVolumen/1000).toFixed(1) + ' t' : (weekVolumen > 0 ? weekVolumen + ' kg' : '0 t');
+      statCards[1].querySelector('div').textContent = volStr;
+      // Dauer: Sekunden → Minuten
+      var dauerMin = weekDauer > 60 ? Math.round(weekDauer / 60) : weekDauer;
+      statCards[2].querySelector('div').textContent = dauerMin > 0 ? dauerMin + 'm' : '0m';
+    }
+
+    // Dashboard PRs rendern
+    var dashPRs = document.getElementById('dashboard-prs-list');
+    if (dashPRs) {
+      var bestKgDash = {};
+      hist.forEach(function(entry) {
+        if (entry.uebungsDaten) {
+          entry.uebungsDaten.forEach(function(u) {
+            if (u.maxKg && u.maxKg > 0 && (!bestKgDash[u.name] || u.maxKg > bestKgDash[u.name])) {
+              bestKgDash[u.name] = u.maxKg;
+            }
+          });
+        }
+      });
+      var prNames = Object.keys(bestKgDash);
+      if (prNames.length === 0) {
+        dashPRs.innerHTML = '<div style="text-align:center;padding:16px 0"><span class="material-symbols-outlined" style="font-size:36px;color:#444933">emoji_events</span><p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine PRs — starte dein erstes Training!</p></div>';
+      } else {
+        var prHtml = '<div style="display:flex;flex-direction:column;gap:8px">';
+        var shown = prNames.slice(0, 4);
+        shown.forEach(function(name) {
+          prHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1a1d12;border-radius:10px">' +
+            '<span style="font-size:13px;font-weight:700;font-style:italic;color:#f0f4e8">' + name + '</span>' +
+            '<span style="font-size:15px;font-weight:800;color:#74d604;font-family:\'JetBrains Mono\',monospace">' + bestKgDash[name] + ' kg</span>' +
+            '</div>';
+        });
+        prHtml += '</div>';
+        dashPRs.innerHTML = prHtml;
+      }
     }
 
     // Profil Einheiten
