@@ -293,7 +293,10 @@ tailwind.config = {
       <span id="workout-time" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#ccff00;letter-spacing:.02em">00:00</span>
     </div>
     <div style="display:flex;justify-content:flex-end">
-      <div class="icon-btn" id="workout-done-btn" onclick="finishWorkout()" style="background:#1a3300;color:#ccff00"><span class="material-symbols-outlined" style="font-size:18px">done_all</span></div>
+      <div id="workout-active-indicator" style="display:none;align-items:center;gap:4px;background:#1a3300;border:1px solid #ccff00;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;color:#ccff00">
+        <span style="width:6px;height:6px;background:#ccff00;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite"></span>
+        AKTIV
+      </div>
     </div>
   </header>
 
@@ -360,11 +363,17 @@ tailwind.config = {
   <!-- ═ Sticky Footer ═ -->
   <div style="position:fixed;bottom:68px;left:0;right:0;z-index:90;background:rgba(17,21,8,.97);backdrop-filter:blur(16px);border-top:1px solid #333627;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
 
-    <!-- Nächste Übung Button -->
-    <button id="wkt-next-btn" style="width:100%;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
-      Nächste Übung
-      <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
-    </button>
+    <!-- Übung Navigation -->
+    <div style="display:flex;gap:8px">
+      <button id="wkt-prev-btn" onclick="prevExercise()" style="display:none;height:52px;padding:0 16px;background:#1e2113;border:1px solid #444933;border-radius:12px;color:#c4c9ac;font-size:14px;font-weight:700;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;transition:all .2s;flex-shrink:0" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
+        Zurück
+      </button>
+      <button id="wkt-next-btn" style="flex:1;height:52px;background:#1e2113;border:1px solid #ccff00;border-radius:12px;color:#ccff00;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        Nächste Übung
+        <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
+      </button>
+    </div>
 
     <!-- Timer Leiste -->
     <div style="display:flex;align-items:center;gap:10px">
@@ -1057,7 +1066,20 @@ tailwind.config = {
 
     <!-- Ziel & Meilensteine -->
     <div class="card">
-      <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0 0 12px">Gewichtsziel</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Gewichtsziel</h3>
+        <button onclick="toggleStartgewichtEdit()" style="background:transparent;border:1px solid #444933;border-radius:8px;color:#8e9379;font-size:11px;font-weight:600;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:4px">
+          <span class="material-symbols-outlined" style="font-size:14px">edit</span> Startgewicht
+        </button>
+      </div>
+      <!-- Startgewicht bearbeiten -->
+      <div id="startgewicht-edit" style="display:none;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px;margin-bottom:12px">
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Startgewicht (kg)</label>
+        <div style="display:flex;gap:8px">
+          <input id="startgewicht-input" type="number" step="0.1" placeholder="90.0" style="flex:1;background:#1e2113;border:1px solid #444933;border-radius:8px;padding:8px 12px;color:#ccff00;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;text-align:center" onfocus="this.select();this.style.borderColor='#ccff00'" onblur="this.style.borderColor='#444933'">
+          <button onclick="saveStartgewicht()" style="background:#ccff00;border:none;border-radius:8px;padding:8px 14px;color:#1a2200;font-weight:800;cursor:pointer">OK</button>
+        </div>
+      </div>
       <div style="display:flex;justify-content:space-between;font-size:12px;color:#8e9379;margin-bottom:6px">
         <span>Start: <span id="gw-start" style="color:#e2e4cf">90 kg</span></span>
         <span style="color:#ccff00;font-weight:700" id="gw-aktuell">Aktuell: 82.4 kg</span>
@@ -1163,6 +1185,18 @@ tailwind.config = {
       </button>
     </div>
   </div>
+</div>
+
+<!-- ═══ AKTIVES TRAINING BANNER ═══ -->
+<div id="workout-return-banner" onclick="navigate('workout')" style="display:none;position:fixed;bottom:80px;left:12px;right:12px;z-index:110;background:#1a3300;border:1px solid #ccff00;border-radius:12px;padding:10px 16px;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 4px 20px rgba(204,255,0,.2)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span style="width:8px;height:8px;background:#ccff00;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite;flex-shrink:0"></span>
+    <div>
+      <p style="margin:0;font-size:13px;font-weight:800;font-style:italic;color:#ccff00">Training läuft</p>
+      <p style="margin:0;font-size:11px;color:#abd600" id="banner-time">00:00</p>
+    </div>
+  </div>
+  <span class="material-symbols-outlined" style="color:#ccff00;font-size:20px">arrow_forward</span>
 </div>
 
 <!-- ═══════════════════════════ BOTTOM NAVIGATION ═══════════════════════════ -->
@@ -1349,8 +1383,19 @@ function finishWorkout() {
   if (subEl) subEl.textContent = 'Plan auswählen um zu starten';
   var nextBtn = document.getElementById('wkt-next-btn');
   if (nextBtn) nextBtn.style.display = 'none';
+  var prevBtn = document.getElementById('wkt-prev-btn');
+  if (prevBtn) prevBtn.style.display = 'none';
   var wtEl = document.getElementById('workout-time');
   if (wtEl) wtEl.textContent = '00:00';
+  var ind = document.getElementById('workout-active-indicator');
+  if (ind) ind.style.display = 'none';
+  updateWorkoutBanner(); // Banner ausblenden
+
+  // Dashboard-Stats aktualisieren
+  renderDashboardPlaene();
+  updateDashboardStats();
+  // Muskelfokus aktualisieren
+  updateMuskelFokus();
 
   navigate('social');
   setTimeout(function() { showShareCard('workout'); }, 300);
@@ -1364,11 +1409,55 @@ function toggleSet(el) {
   if (el.classList.contains('done')) {
     el.textContent = '✓';
     el.style.color = '#1a2200';
-    startTimer(180); // Pausentimer erst wenn Satz erledigt
+    startTimer(180);
+    // Grünen Rahmen auf nächsten Satz verschieben
+    var sc = document.getElementById('sets-container');
+    if (sc) {
+      var rows = Array.from(sc.querySelectorAll('[style*="grid-template-columns"]')).filter(function(r) {
+        return !r.style.cssText.includes('history') && r.querySelector('.set-done');
+      });
+      var currentRow = el.closest('[style*="grid-template-columns"]');
+      var currentIdx = rows.indexOf(currentRow);
+      // Aktuellen Rahmen entfernen
+      if (currentRow) {
+        currentRow.style.border = '1px solid #333627';
+        currentRow.style.boxShadow = '';
+        var numEl = currentRow.querySelector('span[style*="font-size:15px"]');
+        if (numEl) numEl.style.color = '#8e9379';
+      }
+      // Nächsten aktivieren
+      var nextRow = rows[currentIdx + 1];
+      if (nextRow && !nextRow.querySelector('.set-done.done')) {
+        nextRow.style.border = '2px solid #ccff00';
+        nextRow.style.boxShadow = '0 0 12px rgba(204,255,0,.15)';
+        var nextNum = nextRow.querySelector('span[style*="font-size:15px"]');
+        if (nextNum) nextNum.style.color = '#ccff00';
+        // Focus erstes Input
+        var firstInput = nextRow.querySelector('input[type="number"]');
+        if (firstInput) setTimeout(function() { firstInput.focus(); firstInput.select(); }, 100);
+      }
+    }
   } else {
     el.textContent = '✓';
     el.style.color = 'transparent';
-    // Timer NICHT stoppen — läuft weiter
+  }
+}
+
+// ─── Satz-Notiz toggle ─────────────────────────────────────────────
+function toggleSetNote(el) {
+  var row = el.closest('[style*="grid-template-columns"]');
+  if (!row) return;
+  var noteRow = row.querySelector('.set-note-row');
+  if (!noteRow) return;
+  if (noteRow.style.display === 'none') {
+    noteRow.style.display = 'block';
+    noteRow.style.gridColumn = '1 / -1';
+    var inp = noteRow.querySelector('input');
+    if (inp) setTimeout(function() { inp.focus(); }, 50);
+    el.querySelector('.material-symbols-outlined').style.color = '#ccff00';
+  } else {
+    noteRow.style.display = 'none';
+    el.querySelector('.material-symbols-outlined').style.color = '#8e9379';
   }
 }
 
@@ -1619,6 +1708,16 @@ var wktUebungen = [];
 var wktIdx = 0;
 
 function startPlan(planId) {
+  // Prüfen ob ein Training bereits aktiv ist
+  if (workoutInterval !== null) {
+    if (!confirm('Ein Training ist noch aktiv! Möchtest du es abbrechen und ein neues starten?')) {
+      navigate('workout'); // Zurück zum laufenden Training
+      return;
+    }
+    // Aktives Training beenden
+    if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
+    stopTimer();
+  }
   try {
     var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
     var plan = null;
@@ -1626,25 +1725,34 @@ function startPlan(planId) {
     if (!plan || !plan.uebungen || !plan.uebungen.length) { navigate('workout'); return; }
     wktUebungen = plan.uebungen;
     wktIdx = 0;
-    // Stoppuhr und Pausentimer zurücksetzen
-    if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
     workoutSeconds = 0;
-    stopTimer();
     var wtEl = document.getElementById('workout-time');
     if (wtEl) wtEl.textContent = '00:00';
     renderWorkoutExercise(0);
     navigate('workout');
+    updateWorkoutBanner();
     setTimeout(function() {
       if (workoutInterval) clearInterval(workoutInterval);
       workoutInterval = setInterval(function() {
         workoutSeconds++;
         var m = String(Math.floor(workoutSeconds / 60)).padStart(2, '0');
         var s = String(workoutSeconds % 60).padStart(2, '0');
+        var timeStr = m + ':' + s;
         var el = document.getElementById('workout-time');
-        if (el) el.textContent = m + ':' + s;
+        if (el) el.textContent = timeStr;
+        var bt = document.getElementById('banner-time');
+        if (bt) bt.textContent = timeStr;
       }, 1000);
+      updateWorkoutBanner();
     }, 200);
   } catch(e) { navigate('workout'); }
+}
+
+// Banner "Zurück zum Training" aktualisieren
+function updateWorkoutBanner() {
+  var banner = document.getElementById('workout-return-banner');
+  if (!banner) return;
+  banner.style.display = workoutInterval ? 'flex' : 'none';
 }
 
 function renderWorkoutExercise(idx) {
@@ -1707,23 +1815,42 @@ function renderWorkoutExercise(idx) {
       var prevWdh = (prevSets[s-1] && prevSets[s-1].wdh > 0) ? prevSets[s-1].wdh : wdh;
       var row = document.createElement('div');
       var active = s === 1;
-      row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #ccff00;box-shadow:0 0 12px rgba(204,255,0,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
+      row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 56px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #ccff00;box-shadow:0 0 12px rgba(204,255,0,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
       row.innerHTML =
         '<span style="font-size:15px;color:' + (active ? '#ccff00' : '#8e9379') + ';font-weight:700;text-align:center">' + s + '</span>' +
-        '<input type="number" value="' + prevKg + '" placeholder="kg" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
-        '<input type="number" value="' + prevWdh + '" placeholder="Wdh" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
-        '<div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>';
+        '<input type="number" value="' + prevKg + '" placeholder="kg" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
+        '<input type="number" value="' + prevWdh + '" placeholder="Wdh" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
+        '<div style="display:flex;flex-direction:column;gap:4px;align-items:center">' +
+          '<div class="set-done" onclick="toggleSet(this)" style="width:44px;height:36px;border-radius:8px">✓</div>' +
+          '<div onclick="toggleSetNote(this)" style="width:44px;height:20px;border-radius:6px;background:#1e2113;border:1px solid #333627;display:flex;align-items:center;justify-content:center;cursor:pointer" title="Notiz">' +
+            '<span class="material-symbols-outlined" style="font-size:13px;color:#8e9379">edit_note</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="set-note-row" style="display:none;grid-column:1/-1;padding:4px 0">' +
+          '<input type="text" placeholder="Notiz zu diesem Satz..." onfocus="this.select()" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:8px;padding:6px 10px;color:#c4c9ac;font-size:13px;outline:none" onfocus="this.style.borderColor=\'#ccff00\'" onblur="this.style.borderColor=\'#444933\'">' +
+        '</div>';
       sc.appendChild(row);
     }
   }
 
-  // Nächste-Übung-Button
+  // Navigation Buttons
   var nextBtn = document.getElementById('wkt-next-btn');
+  var prevBtn = document.getElementById('wkt-prev-btn');
+
+  // Prev Button
+  if (prevBtn) {
+    if (idx > 0) {
+      prevBtn.style.display = 'flex';
+    } else {
+      prevBtn.style.display = 'none';
+    }
+  }
+
+  // Next Button
   if (nextBtn) {
     if (idx < wktUebungen.length - 1) {
       nextBtn.style.display = 'flex';
       nextBtn.onclick = function() {
-        // Aktuelle Übung speichern bevor weiter
         saveCurrentExerciseSets(wktUebungen[wktIdx] ? wktUebungen[wktIdx].name : '');
         wktIdx++;
         renderWorkoutExercise(wktIdx);
@@ -1733,6 +1860,17 @@ function renderWorkoutExercise(idx) {
       nextBtn.style.display = 'none';
     }
   }
+
+  // Aktiv-Indikator
+  var ind = document.getElementById('workout-active-indicator');
+  if (ind) ind.style.display = 'flex';
+}
+
+function prevExercise() {
+  if (wktIdx <= 0) return;
+  saveCurrentExerciseSets(wktUebungen[wktIdx] ? wktUebungen[wktIdx].name : '');
+  wktIdx--;
+  renderWorkoutExercise(wktIdx);
 }
 
 // Satz-Daten der aktuellen Übung in kp_lastSets zwischenspeichern
@@ -1825,6 +1963,105 @@ function editPlan(planId) {
   } catch(e) {}
 }
 
+// ─── Dashboard Stats ───────────────────────────────────────────────
+function updateDashboardStats() {
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    // Einheiten dieser Woche
+    var now = new Date();
+    var weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0,0,0,0);
+
+    var weekCount = 0;
+    var weekDauer = 0;
+    hist.forEach(function(h) {
+      // date ist z.B. "18.05.2026"
+      var parts = h.date.split('.');
+      if (parts.length === 3) {
+        var d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+        if (d >= weekStart) {
+          weekCount++;
+          weekDauer += (h.dauer || 0);
+        }
+      }
+    });
+
+    // Stats-Cards aktualisieren
+    var statCards = document.querySelectorAll('#screen-dashboard .card-sm');
+    if (statCards.length >= 3) {
+      statCards[0].querySelector('div').textContent = weekCount;
+      statCards[2].querySelector('div').textContent = weekDauer > 0 ? weekDauer + 'm' : '0m';
+    }
+
+    // Profil Einheiten
+    var profilEinheiten = document.querySelector('#profil-view .card div[style*="gap:16px"] div:first-child span');
+    if (profilEinheiten) profilEinheiten.textContent = hist.length;
+  } catch(e) {}
+}
+
+// ─── Muskelfokus ───────────────────────────────────────────────────
+function updateMuskelFokus() {
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+
+    // Muskel-Mapping aus Übungsnamen
+    var muskelMap = {
+      'Bankdrücken': 'Brust', 'Schrägbankdrücken': 'Brust', 'Kurzhantel-Flyes': 'Brust', 'Dips': 'Brust',
+      'Schulterdrücken': 'Schultern', 'Seitheben': 'Schultern', 'Vorgebeugtes Seitheben': 'Schultern',
+      'Trizeps-Pushdown': 'Arme', 'Skull Crushers': 'Arme', 'Bizeps-Curls': 'Arme', 'Hammer Curls': 'Arme',
+      'Klimmzüge': 'Rücken', 'Latzug': 'Rücken', 'Rudern (Langhantel)': 'Rücken', 'Rudern (Kabelzug)': 'Rücken',
+      'Kniebeugen': 'Beine', 'Beinpresse': 'Beine', 'Rumänisches Kreuzheben': 'Beine', 'Kreuzheben': 'Beine',
+      'Beinbeuger': 'Beine', 'Beinstrecker': 'Beine', 'Wadenheben': 'Beine', 'Hip Thrust': 'Beine'
+    };
+
+    // 30-Tage-Fenster
+    var cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+
+    var muskelCount = { 'Brust': 0, 'Rücken': 0, 'Beine': 0, 'Schultern': 0, 'Arme': 0 };
+    var total = 0;
+
+    // Gespeicherte Satz-Daten auswerten
+    var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
+    Object.keys(lastSets).forEach(function(uName) {
+      var muskel = muskelMap[uName];
+      if (muskel && muskelCount.hasOwnProperty(muskel)) {
+        muskelCount[muskel] += lastSets[uName].length;
+        total += lastSets[uName].length;
+      }
+    });
+
+    // Alternativ: aus Plan-Fokus
+    if (total === 0 && hist.length > 0) {
+      // Wenn kein lastSets, Fokus aus Plänen nutzen
+      var fokusKW = { 'Brust': ['brust','chest'], 'Rücken': ['rücken','back','lats'], 'Beine': ['bein','leg','quad'], 'Schultern': ['schulter','shoulder'], 'Arme': ['arm','bizeps','trizeps'] };
+      plaene.forEach(function(p) {
+        if (p.fokus) {
+          var f = p.fokus.toLowerCase();
+          Object.keys(fokusKW).forEach(function(m) {
+            fokusKW[m].forEach(function(kw) { if (f.includes(kw)) { muskelCount[m]++; total++; } });
+          });
+        }
+      });
+    }
+
+    // UI updaten
+    var muskeln = ['Brust', 'Rücken', 'Beine', 'Schultern', 'Arme'];
+    var bars = document.querySelectorAll('#screen-profil .card:nth-of-type(3) .progress-fill');
+    var pcts = document.querySelectorAll('#screen-profil .card:nth-of-type(3) span[style*="JetBrains"]');
+
+    if (total > 0) {
+      muskeln.forEach(function(m, i) {
+        var pct = Math.round(muskelCount[m] / total * 100);
+        if (bars[i]) bars[i].style.width = pct + '%';
+        if (pcts[i]) pcts[i].textContent = pct + '%';
+      });
+    }
+  } catch(e) {}
+}
+
 // ─── Gewicht Numpad ────────────────────────────────────────────────
 let gewichtInput = '';
 
@@ -1891,11 +2128,88 @@ function updateGewichtScreen(val) {
 }
 
 function initGewichtScreen() {
-  var val = parseFloat(localStorage.getItem('kp_gewicht') || '82.4');
+  // Startgewicht aus Profil übernehmen falls noch nicht gesetzt
+  var startLS = localStorage.getItem('kp_startgewicht');
+  if (!startLS) {
+    var profilGewicht = localStorage.getItem('kp_gewicht');
+    if (profilGewicht) {
+      localStorage.setItem('kp_startgewicht', parseFloat(profilGewicht).toFixed(1));
+    }
+  }
+  var val = parseFloat(localStorage.getItem('kp_gewicht') || '0');
   gewichtInput = '';
-  updateGewichtScreen(val);
-  var display = document.getElementById('gewicht-display');
-  if (display) display.textContent = val.toFixed(1);
+  if (val > 0) {
+    updateGewichtScreen(val);
+    var display = document.getElementById('gewicht-display');
+    if (display) display.textContent = val.toFixed(1);
+  } else {
+    var display2 = document.getElementById('gewicht-display');
+    if (display2) display2.textContent = '—';
+  }
+  renderGewichtChart();
+}
+
+function toggleStartgewichtEdit() {
+  var box = document.getElementById('startgewicht-edit');
+  if (!box) return;
+  var isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    var inp = document.getElementById('startgewicht-input');
+    var cur = localStorage.getItem('kp_startgewicht');
+    if (inp && cur) inp.value = parseFloat(cur).toFixed(1);
+    if (inp) setTimeout(function() { inp.focus(); inp.select(); }, 50);
+  }
+}
+
+function saveStartgewicht() {
+  var inp = document.getElementById('startgewicht-input');
+  if (!inp) return;
+  var val = parseFloat(inp.value);
+  if (isNaN(val) || val < 30 || val > 300) { alert('Ungültiger Wert'); return; }
+  localStorage.setItem('kp_startgewicht', val.toFixed(1));
+  var box = document.getElementById('startgewicht-edit');
+  if (box) box.style.display = 'none';
+  var curVal = parseFloat(localStorage.getItem('kp_gewicht') || val.toFixed(1));
+  updateGewichtScreen(curVal);
+}
+
+function renderGewichtChart() {
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+    if (hist.length < 2) return;
+    // Letzte 30 Einträge
+    var data = hist.slice(-30);
+    var vals = data.map(function(d) { return d.val; });
+    var minV = Math.min.apply(null, vals);
+    var maxV = Math.max.apply(null, vals);
+    var range = maxV - minV || 1;
+    var w = 300, h = 80, pad = 8;
+    var pts = vals.map(function(v, i) {
+      var x = (i / (vals.length - 1)) * w;
+      var y = pad + (1 - (v - minV) / range) * (h - pad * 2);
+      return x + ',' + y;
+    });
+    var pathD = 'M' + pts.join(' L');
+    var areaD = pathD + ' L' + w + ',' + h + ' L0,' + h + ' Z';
+
+    var svg = document.querySelector('#screen-gewicht .card:nth-child(4) svg');
+    if (svg) {
+      svg.innerHTML =
+        '<defs><linearGradient id="gGrad2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ccff00" stop-opacity="0.25"/><stop offset="100%" stop-color="#ccff00" stop-opacity="0"/></linearGradient></defs>' +
+        '<path d="' + areaD + '" fill="url(#gGrad2)" stroke="none"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#ccff00" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<circle cx="0" cy="' + pts[0].split(',')[1] + '" r="3" fill="#8e9379"/>' +
+        '<circle cx="' + w + '" cy="' + pts[pts.length-1].split(',')[1] + '" r="4" fill="#ccff00"/>';
+      // Datum-Labels
+      var firstDate = data[0].date.slice(5).replace('-','.');
+      var lastDate = 'Heute';
+      var labDiv = document.querySelector('#screen-gewicht .card:nth-child(4) div[style*="absolute;bottom"]');
+      if (labDiv) {
+        labDiv.innerHTML = '<span>' + firstDate + '</span><span>' + lastDate + '</span>';
+      }
+    }
+  } catch(e) {}
 }
 
 // ─── Profil localStorage ───────────────────────────────────────────
@@ -1987,6 +2301,10 @@ function saveProfilData() {
     localStorage.setItem('kp_sub',     sub);
     localStorage.setItem('kp_gewicht', gewicht);
     localStorage.setItem('kp_ziel',    ziel);
+    // Startgewicht setzen falls noch nicht vorhanden
+    if (!localStorage.getItem('kp_startgewicht')) {
+      localStorage.setItem('kp_startgewicht', gewicht);
+    }
 
     loadProfilData();
     toggleProfilEdit();
@@ -2027,38 +2345,26 @@ function toggleProfilEdit() {
 // ─── Greeting ──────────────────────────────────────────────────────
 function initGreeting() {
   var now = new Date();
-  var h = now.getHours();
-  var greet = h < 12 ? 'Guten Morgen' : h < 18 ? 'Guten Nachmittag' : 'Guten Abend';
   var days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
   var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
   var dateStr = days[now.getDay()] + ', ' + now.getDate() + '. ' + months[now.getMonth()];
-  var emoji = h < 12 ? '☀️' : h < 18 ? '💪' : '🌙';
+  var name = localStorage.getItem('kp_name') || 'Martin';
+  var firstName = name.split(' ')[0].replace('.','');
   var d = document.getElementById('greeting-date');
   var t = document.getElementById('greeting-text');
   if (d) d.textContent = dateStr;
-  if (t) t.textContent = greet + ', Martin ' + emoji;
+  if (t) t.textContent = 'Hallo, ' + firstName;
 }
 
-// ─── Migration: Übungen aus bestehenden Plänen entfernen ──────────
-(function migratePlaene() {
-  try {
-    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
-    var changed = false;
-    plaene.forEach(function(p) {
-      if (p.uebungen && p.uebungen.length > 0) {
-        p.uebungen = [];
-        changed = true;
-      }
-    });
-    if (changed) localStorage.setItem('kp_plaene', JSON.stringify(plaene));
-  } catch(e) {}
-})();
+// Migration entfernt — war fehlerhaft und löschte gespeicherte Übungen
 
 // ─── Init ──────────────────────────────────────────────────────────
 initGreeting();
 loadProfilData();
 initGewichtScreen();
 renderDashboardPlaene();
+updateDashboardStats();
+updateMuskelFokus();
 navigate('dashboard');
 
 // PWA Service Worker registrieren
