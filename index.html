@@ -179,36 +179,7 @@ tailwind.config = {
         <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Wochenvolumen</h3>
         <span style="font-size:11px;color:#8e9379">letzte 7 Tage</span>
       </div>
-      <div style="display:flex;gap:6px;height:80px;align-items:flex-end">
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div class="chart-bar" style="height:60px"><div class="fill" style="height:45%"></div></div>
-          <span style="font-size:9px;color:#8e9379">Mo</span>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div class="chart-bar" style="height:60px"><div class="fill" style="height:0%"></div></div>
-          <span style="font-size:9px;color:#8e9379">Di</span>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div class="chart-bar" style="height:60px"><div class="fill" style="height:80%"></div></div>
-          <span style="font-size:9px;color:#8e9379">Mi</span>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div class="chart-bar" style="height:60px"><div class="fill" style="height:0%"></div></div>
-          <span style="font-size:9px;color:#8e9379">Do</span>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div class="chart-bar" style="height:60px"><div class="fill" style="height:100%"></div></div>
-          <span style="font-size:9px;color:#8e9379">Fr</span>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div class="chart-bar" style="height:60px"><div class="fill" style="height:70%"></div></div>
-          <span style="font-size:9px;color:#8e9379">Sa</span>
-        </div>
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <div class="chart-bar" style="height:60px"><div class="fill" style="height:0%;background:#333627"></div></div>
-          <span style="font-size:9px;color:#8e9379">So</span>
-        </div>
-      </div>
+      <div id="volumen-chart" style="display:flex;gap:6px;height:80px;align-items:flex-end"></div>
     </div>
 
     <!-- Schnellstart Trainingspläne -->
@@ -2141,6 +2112,45 @@ function updateDashboardStats() {
       // Dauer: Sekunden → Minuten
       var dauerMin = weekDauer > 60 ? Math.round(weekDauer / 60) : weekDauer;
       statCards[2].querySelector('div').textContent = dauerMin > 0 ? dauerMin + 'm' : '0m';
+    }
+
+    // Wochenvolumen-Chart rendern (letzte 7 Tage)
+    var chartEl = document.getElementById('volumen-chart');
+    if (chartEl) {
+      var dayLabels = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      // Volumen pro Wochentag (0=So, 1=Mo, ... 6=Sa) für letzte 7 Tage
+      var volByDay = [0,0,0,0,0,0,0];
+      var today7 = new Date(); today7.setHours(0,0,0,0);
+      hist.forEach(function(h) {
+        var d7 = null;
+        if (h.datum) { d7 = new Date(h.datum); }
+        else if (h.date) {
+          var p = h.date.split('.');
+          if (p.length === 3) d7 = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+        }
+        if (!d7) return;
+        d7.setHours(0,0,0,0);
+        var diff = Math.round((today7 - d7) / 86400000);
+        if (diff >= 0 && diff < 7) {
+          volByDay[d7.getDay()] += (h.gesamtVolumen || 0);
+        }
+      });
+      // Wochentage Mo–So (1..6,0) aufbauen
+      var orderedDays = [1,2,3,4,5,6,0];
+      var maxVol = Math.max.apply(null, orderedDays.map(function(i){ return volByDay[i]; }));
+      var chartHtml = '';
+      orderedDays.forEach(function(dayIdx) {
+        var vol = volByDay[dayIdx];
+        var pct = maxVol > 0 ? Math.round(vol / maxVol * 100) : 0;
+        var isToday = dayIdx === today7.getDay();
+        var fillColor = isToday ? '#74d604' : (pct > 0 ? '#5aaa00' : '');
+        var fillStyle = 'height:' + pct + '%' + (fillColor ? ';background:' + fillColor : '');
+        chartHtml += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">' +
+          '<div class="chart-bar" style="height:60px"><div class="fill" style="' + fillStyle + '"></div></div>' +
+          '<span style="font-size:9px;color:' + (isToday ? '#74d604' : '#8e9379') + ';font-weight:' + (isToday ? '700' : '400') + '">' + dayLabels[dayIdx] + '</span>' +
+          '</div>';
+      });
+      chartEl.innerHTML = chartHtml;
     }
 
     // Dashboard PRs rendern
