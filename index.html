@@ -186,7 +186,13 @@ tailwind.config = {
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Schnellstart</h3>
-        <span onclick="navigate('plaene')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600;touch-action:manipulation">Pläne →</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="dash-sort-btn" onclick="toggleDashSort()" style="display:flex;align-items:center;gap:4px;background:#1e2113;border:1px solid #333627;border-radius:8px;padding:4px 10px;color:#8e9379;font-size:11px;font-weight:700;cursor:pointer;touch-action:manipulation;transition:all .2s">
+            <span class="material-symbols-outlined" style="font-size:14px">sort</span>
+            <span id="dash-sort-label">A–Z</span>
+          </button>
+          <span onclick="navigate('plaene')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600;touch-action:manipulation">Pläne →</span>
+        </div>
       </div>
       <div id="dashboard-plaene-list" style="display:flex;flex-direction:column;gap:8px">
         <!-- Leer-Zustand -->
@@ -286,6 +292,16 @@ tailwind.config = {
       </div>
     </div>
   </header>
+  <!-- ═ Pausentimer-Leiste (unter Header, sticky) ═ -->
+  <div id="pause-timer-bar" style="position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:40;background:rgba(22,26,12,.98);backdrop-filter:blur(12px);border-bottom:1px solid #333627;padding:8px 20px;display:none;align-items:center;gap:10px">
+    <span class="material-symbols-outlined" style="color:#74d604;font-size:18px;flex-shrink:0">hourglass_top</span>
+    <span id="timer-display" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#74d604;min-width:48px">3:00</span>
+    <div style="display:flex;gap:6px;flex:1;justify-content:flex-end">
+      <button onclick="startTimer(120)" id="tbtn-120" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">120s</button>
+      <button onclick="startTimer(150)" id="tbtn-150" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">150s</button>
+      <button onclick="startTimer(180)" id="tbtn-180" style="height:30px;padding:0 12px;background:#74d604;border:none;border-radius:99px;color:#162000;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">180s</button>
+    </div>
+  </div>
 
   <main style="padding:20px;display:flex;flex-direction:column;gap:14px;flex:1;padding-bottom:220px">
 
@@ -370,17 +386,6 @@ tailwind.config = {
         Nächste Übung
         <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
       </button>
-    </div>
-
-    <!-- Timer Leiste -->
-    <div style="display:flex;align-items:center;gap:10px">
-      <span class="material-symbols-outlined" style="color:#74d604;font-size:20px;flex-shrink:0">timer</span>
-      <span id="timer-display" style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:#74d604;min-width:52px">3:00</span>
-      <div style="display:flex;gap:6px;flex:1;justify-content:flex-end">
-        <button onclick="startTimer(120)" id="tbtn-120" style="height:32px;padding:0 14px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">120s</button>
-        <button onclick="startTimer(150)" id="tbtn-150" style="height:32px;padding:0 14px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s">150s</button>
-        <button onclick="startTimer(180)" id="tbtn-180" style="height:32px;padding:0 14px;background:#74d604;border:none;border-radius:99px;color:#162000;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">180s</button>
-      </div>
     </div>
 
   </div>
@@ -873,6 +878,37 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- ═══ MODAL: TRAINING BEENDEN ═══ -->
+<div id="modal-finish-workout" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:24px">
+  <div style="background:#1e2113;border:1px solid #444933;border-radius:20px;width:100%;max-width:360px;padding:28px 24px;display:flex;flex-direction:column;gap:16px">
+    <div style="text-align:center">
+      <span class="material-symbols-outlined" style="font-size:40px;color:#74d604">fitness_center</span>
+      <h3 style="font-size:18px;font-weight:900;font-style:italic;margin:10px 0 6px;letter-spacing:-.02em">Training beenden</h3>
+      <p style="font-size:13px;color:#8e9379;margin:0">Möchtest du dieses Training speichern?</p>
+    </div>
+    <div id="modal-finish-stats" style="background:#161a0c;border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center">
+      <div>
+        <span id="modal-finish-dauer" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#74d604">00:00</span>
+        <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Dauer</p>
+      </div>
+      <div>
+        <span id="modal-finish-uebungen" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#e2e4cf">—</span>
+        <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Übungen</p>
+      </div>
+    </div>
+    <button onclick="confirmFinishWorkout(true)" style="width:100%;height:52px;background:#74d604;border:none;border-radius:12px;color:#162000;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+      <span class="material-symbols-outlined" style="font-size:20px">save</span>
+      Ja, speichern
+    </button>
+    <button onclick="confirmFinishWorkout(false)" style="width:100%;height:44px;background:transparent;border:1px solid #444933;border-radius:12px;color:#8e9379;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation">
+      Verwerfen (nicht speichern)
+    </button>
+    <button onclick="document.getElementById('modal-finish-workout').style.display='none'" style="width:100%;height:40px;background:transparent;border:none;color:#444933;font-size:13px;cursor:pointer;touch-action:manipulation">
+      Abbrechen
+    </button>
+  </div>
+</div>
+
 <!-- ═══ AKTIVES TRAINING BANNER ═══ -->
 <div id="workout-return-banner" onclick="navigate('workout')" style="display:none;position:fixed;bottom:80px;left:16px;right:16px;z-index:110;background:rgba(26,51,0,.95);border:1px solid rgba(116,214,4,.4);border-radius:10px;padding:7px 12px;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 2px 12px rgba(116,214,4,.12)">
   <div style="display:flex;align-items:center;gap:8px">
@@ -979,10 +1015,36 @@ function goBack() {
 
 // ─── Workout Timer ─────────────────────────────────────────────────
 let workoutSeconds = 0;
+let workoutStartTime = null;   // Timestamp beim Start
+let workoutSecondsOffset = 0;  // Bereits gelaufene Sekunden (vor Visibility-Pause)
 let workoutInterval = null;
 let pauseSeconds = 0;
+let pauseStartTime = null;     // Timestamp Pausentimer-Start
 let pauseInterval = null;
 var defaultPauseTimer = 180; // Standard: 180s
+
+// Page Visibility: Workout-Zeit bei Rückkehr synchronisieren
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && workoutStartTime !== null) {
+    // Echte verstrichene Zeit neu berechnen
+    workoutSeconds = workoutSecondsOffset + Math.floor((Date.now() - workoutStartTime) / 1000);
+    var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
+    var s = String(workoutSeconds % 60).padStart(2,'0');
+    var timeStr = m + ':' + s;
+    var el = document.getElementById('workout-time');
+    if (el) el.textContent = timeStr;
+    var bt = document.getElementById('banner-time');
+    if (bt) bt.textContent = timeStr;
+  }
+  // Pausentimer synchronisieren
+  if (document.visibilityState === 'visible' && pauseStartTime !== null && pauseInterval) {
+    var elapsed = Math.floor((Date.now() - pauseStartTime) / 1000);
+    pauseSeconds = Math.max(0, pauseSeconds - elapsed);
+    pauseStartTime = Date.now();
+    updateTimerDisplay();
+    if (pauseSeconds <= 0) stopTimer();
+  }
+});
 
 function getPauseTimer() {
   return parseInt(localStorage.getItem('kp_pauseTimer') || '180');
@@ -1037,18 +1099,24 @@ function toggleUebungNote() {
 
 function startWorkoutTimer() {
   if (workoutInterval) return;
+  workoutStartTime = Date.now();
+  workoutSecondsOffset = workoutSeconds;
   workoutInterval = setInterval(function() {
-    workoutSeconds++;
+    workoutSeconds = workoutSecondsOffset + Math.floor((Date.now() - workoutStartTime) / 1000);
     var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
     var s = String(workoutSeconds % 60).padStart(2,'0');
+    var timeStr = m + ':' + s;
     var el = document.getElementById('workout-time');
-    if (el) el.textContent = m + ':' + s;
+    if (el) el.textContent = timeStr;
+    var bt = document.getElementById('banner-time');
+    if (bt) bt.textContent = timeStr;
   }, 1000);
 }
 
 function startTimer(seconds) {
   if (pauseInterval) clearInterval(pauseInterval);
   pauseSeconds = seconds;
+  pauseStartTime = Date.now();
   // Highlight active chip
   var chips = [120, 150, 180];
   for (var ci = 0; ci < chips.length; ci++) {
@@ -1065,14 +1133,16 @@ function startTimer(seconds) {
     }
   }
   updateTimerDisplay();
+  var timerStartSeconds = seconds;
   pauseInterval = setInterval(function() {
-    pauseSeconds--;
+    var elapsed = Math.floor((Date.now() - pauseStartTime) / 1000);
+    pauseSeconds = Math.max(0, timerStartSeconds - elapsed);
     if (pauseSeconds <= 0) {
       stopTimer();
       return;
     }
     updateTimerDisplay();
-  }, 1000);
+  }, 500);
 }
 
 function updateTimerDisplay() {
@@ -1080,55 +1150,79 @@ function updateTimerDisplay() {
   var s = String(pauseSeconds % 60).padStart(2,'0');
   var el = document.getElementById('timer-display');
   if (el) el.textContent = m + ':' + s;
+  // Pausentimer-Leiste anzeigen wenn Timer läuft
+  var bar = document.getElementById('pause-timer-bar');
+  if (bar) bar.style.display = pauseSeconds > 0 ? 'flex' : 'none';
 }
 
 function stopTimer() {
   if (pauseInterval) clearInterval(pauseInterval);
   pauseInterval = null;
+  pauseStartTime = null;
+  pauseSeconds = 0;
+  var bar = document.getElementById('pause-timer-bar');
+  if (bar) bar.style.display = 'none';
 }
 
 function finishWorkout() {
   // Letzte Übung der Session speichern
   if (wktUebungen[wktIdx]) saveCurrentExerciseSets(wktUebungen[wktIdx].name);
+  // Modal anzeigen
+  var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
+  var s = String(workoutSeconds % 60).padStart(2,'0');
+  var dauerEl = document.getElementById('modal-finish-dauer');
+  if (dauerEl) dauerEl.textContent = m + ':' + s;
+  var uebEl = document.getElementById('modal-finish-uebungen');
+  if (uebEl) uebEl.textContent = wktUebungen.length;
+  var modal = document.getElementById('modal-finish-workout');
+  if (modal) modal.style.display = 'flex';
+}
 
-  // History-Eintrag erstellen
-  var now = new Date();
-  // Satz-Daten aus kp_lastSets sammeln
-  var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
-  var uebungsDaten = wktUebungen.map(function(u) {
-    var saetze = lastSets[u.name] || [];
-    var volumen = saetze.reduce(function(sum, s) { return sum + (s.kg * s.wdh); }, 0);
-    var maxKg = saetze.reduce(function(max, s) { return s.kg > max ? s.kg : max; }, 0);
-    return { name: u.name, saetze: saetze, volumen: volumen, maxKg: maxKg };
-  });
-  var gesamtVolumen = uebungsDaten.reduce(function(sum, u) { return sum + u.volumen; }, 0);
-  var histEntry = {
-    date: now.toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
-    datum: now.toISOString(),
-    dauer: workoutSeconds,
-    dauerMin: Math.round(workoutSeconds / 60),
-    uebungen: wktUebungen.length,
-    name: wktUebungen.length ? wktUebungen[0].name + (wktUebungen.length > 1 ? ' + ' + (wktUebungen.length - 1) + ' weitere' : '') : 'Training',
-    uebungsDaten: uebungsDaten,
-    gesamtVolumen: Math.round(gesamtVolumen)
-  };
-  try {
-    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
-    hist.unshift(histEntry);
-    if (hist.length > 20) hist = hist.slice(0, 20);
-    localStorage.setItem('kp_activityHistory', JSON.stringify(hist));
-    // Trainingstag speichern
-    var today = new Date().getDate();
-    var days = JSON.parse(localStorage.getItem('kp_workoutDays') || '[]');
-    if (days.indexOf(today) === -1) { days.push(today); localStorage.setItem('kp_workoutDays', JSON.stringify(days)); }
-  } catch(e) {}
+function confirmFinishWorkout(save) {
+  var modal = document.getElementById('modal-finish-workout');
+  if (modal) modal.style.display = 'none';
 
+  if (save) {
+    // History-Eintrag erstellen
+    var now = new Date();
+    var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
+    var uebungsDaten = wktUebungen.map(function(u) {
+      var saetze = lastSets[u.name] || [];
+      var volumen = saetze.reduce(function(sum, s) { return sum + (s.kg * s.wdh); }, 0);
+      var maxKg = saetze.reduce(function(max, s) { return s.kg > max ? s.kg : max; }, 0);
+      return { name: u.name, saetze: saetze, volumen: volumen, maxKg: maxKg };
+    });
+    var gesamtVolumen = uebungsDaten.reduce(function(sum, u) { return sum + u.volumen; }, 0);
+    var histEntry = {
+      date: now.toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
+      datum: now.toISOString(),
+      dauer: workoutSeconds,
+      dauerMin: Math.round(workoutSeconds / 60),
+      uebungen: wktUebungen.length,
+      name: wktUebungen.length ? wktUebungen[0].name + (wktUebungen.length > 1 ? ' + ' + (wktUebungen.length - 1) + ' weitere' : '') : 'Training',
+      uebungsDaten: uebungsDaten,
+      gesamtVolumen: Math.round(gesamtVolumen)
+    };
+    try {
+      var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+      hist.unshift(histEntry);
+      if (hist.length > 20) hist = hist.slice(0, 20);
+      localStorage.setItem('kp_activityHistory', JSON.stringify(hist));
+      // Trainingstag speichern (ISO-Datum für Streak)
+      var todayStr = now.toISOString().slice(0,10);
+      var wDays = JSON.parse(localStorage.getItem('kp_workoutDates') || '[]');
+      if (wDays.indexOf(todayStr) === -1) { wDays.push(todayStr); localStorage.setItem('kp_workoutDates', JSON.stringify(wDays)); }
+    } catch(e) {}
+  }
+
+  // Workout-State zurücksetzen
   stopTimer();
   if (workoutInterval) clearInterval(workoutInterval);
   workoutInterval = null;
   workoutSeconds = 0;
+  workoutStartTime = null;
+  workoutSecondsOffset = 0;
 
-  // Workout-State vollständig zurücksetzen
   wktUebungen = [];
   wktIdx = 0;
   var sc = document.getElementById('sets-container');
@@ -1147,16 +1241,18 @@ function finishWorkout() {
   if (wtEl) wtEl.textContent = '00:00';
   var ind = document.getElementById('workout-active-indicator');
   if (ind) ind.style.display = 'none';
-  updateWorkoutBanner(); // Banner ausblenden
+  updateWorkoutBanner();
 
-  // Dashboard-Stats aktualisieren
   renderDashboardPlaene();
   updateDashboardStats();
-  // Muskelfokus aktualisieren
   updateMuskelFokus();
 
-  navigate('social');
-  setTimeout(function() { showShareCard('workout'); }, 300);
+  if (save) {
+    navigate('social');
+    setTimeout(function() { showShareCard('workout'); }, 300);
+  } else {
+    navigate('dashboard');
+  }
 }
 
 // navigate() ist bereits oben vollständig definiert
@@ -1244,6 +1340,38 @@ function switchHistoryTab(tab) {
   }
 }
 
+// ─── Streak-Hilfsfunktion ──────────────────────────────────────────
+// hist: Array neueste zuerst (unshift-Reihenfolge)
+// Zählt aufeinander folgende Tage bis heute oder gestern
+function calcStreak(hist) {
+  if (!hist || !hist.length) return 0;
+  // Eindeutige Datums-Strings (YYYY-MM-DD), neueste zuerst
+  var seen = {};
+  var dayList = [];
+  for (var i = 0; i < hist.length; i++) {
+    if (!hist[i].datum) continue;
+    var ds = hist[i].datum.slice(0,10);
+    if (!seen[ds]) { seen[ds] = true; dayList.push(ds); }
+  }
+  if (!dayList.length) return 0;
+  // dayList ist bereits neueste zuerst (hist ist unshift-sorted)
+  // Prüfen ob neuester Eintrag heute oder gestern
+  var todayStr = new Date().toISOString().slice(0,10);
+  var yesterdayStr = (function() {
+    var d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10);
+  })();
+  if (dayList[0] !== todayStr && dayList[0] !== yesterdayStr) return 0;
+  var streak = 1;
+  for (var j = 1; j < dayList.length; j++) {
+    var prev = new Date(dayList[j-1]);
+    var cur  = new Date(dayList[j]);
+    var diff = Math.round((prev - cur) / 86400000);
+    if (diff === 1) { streak++; }
+    else break;
+  }
+  return streak;
+}
+
 // ─── PRs aus History berechnen und rendern ─────────────────────────
 function renderPRsList() {
   var container = document.getElementById('prs-list');
@@ -1277,20 +1405,7 @@ function renderPRsList() {
   });
 
   // Streak berechnen
-  var streak = 0;
-  var dates = hist.map(function(e) { return e.datum ? new Date(e.datum) : null; }).filter(Boolean);
-  dates.sort(function(a,b) { return b - a; });
-  if (dates.length) {
-    var prev = new Date(dates[0]); prev.setHours(0,0,0,0);
-    streak = 1;
-    for (var i = 1; i < dates.length; i++) {
-      var cur = new Date(dates[i]); cur.setHours(0,0,0,0);
-      var diff = (prev - cur) / 86400000;
-      if (diff === 1) { streak++; prev = cur; }
-      else if (diff === 0) { continue; }
-      else break;
-    }
-  }
+  var streak = calcStreak(hist);
 
   var html = '';
 
@@ -1556,31 +1671,10 @@ function showShareCard(type) {
 
   // Streak card: aktuellen Streak befüllen
   if (type === 'streak') {
-    var streakEl = document.querySelector('#card-streak .streak-value');
-    if (!streakEl) {
-      // Streak aus activityHistory berechnen
-      var hist2 = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
-      var streak = 0;
-      if (hist2.length > 0) {
-        var today = new Date(); today.setHours(0,0,0,0);
-        var prev = null;
-        for (var i = hist2.length - 1; i >= 0; i--) {
-          var dd = new Date(hist2[i].datum); dd.setHours(0,0,0,0);
-          if (prev === null) {
-            var diff0 = (today - dd) / 86400000;
-            if (diff0 > 1) break;
-            streak = 1; prev = dd;
-          } else {
-            var diff1 = (prev - dd) / 86400000;
-            if (diff1 === 1) { streak++; prev = dd; }
-            else if (diff1 === 0) { /* gleicher Tag */ }
-            else break;
-          }
-        }
-      }
-      var streakNumEl = document.querySelector('#card-streak div[style*="font-size:56px"]');
-      if (streakNumEl) streakNumEl.textContent = streak || '0';
-    }
+    var hist2 = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    var streakVal = calcStreak(hist2);
+    var streakNumEl = document.querySelector('#card-streak div[style*="font-size:56px"]');
+    if (streakNumEl) streakNumEl.textContent = streakVal || '0';
   }
 
   // Scroll to preview
@@ -1729,6 +1823,37 @@ function savePlan() {
   renderDashboardPlaene();
 }
 
+// ─── Dashboard Sortierung ──────────────────────────────────────────
+var dashSortMode = localStorage.getItem('kp_dashSort') || 'name'; // 'name' | 'recent'
+
+function toggleDashSort() {
+  dashSortMode = dashSortMode === 'name' ? 'recent' : 'name';
+  localStorage.setItem('kp_dashSort', dashSortMode);
+  var lbl = document.getElementById('dash-sort-label');
+  if (lbl) lbl.textContent = dashSortMode === 'name' ? 'A–Z' : 'Zuletzt';
+  var btn = document.getElementById('dash-sort-btn');
+  if (btn) {
+    btn.style.background = dashSortMode === 'recent' ? '#1a3300' : '#1e2113';
+    btn.style.borderColor = dashSortMode === 'recent' ? '#74d604' : '#333627';
+    btn.style.color = dashSortMode === 'recent' ? '#74d604' : '#8e9379';
+  }
+  renderDashboardPlaene();
+}
+
+function planLastUsedBadge(p) {
+  if (!p.lastUsed) {
+    return '<span style="font-size:10px;font-weight:700;color:#444933;background:#1a1d12;border-radius:6px;padding:2px 7px;flex-shrink:0">nie</span>';
+  }
+  var diff = Math.round((Date.now() - new Date(p.lastUsed)) / 86400000);
+  var label, bg, color;
+  if (diff === 0)      { label = 'heute';         bg = '#162000'; color = '#74d604'; }
+  else if (diff === 1) { label = 'gestern';        bg = '#162000'; color = '#5aaa00'; }
+  else if (diff <= 4)  { label = 'vor ' + diff + ' T.'; bg = '#1a1200'; color = '#d4a800'; }
+  else if (diff <= 7)  { label = 'vor ' + diff + ' T.'; bg = '#1a1d12'; color = '#8e9379'; }
+  else                 { label = diff + ' T. her';  bg = '#161a0c'; color = '#444933'; }
+  return '<span style="font-size:10px;font-weight:700;color:' + color + ';background:' + bg + ';border-radius:6px;padding:2px 7px;flex-shrink:0;white-space:nowrap">' + label + '</span>';
+}
+
 function renderDashboardPlaene() {
   try {
     var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
@@ -1736,17 +1861,46 @@ function renderDashboardPlaene() {
     // ── Dashboard Schnellstart ──────────────────────────────────────
     var container = document.getElementById('dashboard-plaene-list');
     var emptyState = document.getElementById('plaene-empty-state');
+
+    // Sort-Button-Zustand wiederherstellen
+    var lbl = document.getElementById('dash-sort-label');
+    if (lbl) lbl.textContent = dashSortMode === 'name' ? 'A–Z' : 'Zuletzt';
+    var btn = document.getElementById('dash-sort-btn');
+    if (btn) {
+      btn.style.background = dashSortMode === 'recent' ? '#1a3300' : '#1e2113';
+      btn.style.borderColor = dashSortMode === 'recent' ? '#74d604' : '#333627';
+      btn.style.color = dashSortMode === 'recent' ? '#74d604' : '#8e9379';
+    }
+
     if (container) {
       container.querySelectorAll('.custom-plan-item').forEach(function(el) { el.remove(); });
       if (emptyState) emptyState.style.display = plaene.length ? 'none' : 'block';
-      plaene.slice(-3).reverse().forEach(function(p) {
+
+      // Sortieren
+      var sorted = plaene.slice();
+      if (dashSortMode === 'name') {
+        sorted.sort(function(a, b) { return a.name.localeCompare(b.name, 'de'); });
+      } else {
+        // Zuletzt verwendet zuerst; nie verwendet ganz hinten
+        sorted.sort(function(a, b) {
+          if (!a.lastUsed && !b.lastUsed) return a.name.localeCompare(b.name, 'de');
+          if (!a.lastUsed) return 1;
+          if (!b.lastUsed) return -1;
+          return new Date(b.lastUsed) - new Date(a.lastUsed);
+        });
+      }
+
+      sorted.forEach(function(p) {
         var div = document.createElement('div');
         div.className = 'custom-plan-item';
-        div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #444933;gap:10px';
+        div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #444933';
         div.innerHTML =
           '<div style="flex:1;min-width:0">' +
-            '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</p>' +
-            '<p style="margin:0;font-size:11px;color:#8e9379">' + (p.fokus ? p.fokus : 'Kein Fokus angegeben') + (p.lastUsed ? ' · ' + (function(iso){ var diff = Math.round((Date.now() - new Date(iso)) / 86400000); return diff === 0 ? 'heute' : diff === 1 ? 'gestern' : 'vor ' + diff + ' Tagen'; })(p.lastUsed) : '') + '</p>' +
+            '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">' +
+              '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">' + p.name + '</p>' +
+              planLastUsedBadge(p) +
+            '</div>' +
+            '<p style="margin:0;font-size:11px;color:#8e9379;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (p.fokus || 'Kein Fokus') + (p.uebungen && p.uebungen.length ? ' · ' + p.uebungen.length + ' Übg.' : '') + '</p>' +
           '</div>' +
           '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#74d604;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">' +
             '<span class="material-symbols-outlined" style="font-size:20px;color:#162000">play_arrow</span>' +
@@ -1832,8 +1986,10 @@ function startPlan(planId) {
     updateWorkoutBanner();
     setTimeout(function() {
       if (workoutInterval) clearInterval(workoutInterval);
+      workoutStartTime = Date.now();
+      workoutSecondsOffset = 0;
       workoutInterval = setInterval(function() {
-        workoutSeconds++;
+        workoutSeconds = workoutSecondsOffset + Math.floor((Date.now() - workoutStartTime) / 1000);
         var m = String(Math.floor(workoutSeconds / 60)).padStart(2, '0');
         var s = String(workoutSeconds % 60).padStart(2, '0');
         var timeStr = m + ':' + s;
