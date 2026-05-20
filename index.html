@@ -281,16 +281,12 @@ tailwind.config = {
 <div id="screen-workout" class="screen">
   <header class="app-header">
     <div class="icon-btn" onclick="navigate('dashboard')"><span class="material-symbols-outlined">close</span></div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span class="material-symbols-outlined" style="font-size:16px;color:#8e9379">timer</span>
+    <div style="display:flex;align-items:center;gap:7px">
+      <span id="workout-active-dot" style="width:7px;height:7px;background:#74d604;border-radius:50%;display:none;animation:pulse-volt 1.5s infinite;flex-shrink:0"></span>
+      <span style="font-size:12px;font-weight:700;color:#8e9379;letter-spacing:.04em" id="workout-running-label">TRAINING</span>
       <span id="workout-time" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#74d604;letter-spacing:.02em">00:00</span>
     </div>
-    <div style="display:flex;justify-content:flex-end">
-      <div id="workout-active-indicator" style="display:none;align-items:center;gap:4px;background:#1a3300;border:1px solid #74d604;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;color:#74d604">
-        <span style="width:6px;height:6px;background:#74d604;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite"></span>
-        AKTIV
-      </div>
-    </div>
+    <div style="width:40px"></div>
   </header>
   <!-- ═ Pausentimer-Leiste (unter Header, sticky) ═ -->
   <div id="pause-timer-bar" style="position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:40;background:rgba(22,26,12,.98);backdrop-filter:blur(12px);border-bottom:1px solid #333627;padding:8px 20px;display:none;align-items:center;gap:10px">
@@ -1239,8 +1235,10 @@ function confirmFinishWorkout(save) {
   if (prevBtn) prevBtn.style.display = 'none';
   var wtEl = document.getElementById('workout-time');
   if (wtEl) wtEl.textContent = '00:00';
-  var ind = document.getElementById('workout-active-indicator');
-  if (ind) ind.style.display = 'none';
+  var dot2 = document.getElementById('workout-active-dot');
+  if (dot2) dot2.style.display = 'none';
+  var lbl2 = document.getElementById('workout-running-label');
+  if (lbl2) lbl2.style.color = '#8e9379';
   updateWorkoutBanner();
 
   renderDashboardPlaene();
@@ -2007,7 +2005,14 @@ function startPlan(planId) {
 function updateWorkoutBanner() {
   var banner = document.getElementById('workout-return-banner');
   if (!banner) return;
-  banner.style.display = workoutInterval ? 'flex' : 'none';
+  // Banner nur auf anderen Screens zeigen, nicht im Workout-Screen selbst
+  var onWorkout = currentScreen === 'workout';
+  banner.style.display = (workoutInterval && !onWorkout) ? 'flex' : 'none';
+  // Aktiv-Punkt im Workout-Header ein-/ausblenden
+  var dot = document.getElementById('workout-active-dot');
+  if (dot) dot.style.display = workoutInterval ? 'inline-block' : 'none';
+  var lbl = document.getElementById('workout-running-label');
+  if (lbl) lbl.style.color = workoutInterval ? '#74d604' : '#8e9379';
 }
 
 function renderWorkoutExercise(idx) {
@@ -2125,9 +2130,8 @@ function renderWorkoutExercise(idx) {
     }
   }
 
-  // Aktiv-Indikator
-  var ind = document.getElementById('workout-active-indicator');
-  if (ind) ind.style.display = 'flex';
+  // Aktiv-Dot im Header
+  updateWorkoutBanner();
 }
 
 function prevExercise() {
