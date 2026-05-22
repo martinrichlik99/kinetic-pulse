@@ -686,7 +686,12 @@ tailwind.config = {
   </header>
 
   <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
-    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Gewicht &amp; Trends</h1>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Gewicht &amp; Trends</h1>
+      <button onclick="navigate('kalorienrechner')" style="display:flex;align-items:center;gap:5px;background:#1e2113;border:1px solid #444933;border-radius:10px;padding:6px 10px;color:#74d604;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap">
+        <span class="material-symbols-outlined" style="font-size:16px">local_fire_department</span>Kalorien
+      </button>
+    </div>
 
     <!-- Heutiges Gewicht Eingabe -->
     <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:12px">
@@ -792,6 +797,133 @@ tailwind.config = {
         </span>
       </button>
       <div id="protokoll-list" style="display:none;border-top:1px solid #333627;max-height:300px;overflow-y:auto"></div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: KALORIENRECHNER ═══════════════════════════ -->
+<div id="screen-kalorienrechner" class="screen">
+  <header class="app-header">
+    <div class="icon-btn" onclick="navigate('gewicht')">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="width:40px"></div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="material-symbols-outlined" style="font-size:28px;color:#74d604">local_fire_department</span>
+      <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Kalorienrechner</h1>
+    </div>
+
+    <!-- Eingaben -->
+    <div class="card" style="display:flex;flex-direction:column;gap:14px">
+      <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0">Deine Angaben</p>
+
+      <!-- Geschlecht -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Geschlecht</label>
+        <div style="display:flex;gap:8px">
+          <button id="kal-btn-m" onclick="kalSelectGender('m')" class="pill active" style="flex:1;justify-content:center;height:40px">Männlich</button>
+          <button id="kal-btn-w" onclick="kalSelectGender('w')" class="pill" style="flex:1;justify-content:center;height:40px">Weiblich</button>
+        </div>
+      </div>
+
+      <!-- Alter -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Alter (Jahre)</label>
+        <input id="kal-alter" type="number" min="10" max="99" placeholder="30" inputmode="numeric"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;box-sizing:border-box;text-align:center"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'" oninput="kalCalc()">
+      </div>
+
+      <!-- Größe -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Größe (cm)</label>
+        <input id="kal-groesse" type="number" min="100" max="250" placeholder="175" inputmode="numeric"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;box-sizing:border-box;text-align:center"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'" oninput="kalCalc()">
+      </div>
+
+      <!-- Gewicht -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Körpergewicht (kg)</label>
+        <input id="kal-gewicht" type="number" min="30" max="300" step="0.1" placeholder="80.0" inputmode="decimal"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;box-sizing:border-box;text-align:center"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'" oninput="kalCalc()">
+      </div>
+
+      <!-- Aktivität -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Aktivitätslevel</label>
+        <select id="kal-aktivitaet" onchange="kalCalc()"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#e2e4cf;font-size:14px;font-family:'Inter',sans-serif;font-weight:600;outline:none;box-sizing:border-box;-webkit-appearance:none;appearance:none;cursor:pointer"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+          <option value="1.2">Kaum Bewegung (Bürojob, kein Sport)</option>
+          <option value="1.375" selected>Leicht aktiv (1–3× Sport/Woche)</option>
+          <option value="1.55">Mäßig aktiv (3–5× Sport/Woche)</option>
+          <option value="1.725">Sehr aktiv (6–7× Sport/Woche)</option>
+          <option value="1.9">Extrem aktiv (2× tägl. Training / körperl. Arbeit)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Ergebnis -->
+    <div id="kal-ergebnis" style="display:none" class="card" style="border:1px solid #74d604">
+
+      <!-- Grundumsatz -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <p style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:0 0 2px">Grundumsatz (BMR)</p>
+          <p style="font-size:11px;color:#8e9379;margin:0">Mifflin-St-Jeor</p>
+        </div>
+        <span id="kal-bmr" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#e2e4cf">—</span>
+      </div>
+      <div style="height:1px;background:#333627;margin-bottom:16px"></div>
+
+      <!-- Gesamtumsatz -->
+      <div style="text-align:center;margin-bottom:16px">
+        <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px">Gesamtumsatz (TDEE)</p>
+        <span id="kal-tdee" style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#74d604;line-height:1">—</span>
+        <span style="font-size:16px;color:#8e9379;font-weight:600"> kcal/Tag</span>
+      </div>
+
+      <!-- Ziele -->
+      <div style="height:1px;background:#333627;margin-bottom:16px"></div>
+      <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px">Kalorienempfehlung nach Ziel</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#161a0c;border-radius:10px;padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#5aaa00">trending_down</span>
+            <span style="font-size:13px;font-weight:700;color:#e2e4cf">Abnehmen</span>
+            <span style="font-size:11px;color:#8e9379">–500 kcal</span>
+          </div>
+          <span id="kal-abnehmen" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#5aaa00">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#1e2113;border:1px solid #74d604;border-radius:10px;padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#74d604">radio_button_checked</span>
+            <span style="font-size:13px;font-weight:700;color:#74d604">Halten</span>
+          </div>
+          <span id="kal-halten" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#74d604">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#161a0c;border-radius:10px;padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#e2e4cf">trending_up</span>
+            <span style="font-size:13px;font-weight:700;color:#e2e4cf">Zunehmen</span>
+            <span style="font-size:11px;color:#8e9379">+500 kcal</span>
+          </div>
+          <span id="kal-zunehmen" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hinweis -->
+    <div style="background:#161a0c;border:1px solid #333627;border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start">
+      <span class="material-symbols-outlined" style="font-size:16px;color:#8e9379;margin-top:1px;flex-shrink:0">info</span>
+      <p style="font-size:12px;color:#8e9379;margin:0;line-height:1.5">Berechnung nach der Mifflin-St-Jeor-Formel. Werte sind Richtwerte — individuelle Faktoren können abweichen.</p>
     </div>
   </main>
 </div>
@@ -950,7 +1082,7 @@ tailwind.config = {
 let currentScreen = 'dashboard';
 var navHistory = ['dashboard'];
 
-var screens = ['dashboard','plaene','workout','historie','profil','social','gewicht'];
+var screens = ['dashboard','plaene','workout','historie','profil','social','gewicht','kalorienrechner'];
 var navItems = ['dashboard','plaene','historie','gewicht','profil'];
 
 function navigate(target) {
@@ -961,6 +1093,10 @@ function navigate(target) {
   // Gewicht-Screen initialisieren
   if (target === 'gewicht') {
     setTimeout(function() { initGewichtScreen(); }, 50);
+  }
+  // Kalorienrechner: aktuelles Gewicht vorausfüllen
+  if (target === 'kalorienrechner') {
+    setTimeout(function() { kalPrefillGewicht(); }, 50);
   }
   // Historie dynamisch rendern
   if (target === 'historie') {
@@ -2846,6 +2982,60 @@ if ('serviceWorker' in navigator) {
       console.warn('Service Worker Registrierung fehlgeschlagen:', err);
     });
   });
+}
+
+// ═══════ KALORIENRECHNER ═══════
+var kalGender = 'm';
+
+function kalSelectGender(g) {
+  kalGender = g;
+  document.getElementById('kal-btn-m').classList.toggle('active', g === 'm');
+  document.getElementById('kal-btn-w').classList.toggle('active', g === 'w');
+  kalCalc();
+}
+
+function kalCalc() {
+  var alter   = parseFloat(document.getElementById('kal-alter').value);
+  var groesse = parseFloat(document.getElementById('kal-groesse').value);
+  var gewicht = parseFloat(document.getElementById('kal-gewicht').value);
+  var pal     = parseFloat(document.getElementById('kal-aktivitaet').value);
+
+  if (!alter || !groesse || !gewicht || isNaN(pal)) {
+    document.getElementById('kal-ergebnis').style.display = 'none';
+    return;
+  }
+
+  // Mifflin-St-Jeor
+  var bmr;
+  if (kalGender === 'm') {
+    bmr = 10 * gewicht + 6.25 * groesse - 5 * alter + 5;
+  } else {
+    bmr = 10 * gewicht + 6.25 * groesse - 5 * alter - 161;
+  }
+
+  var tdee = Math.round(bmr * pal);
+  bmr = Math.round(bmr);
+
+  document.getElementById('kal-bmr').textContent       = bmr + ' kcal';
+  document.getElementById('kal-tdee').textContent      = tdee;
+  document.getElementById('kal-halten').textContent    = tdee + ' kcal';
+  document.getElementById('kal-abnehmen').textContent  = (tdee - 500) + ' kcal';
+  document.getElementById('kal-zunehmen').textContent  = (tdee + 500) + ' kcal';
+
+  document.getElementById('kal-ergebnis').style.display = 'block';
+}
+
+function kalPrefillGewicht() {
+  // Aktuelles Gewicht aus localStorage übernehmen, falls vorhanden
+  var data = JSON.parse(localStorage.getItem('gewichtData') || '[]');
+  if (data.length > 0) {
+    var latest = data[data.length - 1];
+    var inp = document.getElementById('kal-gewicht');
+    if (inp && !inp.value) {
+      inp.value = latest.kg;
+      kalCalc();
+    }
+  }
 }
 </script>
 </body>
