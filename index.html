@@ -1357,6 +1357,7 @@ function confirmFinishWorkout(save) {
 
   wktUebungen = [];
   wktIdx = 0;
+  wktSessionData = {};
   var sc = document.getElementById('sets-container');
   if (sc) sc.innerHTML = '';
   var ctrEl = document.getElementById('wkt-counter');
@@ -2090,6 +2091,7 @@ function renderDashboardPlaene() {
 // ─── Plan starten: Workout-Screen mit Plan-Übungen befüllen ───────
 var wktUebungen = [];
 var wktIdx = 0;
+var wktSessionData = {}; // temporärer Speicher für laufenden Workout: { uebungsName: [{kg, wdh, done}] }
 
 function startPlan(planId) {
   // Prüfen ob ein Training bereits aktiv ist
@@ -2112,6 +2114,7 @@ function startPlan(planId) {
     localStorage.setItem('kp_plaene', JSON.stringify(plaene));
     wktUebungen = plan.uebungen;
     wktIdx = 0;
+    wktSessionData = {};
     workoutSeconds = 0;
     var wtEl = document.getElementById('workout-time');
     if (wtEl) wtEl.textContent = '00:00';
@@ -2213,17 +2216,29 @@ function renderWorkoutExercise(idx) {
       sc.appendChild(noRef);
     }
 
+    // Session-Daten (laufendes Training) haben Vorrang vor letztem Training
+    var sessionSets = wktSessionData[u.name] || null;
+
     for (var s = 1; s <= saetze; s++) {
-      var prevKg = (prevSets[s-1] && prevSets[s-1].kg > 0) ? prevSets[s-1].kg : '';
-      var prevWdh = (prevSets[s-1] && prevSets[s-1].wdh > 0) ? prevSets[s-1].wdh : wdh;
+      var si = s - 1;
+      var useKg, useWdh, isDone;
+      if (sessionSets && sessionSets[si]) {
+        useKg  = sessionSets[si].kg  > 0 ? sessionSets[si].kg  : '';
+        useWdh = sessionSets[si].wdh > 0 ? sessionSets[si].wdh : wdh;
+        isDone = sessionSets[si].done;
+      } else {
+        useKg  = (prevSets[si] && prevSets[si].kg > 0) ? prevSets[si].kg : '';
+        useWdh = (prevSets[si] && prevSets[si].wdh > 0) ? prevSets[si].wdh : wdh;
+        isDone = false;
+      }
       var row = document.createElement('div');
-      var active = s === 1;
+      var active = s === 1 && !isDone;
       row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #74d604;box-shadow:0 0 12px rgba(116,214,4,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
       row.innerHTML =
         '<span style="font-size:15px;color:' + (active ? '#74d604' : '#8e9379') + ';font-weight:700;text-align:center">' + s + '</span>' +
-        '<input type="number" value="' + prevKg + '" placeholder="kg" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
-        '<input type="number" value="' + prevWdh + '" placeholder="Wdh" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
-        '<div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>';
+        '<input type="number" value="' + useKg + '" placeholder="kg" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
+        '<input type="number" value="' + useWdh + '" placeholder="Wdh" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
+        '<div class="set-done' + (isDone ? ' done' : '') + '" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>';
       sc.appendChild(row);
     }
   }
@@ -2287,11 +2302,19 @@ function saveCurrentExerciseSets(uName) {
     var satzDaten = [];
     rows.forEach(function(row) {
       var inputs = row.querySelectorAll('input[type="number"]');
+      var doneEl = row.querySelector('.set-done');
       if (inputs.length >= 2) {
-        satzDaten.push({ kg: parseFloat(inputs[0].value) || 0, wdh: parseInt(inputs[1].value) || 0 });
+        satzDaten.push({
+          kg: parseFloat(inputs[0].value) || 0,
+          wdh: parseInt(inputs[1].value) || 0,
+          done: doneEl ? doneEl.classList.contains('done') : false
+        });
       }
     });
     if (satzDaten.length) {
+      // In-Session-Speicher (für Zurück-Navigation)
+      wktSessionData[uName] = satzDaten;
+      // kp_lastSets (für nächstes Training)
       var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
       lastSets[uName] = satzDaten;
       localStorage.setItem('kp_lastSets', JSON.stringify(lastSets));
@@ -2307,7 +2330,7 @@ function resetAppData() {
               'kp_startgewicht','kp_avatar','kp_pauseTimer'];
   for (var ki = 0; ki < keys.length; ki++) { localStorage.removeItem(keys[ki]); }
   // Workout-State zurücksetzen
-  wktUebungen = []; wktIdx = 0;
+  wktUebungen = []; wktIdx = 0; wktSessionData = {};
   if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
   workoutSeconds = 0;
   stopTimer();
