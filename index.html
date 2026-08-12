@@ -1,0 +1,3328 @@
+<!DOCTYPE html>
+<html lang="de" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"/>
+<title>Kinetic Pulse</title>
+<link rel="icon" type="image/png" href="icon-512.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Kinetic Pulse"/>
+<meta name="theme-color" content="#111508"/>
+<link rel="manifest" href="manifest.json"/>
+<!-- Alle Abhängigkeiten liegen lokal unter assets/ — die App läuft komplett ohne Internet. -->
+<link href="assets/fonts.css" rel="stylesheet"/>
+<script src="assets/html2canvas.min.js"></script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  [onclick] { cursor: pointer; touch-action: manipulation; }
+  body {
+    background: #111508;
+    color: #e2e4cf;
+    font-family: 'Archivo', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+  .screen { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 80px; }
+  .screen.active { display: flex; }
+
+  /* Bottom Nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(30,33,19,0.92); backdrop-filter: blur(20px); border-top: 1px solid #444933; display: flex; justify-content: space-around; align-items: center; padding: 8px 4px 12px; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: #8e9379; cursor: pointer; min-width: 56px; padding: 4px; border-radius: 12px; transition: all .2s; }
+  .nav-item:active { transform: scale(.9); }
+  .nav-item.active { color: #74d604; }
+  .nav-item .nav-label { font-size: 10px; font-weight: 600; letter-spacing: .03em; }
+  .nav-center { background: #74d604; border-radius: 50%; width: 48px !important; height: 48px; min-width: 48px !important; display: flex; align-items: center; justify-content: center; color: #162000; margin-top: -6px; box-shadow: 0 0 20px rgba(116,214,4,.4); transition: all .2s; padding: 0; }
+  .nav-center:active { transform: scale(.92); }
+  .nav-center.active { box-shadow: 0 0 32px rgba(116,214,4,.6); }
+
+  /* Header */
+  .app-header { position: sticky; top: 0; z-index: 50; background: rgba(17,21,8,.9); backdrop-filter: blur(16px); border-bottom: 1px solid #444933; padding: 0 20px; padding-top: env(safe-area-inset-top, 0px); height: calc(56px + env(safe-area-inset-top, 0px)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .brand { font-size: 20px; font-weight: 900; font-style: italic; color: #74d604; text-transform: uppercase; letter-spacing: -.03em; justify-self: center; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: #333627; overflow: hidden; border: 1px solid #444933; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #c4c9ac; cursor: pointer; transition: all .2s; }
+  .icon-btn:active { transform: scale(.9); background: #1e2113; }
+
+  /* Cards */
+  .card { background: #1e2113; border: 1px solid #333627; border-radius: 16px; padding: 20px; }
+  .card-sm { background: #1e2113; border: 1px solid #333627; border-radius: 12px; padding: 14px; }
+  .card-dark { background: #161a0c; border: 1px solid #333627; border-radius: 16px; padding: 20px; }
+
+  /* Volt Glow */
+  .volt-glow { box-shadow: 0 0 12px rgba(116,214,4,.35); }
+  .volt-text { color: #74d604; }
+  .volt-bg { background: #74d604; color: #162000; }
+
+  /* Progress Bar */
+  .progress-track { background: #333627; border-radius: 99px; overflow: hidden; }
+  .progress-fill { background: #74d604; border-radius: 99px; height: 100%; box-shadow: 0 0 8px rgba(116,214,4,.4); transition: width .6s ease; }
+
+  /* Stealth Input */
+  .stealth-input { background: transparent; border: none; border-bottom: 2px solid #333627; color: #74d604; font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 600; text-align: center; width: 100%; padding: 4px 0; }
+  .stealth-input:focus { outline: none; border-bottom-color: #74d604; }
+
+  /* Pill */
+  .pill { display: inline-flex; align-items: center; background: #1e2113; border: 1px solid #333627; border-radius: 99px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #c4c9ac; cursor: pointer; transition: all .2s; }
+  .pill.active { background: #74d604; color: #162000; border-color: #74d604; }
+  .pill:active { transform: scale(.95); }
+
+  /* Timer */
+  .timer-ring { transform: rotate(-90deg); }
+  .timer-ring circle { transition: stroke-dashoffset 1s linear; }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse-volt { 0%,100% { box-shadow: 0 0 12px rgba(116,214,4,.3); } 50% { box-shadow: 0 0 24px rgba(116,214,4,.6); } }
+  .screen.active { animation: fadeIn .25s ease; }
+  .pulse { animation: pulse-volt 2s infinite; }
+
+  /* Share Card */
+  .share-card { background: linear-gradient(135deg, #162000 0%, #111508 50%, #0c0f04 100%); border: 1px solid #74d604; border-radius: 20px; padding: 24px; position: relative; overflow: hidden; }
+  .share-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(116,214,4,.15) 0%, transparent 70%); }
+
+  /* Chart */
+  .chart-bar { background: #333627; border-radius: 4px 4px 0 0; width: 100%; transition: all .3s; position: relative; }
+  .chart-bar .fill { background: #74d604; border-radius: 4px 4px 0 0; width: 100%; position: absolute; bottom: 0; box-shadow: 0 0 8px rgba(116,214,4,.3); }
+
+  /* Set Row */
+  .set-row { display: grid; grid-template-columns: 32px 1fr 1fr auto; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 10px; background: #161a0c; border: 1px solid #333627; margin-bottom: 6px; }
+  .set-num { font-size: 12px; color: #8e9379; font-weight: 700; text-align: center; }
+  .set-input { background: transparent; border: none; border-bottom: 1px solid #333627; color: #e2e4cf; font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; text-align: center; width: 100%; padding: 4px 0; }
+  .set-input:focus { outline: none; border-bottom-color: #74d604; color: #74d604; }
+  .set-done { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #444933; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .2s; color: transparent; font-size: 16px; }
+  .set-done.done { background: #74d604; border-color: #74d604; color: #162000; box-shadow: 0 0 8px rgba(116,214,4,.4); }
+
+  /* Numpad */
+  .numpad-btn { background:#1e2113;border:1px solid #333627;border-radius:12px;height:52px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;transition:all .15s; }
+  .numpad-btn:active { background:#333627;transform:scale(.93); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333627; border-radius: 2px; }
+
+  .material-symbols-outlined { font-size: 22px; line-height: 1; }
+</style>
+<!-- Muss nach dem <style>-Block stehen: die Tailwind-CDN hat ihr CSS früher auch dahinter eingehängt. -->
+<link href="assets/tailwind-base.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════ SCREEN: DASHBOARD ═══════════════════════════ -->
+<div id="screen-dashboard" class="screen active">
+  <header class="app-header">
+    <div class="avatar" onclick="navigate('profil')" style="background:linear-gradient(135deg,#74d604,#556d00);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#162000">M</div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn" onclick="navigate('profil')"><span class="material-symbols-outlined">settings</span></div>
+    </div>
+  </header>
+
+  <main style="padding:12px 20px 20px;display:flex;flex-direction:column;gap:12px;flex:1">
+    <!-- Greeting -->
+    <div>
+      <p id="greeting-date" style="color:#8e9379;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin:0 0 2px"></p>
+      <h1 id="greeting-text" style="font-size:22px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em"></h1>
+    </div>
+
+    <!-- Weekly Stats Row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div class="card-sm" style="text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#74d604">0</div>
+        <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Einheiten</div>
+      </div>
+      <div class="card-sm" style="text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">0 t</div>
+        <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Volumen</div>
+      </div>
+      <div class="card-sm" style="text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#e2e4cf">0m</div>
+        <div style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Zeit</div>
+      </div>
+    </div>
+
+    <!-- Last 7 Days Volume Chart -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Wochenvolumen</h3>
+        <span style="font-size:11px;color:#8e9379">letzte 7 Tage</span>
+      </div>
+      <div id="volumen-chart" style="display:flex;gap:6px;height:80px;align-items:flex-end"></div>
+    </div>
+
+    <!-- Schnellstart Trainingspläne -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Schnellstart</h3>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="dash-sort-btn" onclick="toggleDashSort()" style="display:flex;align-items:center;gap:4px;background:#1e2113;border:1px solid #333627;border-radius:8px;padding:4px 10px;color:#8e9379;font-size:11px;font-weight:700;cursor:pointer;touch-action:manipulation;transition:all .2s">
+            <span class="material-symbols-outlined" style="font-size:14px">sort</span>
+            <span id="dash-sort-label">A–Z</span>
+          </button>
+          <span onclick="navigate('plaene')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600;touch-action:manipulation">Pläne →</span>
+        </div>
+      </div>
+      <div id="dashboard-plaene-list" style="display:flex;flex-direction:column;gap:8px">
+        <!-- Leer-Zustand -->
+        <div id="plaene-empty-state" style="text-align:center;padding:20px 0">
+          <span class="material-symbols-outlined" style="font-size:40px;color:#444933">fitness_center</span>
+          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine Pläne — erstelle einen unter <strong style="color:#74d604">Pläne</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weight Widget -->
+    <div class="card-sm" onclick="navigate('gewicht')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <p style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Körpergewicht</p>
+        <div style="display:flex;align-items:baseline;gap:6px">
+          <span id="dash-gewicht" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#74d604">—</span>
+          <span style="color:#8e9379;font-size:14px">kg</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <p style="font-size:11px;color:#8e9379;margin:0 0 4px">Gewicht eintragen →</p>
+      </div>
+    </div>
+
+    <!-- Recent PRs -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;margin:0;font-style:italic">Aktuelle PRs</h3>
+        <span onclick="navigate('erfolge')" style="font-size:12px;color:#74d604;cursor:pointer;font-weight:600">Alle →</span>
+      </div>
+      <div id="dashboard-prs-list">
+        <div style="text-align:center;padding:16px 0">
+          <span class="material-symbols-outlined" style="font-size:36px;color:#444933">emoji_events</span>
+          <p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine PRs — starte dein erstes Training!</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: PLÄNE ═══════════════════════════ -->
+<div id="screen-plaene" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn" onclick="showCreatePlan()"><span class="material-symbols-outlined">add</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Trainingspläne</h1>
+
+    <!-- Pausentimer Einstellung -->
+    <div class="card-sm" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="material-symbols-outlined" style="font-size:18px;color:#74d604">timer</span>
+        <span style="font-size:13px;font-weight:700;color:#e2e4cf">Pausentimer</span>
+      </div>
+      <div style="display:flex;gap:6px" id="pause-timer-btns">
+        <button onclick="setPauseTimer(120)" id="ptbtn-120" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">120s</button>
+        <button onclick="setPauseTimer(150)" id="ptbtn-150" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">150s</button>
+        <button onclick="setPauseTimer(180)" id="ptbtn-180" style="height:30px;padding:0 12px;background:#74d604;border:none;border-radius:99px;color:#162000;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">180s</button>
+      </div>
+    </div>
+
+    <!-- Pläne Liste (wird per JS befüllt) -->
+    <div id="plaene-screen-list" style="display:flex;flex-direction:column;gap:10px">
+      <!-- Leer-Zustand -->
+      <div id="plaene-screen-empty" style="text-align:center;padding:40px 0">
+        <span class="material-symbols-outlined" style="font-size:56px;color:#444933">fitness_center</span>
+        <p style="font-size:16px;font-weight:700;color:#8e9379;margin:12px 0 4px">Noch keine Pläne</p>
+        <p style="font-size:13px;color:#8e9379;margin:0">Erstelle deinen ersten Trainingsplan</p>
+      </div>
+    </div>
+    <button onclick="showCreatePlan()" style="width:100%;height:48px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
+      <span class="material-symbols-outlined" style="font-size:18px">add</span>
+      Neuen Plan erstellen
+    </button>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: WORKOUT-MODUS ═══════════════════════════ -->
+<div id="screen-workout" class="screen">
+  <header class="app-header">
+    <div class="icon-btn" onclick="navigate('dashboard')"><span class="material-symbols-outlined">close</span></div>
+    <div style="display:flex;align-items:center;gap:7px">
+      <span id="workout-active-dot" style="width:7px;height:7px;background:#74d604;border-radius:50%;display:none;animation:pulse-volt 1.5s infinite;flex-shrink:0"></span>
+      <span style="font-size:12px;font-weight:700;color:#8e9379;letter-spacing:.04em" id="workout-running-label">TRAINING</span>
+      <span id="workout-time" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#74d604;letter-spacing:.02em">00:00</span>
+    </div>
+    <div style="width:40px"></div>
+  </header>
+  <!-- ═ Pausentimer-Leiste (unter Header, sticky) ═ -->
+  <div id="pause-timer-bar" style="position:sticky;top:calc(56px + env(safe-area-inset-top,0px));z-index:40;background:rgba(22,26,12,.98);backdrop-filter:blur(12px);border-bottom:1px solid #333627;padding:8px 20px;display:none;align-items:center;gap:10px">
+    <span class="material-symbols-outlined" style="color:#74d604;font-size:18px;flex-shrink:0">hourglass_top</span>
+    <span id="timer-display" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#74d604;min-width:48px">3:00</span>
+    <div style="display:flex;gap:6px;flex:1;justify-content:flex-end">
+      <button onclick="startTimer(120)" id="tbtn-120" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">120s</button>
+      <button onclick="startTimer(150)" id="tbtn-150" style="height:30px;padding:0 12px;background:#1e2113;border:1px solid #333627;border-radius:99px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;touch-action:manipulation">150s</button>
+      <button onclick="startTimer(180)" id="tbtn-180" style="height:30px;padding:0 12px;background:#74d604;border:none;border-radius:99px;color:#162000;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;touch-action:manipulation">180s</button>
+    </div>
+  </div>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:14px;flex:1;padding-bottom:220px">
+
+    <!-- Übung Header -->
+    <div>
+      <p id="wkt-counter" style="font-size:11px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:0 0 6px">Übung 1 von 1</p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div style="flex:1">
+          <h2 id="wkt-name" style="font-size:28px;font-weight:900;font-style:italic;margin:0 0 2px;letter-spacing:-.02em">—</h2>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <p id="wkt-sub" style="font-size:13px;color:#8e9379;margin:0;flex:1">Sätze · Wdh</p>
+            <button onclick="toggleUebungNote()" style="background:transparent;border:1px solid #333627;border-radius:8px;padding:3px 8px;cursor:pointer;display:flex;align-items:center;gap:4px;touch-action:manipulation" id="uebung-note-btn" title="Notiz">
+              <span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">edit_note</span>
+              <span style="font-size:11px;color:#8e9379;font-weight:600">Notiz</span>
+            </button>
+          </div>
+          <!-- Übungs-Notiz -->
+          <div id="uebung-note-box" style="display:none;margin-bottom:10px">
+            <input id="uebung-note-input" type="text" placeholder="Hinweis, Technik-Tipp..." style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:8px;padding:8px 10px;color:#c4c9ac;font-size:16px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+          </div>
+          <span id="wkt-pr" style="display:none;align-items:center;gap:6px;background:#162000;border:1px solid #74d604;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;color:#74d604">
+            <span class="material-symbols-outlined" style="font-size:14px">emoji_events</span>
+            PR: —
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Satz-Tabelle -->
+    <div>
+      <!-- Header Row -->
+      <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;padding:0 4px;margin-bottom:6px">
+        <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Satz</span>
+        <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">KG</span>
+        <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Wdh.</span>
+        <span style="font-size:11px;color:transparent">✓</span>
+      </div>
+
+      <!-- Sets -->
+      <div id="sets-container" style="display:flex;flex-direction:column;gap:6px">
+        <!-- Satz 1 — erledigt, gedimmt -->
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:1px solid #333627;border-radius:12px;padding:10px 12px;opacity:.55">
+          <span style="font-size:15px;color:#8e9379;font-weight:700;text-align:center">1</span>
+          <div style="background:#282b1d;border-radius:8px;height:40px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#8e9379">80</div>
+          <div style="background:#282b1d;border-radius:8px;height:40px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#8e9379">10</div>
+          <div class="set-done done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
+        </div>
+        <!-- Satz 2 — aktiv, volt-Rahmen -->
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:2px solid #74d604;border-radius:12px;padding:10px 12px;box-shadow:0 0 12px rgba(116,214,4,.15)">
+          <span style="font-size:15px;color:#74d604;font-weight:700;text-align:center">2</span>
+          <input type="text" placeholder="" style="background:#fff;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#111508;text-align:center;width:100%" />
+          <input type="text" placeholder="" style="background:#fff;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#111508;text-align:center;width:100%" />
+          <div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
+        </div>
+        <!-- Satz 3 -->
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:1px solid #333627;border-radius:12px;padding:10px 12px">
+          <span style="font-size:15px;color:#8e9379;font-weight:700;text-align:center">3</span>
+          <input type="text" value="0" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%" />
+          <input type="text" value="0" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%" />
+          <div class="set-done" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>
+        </div>
+      </div>
+
+      <!-- + Satz hinzufügen -->
+      <button style="width:100%;height:44px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px">
+        <span class="material-symbols-outlined" style="font-size:18px">add</span>
+        Satz hinzufügen
+      </button>
+    </div>
+  </main>
+
+  <!-- ═ Sticky Footer ═ -->
+  <div style="position:fixed;bottom:68px;left:0;right:0;z-index:90;background:rgba(17,21,8,.97);backdrop-filter:blur(16px);border-top:1px solid #333627;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
+
+    <!-- Übung Navigation -->
+    <div style="display:flex;gap:8px">
+      <button id="wkt-prev-btn" onclick="prevExercise()" style="display:none;height:52px;padding:0 16px;background:#1e2113;border:1px solid #444933;border-radius:12px;color:#c4c9ac;font-size:14px;font-weight:700;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;transition:all .2s;flex-shrink:0" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
+        Zurück
+      </button>
+      <button id="wkt-next-btn" style="flex:1;height:52px;background:#1e2113;border:1px solid #74d604;border-radius:12px;color:#74d604;font-size:15px;font-weight:800;font-style:italic;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        Nächste Übung
+        <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: HISTORIE ═══════════════════════════ -->
+<div id="screen-historie" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn"><span class="material-symbols-outlined">search</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <!-- Tab Switcher -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;background:#1e2113;border-radius:12px;padding:4px;border:1px solid #333627">
+      <button id="tab-history" onclick="switchHistoryTab('history')" style="height:36px;background:#74d604;border:none;border-radius:9px;color:#162000;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">Einheiten</button>
+      <button id="tab-prs" onclick="switchHistoryTab('prs')" style="height:36px;background:transparent;border:none;color:#8e9379;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">PRs</button>
+    </div>
+
+    <!-- Einheiten Liste -->
+    <div id="history-list"></div>
+
+    <!-- PRs Liste (hidden by default) -->
+    <div id="prs-list" style="display:none;flex-direction:column;gap:10px"></div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ MODAL: TRAINING DETAIL ═══════════════════════════ -->
+<div id="modal-training-detail" onclick="if(event.target===this)closeTrainingDetail()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);align-items:flex-end;justify-content:center">
+  <div style="background:#13150e;border-radius:20px 20px 0 0;width:100%;max-width:430px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:16px 20px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e2113;flex-shrink:0">
+      <div>
+        <p id="modal-detail-name" style="margin:0;font-size:17px;font-weight:800;font-style:italic;color:#f0f4e8"></p>
+        <p id="modal-detail-meta" style="margin:4px 0 0;font-size:12px;color:#8e9379"></p>
+      </div>
+      <button onclick="closeTrainingDetail()" style="background:#1e2113;border:none;border-radius:50%;width:32px;height:32px;color:#8e9379;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+    </div>
+    <div id="modal-detail-body" style="overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ SCREEN: PROFIL ═══════════════════════════ -->
+<div id="screen-profil" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="icon-btn" onclick="toggleProfilEdit()"><span class="material-symbols-outlined" id="profil-edit-icon">edit</span></div>
+    </div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+
+    <!-- ─ ANSICHT-MODUS ─ -->
+    <div id="profil-view">
+      <div class="card" style="display:flex;align-items:center;gap:16px">
+        <div id="avatar-display" onclick="toggleProfilEdit()" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#74d604,#556d00);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#162000;flex-shrink:0;border:2px solid #74d604;overflow:hidden;cursor:pointer">M</div>
+        <div style="flex:1">
+          <h2 id="profil-name-display" style="font-size:20px;font-weight:800;font-style:italic;margin:0 0 2px">Martin R.</h2>
+          <p id="profil-sub-display" style="font-size:12px;color:#8e9379;margin:0 0 8px">Trainiert seit 18 Monaten · PPL-Split</p>
+          <div style="display:flex;gap:16px">
+            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#74d604">0</span><span style="font-size:10px;color:#8e9379;display:block">Einheiten</span></div>
+            <div><span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">0</span><span style="font-size:10px;color:#8e9379;display:block">PRs</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gewicht -->
+      <div class="card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Gewicht und Trends</h3>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
+            <span id="profil-gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#74d604">82.4</span>
+            <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Aktuell kg</p>
+          </div>
+          <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
+            <span id="profil-ziel-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#e2e4cf">78.0</span>
+            <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Ziel kg</p>
+          </div>
+          <div style="background:#161a0c;border-radius:10px;padding:10px;text-align:center">
+            <span id="profil-diff-display" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:#5aaa00">–4.4</span>
+            <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Noch kg</p>
+          </div>
+        </div>
+        <!-- Progress -->
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;color:#8e9379">Fortschritt zum Ziel</span>
+            <span id="profil-progress-pct" style="font-size:12px;color:#74d604;font-weight:700">65%</span>
+          </div>
+          <div class="progress-track" style="height:8px">
+            <div id="profil-progress-bar" class="progress-fill" style="width:65%;height:100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Muskel-Fokus -->
+      <div class="card" style="margin-top:16px">
+        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0 0 14px">Muskel-Fokus (30 Tage)</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Brust</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">0%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:0%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Rücken</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">0%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:0%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Beine</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">0%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:0%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Schultern</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">0%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:0%;height:100%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600">Arme</span><span style="font-size:13px;color:#8e9379;font-family:'JetBrains Mono',monospace">0%</span></div><div class="progress-track" style="height:6px"><div class="progress-fill" style="width:0%;height:100%"></div></div></div>
+        </div>
+      </div>
+
+
+      <!-- Backup / Umzug auf eine andere Adresse -->
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid #2a2d1e">
+        <p style="font-size:12px;color:#444933;margin:0 0 10px;text-align:center">Daten sichern oder auf eine andere Adresse übertragen</p>
+        <div style="display:flex;gap:10px">
+          <button onclick="exportAllData()" style="flex:1;height:44px;background:transparent;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
+            <span class="material-symbols-outlined" style="font-size:18px">save</span>
+            Exportieren
+          </button>
+          <button onclick="document.getElementById('import-input').click()" style="flex:1;height:44px;background:transparent;border:1px solid #333627;border-radius:12px;color:#e2e4cf;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
+            <span class="material-symbols-outlined" style="font-size:18px">download</span>
+            Importieren
+          </button>
+          <input type="file" accept="application/json,.json" id="import-input" style="display:none" onchange="importAllData(this)">
+        </div>
+      </div>
+
+      <!-- App-Reset -->
+      <div style="margin-top:16px;padding-top:20px;border-top:1px solid #2a2d1e">
+        <p style="font-size:12px;color:#444933;margin:0 0 10px;text-align:center">Für Weitergabe an andere Person</p>
+        <button onclick="resetAppData()" style="width:100%;height:44px;background:transparent;border:1px solid #3d1515;border-radius:12px;color:#c04040;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation">
+          <span class="material-symbols-outlined" style="font-size:18px">restart_alt</span>
+          App komplett zurücksetzen
+        </button>
+      </div>
+
+      <!-- Diagnose: letzter unbehandelter Fehler (nur sichtbar wenn vorhanden) -->
+      <div id="diag-error-box" style="display:none;margin-top:16px;padding:14px;background:#1e1313;border:1px solid #3d1515;border-radius:12px;color:#e2e4cf">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:12px;font-weight:700;color:#c04040">Letzter Fehler erkannt</span>
+          <span class="material-symbols-outlined" style="font-size:16px;cursor:pointer;color:#8e9379" onclick="dismissDiagError()">close</span>
+        </div>
+        <div id="diag-error-text" style="font-size:11px;color:#c4c9ac;font-family:'JetBrains Mono',monospace;white-space:pre-wrap;word-break:break-word"></div>
+      </div>
+
+      <!-- Speicherbelegung: zeigt sofort, ob der Trainings-Stand noch Platz hat -->
+      <p id="speicher-info" style="font-size:11px;color:#444933;text-align:center;margin:14px 0 0;font-family:'JetBrains Mono',monospace"></p>
+    </div>
+
+    <!-- ─ EDIT-MODUS ─ -->
+    <div id="profil-edit" style="display:none;flex-direction:column;gap:16px">
+
+      <!-- Profilbild -->
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div id="avatar-edit-preview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#74d604,#556d00);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#162000;border:2px solid #74d604;overflow:hidden">M</div>
+        <label style="display:flex;align-items:center;gap:8px;background:#1e2113;border:1px solid #74d604;border-radius:10px;padding:10px 20px;cursor:pointer;color:#74d604;font-size:13px;font-weight:700;touch-action:manipulation">
+          <span class="material-symbols-outlined" style="font-size:18px">photo_camera</span>
+          Foto wählen
+          <input type="file" accept="image/*" id="avatar-input" style="display:none" onchange="handleAvatarUpload(this)">
+        </label>
+      </div>
+
+      <!-- Name & Info -->
+      <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <h3 style="font-size:15px;font-weight:700;margin:0;color:#8e9379;text-transform:uppercase;letter-spacing:.05em">Persönliche Daten</h3>
+        <div>
+          <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Name</label>
+          <input id="edit-name" type="text" placeholder="Dein Name" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Archivo',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Trainingsplan / Notiz</label>
+          <input id="edit-sub" type="text" placeholder="z.B. PPL-Split · 3 Jahre Erfahrung" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Archivo',sans-serif;outline:none;-webkit-appearance:none" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+        </div>
+      </div>
+
+      <!-- Gewichtsdaten -->
+      <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <h3 style="font-size:15px;font-weight:700;margin:0;color:#8e9379;text-transform:uppercase;letter-spacing:.05em">Gewicht</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Aktuell (kg)</label>
+            <input id="edit-gewicht" type="number" step="0.1" placeholder="82.4" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Ziel (kg)</label>
+            <input id="edit-ziel" type="number" step="0.1" placeholder="78.0" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;-webkit-appearance:none;text-align:center" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+          </div>
+        </div>
+      </div>
+
+      <!-- Speichern -->
+      <button onclick="saveProfilData()" class="volt-bg" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span class="material-symbols-outlined" style="font-size:20px">check</span>
+        Speichern
+      </button>
+      <button onclick="toggleProfilEdit()" style="width:100%;height:44px;background:transparent;border:1px solid #444933;border-radius:12px;color:#8e9379;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation">
+        Abbrechen
+      </button>
+    </div>
+
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: ERFOLGE ═══════════════════════════ -->
+<div id="screen-social" class="screen">
+  <header class="app-header">
+    <div class="icon-btn" onclick="navigate('dashboard')" style="cursor:pointer"><span class="material-symbols-outlined">arrow_back</span></div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="width:40px"></div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Erfolge</h1>
+
+    <!-- Card Auswahl -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="showShareCard('workout')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-workout-btn">
+        <span class="material-symbols-outlined" style="color:#74d604;font-size:24px;display:block;margin-bottom:6px">fitness_center</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Workout</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">Letztes Training</p>
+      </button>
+      <button onclick="showShareCard('pr')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-pr-btn">
+        <span class="material-symbols-outlined" style="color:#5aaa00;font-size:24px;display:block;margin-bottom:6px">emoji_events</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Persönlicher Rekord</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">Neuer PR</p>
+      </button>
+      <button onclick="showShareCard('progress')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-progress-btn">
+        <span class="material-symbols-outlined" style="color:#556d00;font-size:24px;display:block;margin-bottom:6px">trending_up</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Fortschritt</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">30-Tage-Verlauf</p>
+      </button>
+      <button onclick="showShareCard('streak')" style="padding:14px;background:#1e2113;border:1px solid #333627;border-radius:12px;cursor:pointer;text-align:left;transition:all .2s;touch-action:manipulation" id="share-streak-btn">
+        <span class="material-symbols-outlined" style="color:#ffb4ab;font-size:24px;display:block;margin-bottom:6px">local_fire_department</span>
+        <p style="margin:0;font-size:13px;font-weight:700;color:#e2e4cf">Streak</p>
+        <p style="margin:0;font-size:11px;color:#8e9379">Trainingsserie</p>
+      </button>
+    </div>
+
+    <!-- Card Preview -->
+    <div id="share-card-preview" style="display:none;flex-direction:column;gap:12px">
+
+      <!-- Workout Card -->
+      <div id="card-workout" class="share-card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+          <div>
+            <p style="margin:0;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+            <h2 id="erfolge-workout-title" style="margin:4px 0 0;font-size:22px;font-weight:900;font-style:italic;color:#e2e4cf;letter-spacing:-.02em">Push A Completed! 💪</h2>
+          </div>
+          <svg width="36" height="36" viewBox="0 0 100 100">
+            <path d="M20 50 L40 50 L50 20 L60 80 L70 50 L90 50" fill="none" stroke="#74d604" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+            <span id="erfolge-dauer" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#74d604">—</span>
+            <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Dauer</p>
+          </div>
+          <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+            <span id="erfolge-uebungen" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:#e2e4cf">—</span>
+            <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Übungen</p>
+          </div>
+          <div style="text-align:center;background:rgba(0,0,0,.4);border-radius:10px;padding:10px">
+            <span id="erfolge-datum" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">—</span>
+            <p style="font-size:9px;color:#c4c9ac;margin:2px 0 0;text-transform:uppercase;letter-spacing:.05em;font-weight:600">Datum</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PR Card -->
+      <div id="card-pr" class="share-card" style="display:none">
+        <div style="text-align:center;margin-bottom:16px">
+          <span style="font-size:48px">🏆</span>
+          <p style="margin:4px 0 0;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Neuer PR</p>
+        </div>
+        <h2 id="pr-card-name" style="text-align:center;font-size:20px;font-weight:900;font-style:italic;margin:0 0 16px;letter-spacing:-.02em">—</h2>
+        <div style="text-align:center;background:rgba(0,0,0,.5);border-radius:14px;padding:20px;margin-bottom:16px">
+          <span id="pr-card-kg" style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#74d604;line-height:1">—</span>
+          <span style="font-size:20px;color:#c4c9ac;font-weight:600"> kg</span>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:16px;color:#5aaa00;margin:8px 0 0" id="pr-card-sub">▲ Personal Best</p>
+        </div>
+        <p id="pr-card-meta" style="text-align:center;font-size:12px;color:#8e9379;margin:0">—</p>
+      </div>
+
+      <!-- Progress Card -->
+      <div id="card-progress" class="share-card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <p style="margin:0;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse</p>
+            <h2 style="margin:4px 0 0;font-size:20px;font-weight:900;font-style:italic;letter-spacing:-.02em">30-Tage Trend 📈</h2>
+          </div>
+        </div>
+        <svg width="100%" height="70" viewBox="0 0 300 70" preserveAspectRatio="none">
+          <path d="M0,60 Q50,50 100,42 T200,30 T300,25" fill="none" stroke="#74d604" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="300" cy="25" r="5" fill="#74d604"/>
+        </svg>
+      </div>
+
+      <!-- Streak Card -->
+      <div id="card-streak" class="share-card" style="display:none">
+        <div style="text-align:center">
+          <p style="margin:0 0 8px;font-size:10px;color:#74d604;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Kinetic Pulse · Streak</p>
+          <div style="font-size:72px;line-height:1;margin-bottom:8px">🔥</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:600;color:#74d604;line-height:1">14</div>
+          <p style="font-size:18px;color:#c4c9ac;font-weight:700;margin:4px 0">Tage in Folge</p>
+        </div>
+      </div>
+
+      <!-- Speichern Button -->
+      <button onclick="saveShareCard()" style="width:100%;height:52px;background:#1e2113;border:1px solid #74d604;border-radius:12px;color:#74d604;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" id="erfolge-save-btn" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span class="material-symbols-outlined" style="font-size:20px">download</span>
+        Als Bild speichern
+      </button>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: GEWICHT ═══════════════════════════ -->
+<div id="screen-gewicht" class="screen">
+  <header class="app-header">
+    <div style="width:32px"></div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="width:40px"></div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Gewicht &amp; Trends</h1>
+      <button onclick="navigate('kalorienrechner')" style="display:flex;align-items:center;gap:5px;background:#1e2113;border:1px solid #444933;border-radius:10px;padding:6px 10px;color:#74d604;font-size:12px;font-weight:700;cursor:pointer;touch-action:manipulation;white-space:nowrap">
+        <span class="material-symbols-outlined" style="font-size:16px">local_fire_department</span>Kalorien
+      </button>
+    </div>
+
+    <!-- Heutiges Gewicht Eingabe -->
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0">Heutiges Gewicht</p>
+      <div style="display:flex;align-items:baseline;gap:6px">
+        <span id="gewicht-display" style="font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:600;color:#74d604;line-height:1">82.4</span>
+        <span style="font-size:16px;color:#8e9379;font-weight:600">kg</span>
+      </div>
+      <!-- Numpad -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:280px">
+        <button onclick="numpad('1')" class="numpad-btn">1</button>
+        <button onclick="numpad('2')" class="numpad-btn">2</button>
+        <button onclick="numpad('3')" class="numpad-btn">3</button>
+        <button onclick="numpad('4')" class="numpad-btn">4</button>
+        <button onclick="numpad('5')" class="numpad-btn">5</button>
+        <button onclick="numpad('6')" class="numpad-btn">6</button>
+        <button onclick="numpad('7')" class="numpad-btn">7</button>
+        <button onclick="numpad('8')" class="numpad-btn">8</button>
+        <button onclick="numpad('9')" class="numpad-btn">9</button>
+        <button onclick="numpad('.')" class="numpad-btn" style="color:#8e9379">.</button>
+        <button onclick="numpad('0')" class="numpad-btn">0</button>
+        <button onclick="numpad('del')" class="numpad-btn" style="color:#8e9379">
+          <span class="material-symbols-outlined" style="font-size:20px">backspace</span>
+        </button>
+      </div>
+      <button onclick="saveGewicht()" class="volt-bg" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;touch-action:manipulation" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        Speichern
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="card-sm" style="text-align:center;padding:10px 6px">
+        <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Aktuell</p>
+        <span id="gewicht-aktuell-stat" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#74d604">—</span>
+      </div>
+      <div class="card-sm" style="text-align:center;padding:10px 6px">
+        <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Gleit. Ø</p>
+        <span id="gewicht-avg" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#e2e4cf">—</span>
+      </div>
+      <div class="card-sm" style="text-align:center;padding:10px 6px">
+        <p style="font-size:10px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 3px">Wöchentl.</p>
+        <span id="gewicht-weekly" style="font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:#5aaa00">—</span>
+      </div>
+    </div>
+
+    <!-- 30-Tage-Trend Chart -->
+    <div class="card" id="gewicht-chart-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">30-Tage-Trend</h3>
+        <span id="gewicht-chart-range" style="font-size:11px;color:#8e9379">–</span>
+      </div>
+      <div style="height:80px;position:relative;margin-bottom:8px">
+        <svg id="gewicht-chart-svg" width="100%" height="80" viewBox="0 0 300 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="gGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#74d604" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#74d604" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <text x="150" y="45" text-anchor="middle" fill="#444933" font-size="11" font-family="Archivo,sans-serif">Noch keine Daten</text>
+        </svg>
+        <div id="gewicht-chart-labels" style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;font-size:10px;color:#8e9379">
+          <span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ziel & Meilensteine -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-size:16px;font-weight:700;font-style:italic;margin:0">Gewichtsziel</h3>
+        <button onclick="toggleStartgewichtEdit()" style="background:transparent;border:1px solid #444933;border-radius:8px;color:#8e9379;font-size:11px;font-weight:600;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:4px">
+          <span class="material-symbols-outlined" style="font-size:14px">edit</span> Startgewicht
+        </button>
+      </div>
+      <!-- Startgewicht bearbeiten -->
+      <div id="startgewicht-edit" style="display:none;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px;margin-bottom:12px">
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Startgewicht (kg)</label>
+        <div style="display:flex;gap:8px">
+          <input id="startgewicht-input" type="number" step="0.1" placeholder="90.0" style="flex:1;background:#1e2113;border:1px solid #444933;border-radius:8px;padding:8px 12px;color:#74d604;font-size:18px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;text-align:center" onfocus="this.select();this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+          <button onclick="saveStartgewicht()" style="background:#74d604;border:none;border-radius:8px;padding:6px 12px;color:#162000;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap">OK</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#8e9379;margin-bottom:6px">
+        <span>Start: <span id="gw-start" style="color:#e2e4cf">90 kg</span></span>
+        <span style="color:#74d604;font-weight:700" id="gw-aktuell">Aktuell: 82.4 kg</span>
+        <span>Ziel: <span id="gw-ziel-label" style="color:#e2e4cf">78 kg</span></span>
+      </div>
+      <div class="progress-track" style="height:8px;margin-bottom:14px">
+        <div id="gw-progress-bar" class="progress-fill" style="width:65%;height:100%"></div>
+      </div>
+      <div id="meilensteine-container" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <!-- Messprotokoll aufklappbar -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <button onclick="toggleMessprotokoll()" id="protokoll-toggle" style="width:100%;padding:14px 16px;background:transparent;border:none;color:#e2e4cf;cursor:pointer;display:flex;justify-content:space-between;align-items:center;touch-action:manipulation">
+        <span style="font-size:14px;font-weight:700;font-style:italic">Messprotokoll</span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:11px;color:#8e9379">
+          <span id="protokoll-count">—</span>
+          <span class="material-symbols-outlined" id="protokoll-chevron" style="font-size:18px;transition:transform .2s">expand_more</span>
+        </span>
+      </button>
+      <div id="protokoll-list" style="display:none;border-top:1px solid #333627;max-height:300px;overflow-y:auto"></div>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ SCREEN: KALORIENRECHNER ═══════════════════════════ -->
+<div id="screen-kalorienrechner" class="screen">
+  <header class="app-header">
+    <div class="icon-btn" onclick="navigate('gewicht')">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </div>
+    <span class="brand" style="display:flex;align-items:center;gap:7px"><img src="icon-512.png" style="width:26px;height:26px;border-radius:6px;object-fit:cover">Kinetic Pulse</span>
+    <div style="width:40px"></div>
+  </header>
+
+  <main style="padding:20px;display:flex;flex-direction:column;gap:16px;flex:1">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="material-symbols-outlined" style="font-size:28px;color:#74d604">local_fire_department</span>
+      <h1 style="font-size:24px;font-weight:900;font-style:italic;margin:0;letter-spacing:-.02em">Kalorienrechner</h1>
+    </div>
+
+    <!-- Eingaben -->
+    <div class="card" style="display:flex;flex-direction:column;gap:14px">
+      <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0">Deine Angaben</p>
+
+      <!-- Geschlecht -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Geschlecht</label>
+        <div style="display:flex;gap:8px">
+          <button id="kal-btn-m" onclick="kalSelectGender('m')" class="pill active" style="flex:1;justify-content:center;height:40px">Männlich</button>
+          <button id="kal-btn-w" onclick="kalSelectGender('w')" class="pill" style="flex:1;justify-content:center;height:40px">Weiblich</button>
+        </div>
+      </div>
+
+      <!-- Alter -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Alter (Jahre)</label>
+        <input id="kal-alter" type="number" min="10" max="99" placeholder="30" inputmode="numeric"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;box-sizing:border-box;text-align:center"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'" oninput="kalCalc()">
+      </div>
+
+      <!-- Größe -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Größe (cm)</label>
+        <input id="kal-groesse" type="number" min="100" max="250" placeholder="175" inputmode="numeric"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;box-sizing:border-box;text-align:center"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'" oninput="kalCalc()">
+      </div>
+
+      <!-- Gewicht -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Körpergewicht (kg)</label>
+        <input id="kal-gewicht" type="number" min="30" max="300" step="0.1" placeholder="80.0" inputmode="decimal"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#74d604;font-size:20px;font-family:'JetBrains Mono',monospace;font-weight:600;outline:none;box-sizing:border-box;text-align:center"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'" oninput="kalCalc()">
+      </div>
+
+      <!-- Aktivität -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Aktivitätslevel</label>
+        <select id="kal-aktivitaet" onchange="kalCalc()"
+          style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:10px 14px;color:#e2e4cf;font-size:14px;font-family:'Archivo',sans-serif;font-weight:600;outline:none;box-sizing:border-box;-webkit-appearance:none;appearance:none;cursor:pointer"
+          onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+          <option value="1.2">Kaum Bewegung (Bürojob, kein Sport)</option>
+          <option value="1.375" selected>Leicht aktiv (1–3× Sport/Woche)</option>
+          <option value="1.55">Mäßig aktiv (3–5× Sport/Woche)</option>
+          <option value="1.725">Sehr aktiv (6–7× Sport/Woche)</option>
+          <option value="1.9">Extrem aktiv (2× tägl. Training / körperl. Arbeit)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Ergebnis -->
+    <div id="kal-ergebnis" style="display:none" class="card" style="border:1px solid #74d604">
+
+      <!-- Grundumsatz -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <p style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:0 0 2px">Grundumsatz (BMR)</p>
+          <p style="font-size:11px;color:#8e9379;margin:0">Mifflin-St-Jeor</p>
+        </div>
+        <span id="kal-bmr" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#e2e4cf">—</span>
+      </div>
+      <div style="height:1px;background:#333627;margin-bottom:16px"></div>
+
+      <!-- Gesamtumsatz -->
+      <div style="text-align:center;margin-bottom:16px">
+        <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 6px">Gesamtumsatz (TDEE)</p>
+        <span id="kal-tdee" style="font-family:'JetBrains Mono',monospace;font-size:48px;font-weight:600;color:#74d604;line-height:1">—</span>
+        <span style="font-size:16px;color:#8e9379;font-weight:600"> kcal/Tag</span>
+      </div>
+
+      <!-- Ziele -->
+      <div style="height:1px;background:#333627;margin-bottom:16px"></div>
+      <p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:0 0 10px">Kalorienempfehlung nach Ziel</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#161a0c;border-radius:10px;padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#5aaa00">trending_down</span>
+            <span style="font-size:13px;font-weight:700;color:#e2e4cf">Abnehmen</span>
+            <span style="font-size:11px;color:#8e9379">–500 kcal</span>
+          </div>
+          <span id="kal-abnehmen" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#5aaa00">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#1e2113;border:1px solid #74d604;border-radius:10px;padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#74d604">radio_button_checked</span>
+            <span style="font-size:13px;font-weight:700;color:#74d604">Halten</span>
+          </div>
+          <span id="kal-halten" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#74d604">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#161a0c;border-radius:10px;padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#e2e4cf">trending_up</span>
+            <span style="font-size:13px;font-weight:700;color:#e2e4cf">Zunehmen</span>
+            <span style="font-size:11px;color:#8e9379">+500 kcal</span>
+          </div>
+          <span id="kal-zunehmen" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#e2e4cf">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hinweis -->
+    <div style="background:#161a0c;border:1px solid #333627;border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start">
+      <span class="material-symbols-outlined" style="font-size:16px;color:#8e9379;margin-top:1px;flex-shrink:0">info</span>
+      <p style="font-size:12px;color:#8e9379;margin:0;line-height:1.5">Berechnung nach der Mifflin-St-Jeor-Formel. Werte sind Richtwerte — individuelle Faktoren können abweichen.</p>
+    </div>
+  </main>
+</div>
+
+
+<!-- ═══════════════════════════ MODAL: PLAN ERSTELLEN ═══════════════════════════ -->
+<div id="modal-create-plan" style="display:none;position:fixed;left:0;right:0;bottom:0;top:0;z-index:200;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;overflow:hidden">
+  <div style="background:#1e2113;border:1px solid #444933;border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-width:480px;max-height:75dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 style="font-size:20px;font-weight:900;font-style:italic;margin:0">Neuen Plan erstellen</h2>
+      <div class="icon-btn" onclick="hideCreatePlan()"><span class="material-symbols-outlined">close</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Planname</label>
+        <input id="new-plan-name" type="text" placeholder="z.B. Push Pull Legs" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Archivo',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+      </div>
+      <!-- Tage/Woche + Dauer entfernt -->
+      <div>
+        <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Fokus (optional)</label>
+        <input id="new-plan-fokus" type="text" placeholder="z.B. Brust, Rücken, Beine" style="width:100%;background:#161a0c;border:1px solid #444933;border-radius:10px;padding:12px 14px;color:#e2e4cf;font-size:16px;font-family:'Archivo',sans-serif;outline:none;-webkit-appearance:none;box-sizing:border-box" onfocus="this.style.borderColor='#74d604'" onblur="this.style.borderColor='#444933'">
+      </div>
+
+      <!-- Übungen -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <label style="font-size:11px;color:#8e9379;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Übungen</label>
+          <button type="button" onclick="addUebungRow()" style="background:transparent;border:1px solid #74d604;border-radius:8px;color:#74d604;font-size:12px;font-weight:700;padding:4px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;touch-action:manipulation">
+            <span class="material-symbols-outlined" style="font-size:14px">add</span> Übung
+          </button>
+        </div>
+        <!-- Spalten-Header -->
+        <div style="display:grid;grid-template-columns:1fr 56px 56px 36px;gap:6px;padding:0 2px;margin-bottom:4px">
+          <span style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Übung</span>
+          <span style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Sätze</span>
+          <span style="font-size:10px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Wdh</span>
+          <span></span>
+        </div>
+        <div id="uebungen-liste" style="display:flex;flex-direction:column;gap:8px"></div>
+        <p id="uebungen-leer" style="font-size:12px;color:#8e9379;text-align:center;padding:12px 0;margin:0">Noch keine Übungen — tippe auf „+ Übung"</p>
+      </div>
+      <!-- Datalist für Autocomplete -->
+      <datalist id="uebungen-vorschlaege">
+        <option value="Bankdrücken"></option>
+        <option value="Schrägbankdrücken"></option>
+        <option value="Kurzhantel-Flyes"></option>
+        <option value="Dips"></option>
+        <option value="Schulterdrücken"></option>
+        <option value="Seitheben"></option>
+        <option value="Vorgebeugtes Seitheben"></option>
+        <option value="Trizeps-Pushdown"></option>
+        <option value="Skull Crushers"></option>
+        <option value="Klimmzüge"></option>
+        <option value="Latzug"></option>
+        <option value="Rudern (Langhantel)"></option>
+        <option value="Rudern (Kabelzug)"></option>
+        <option value="Bizeps-Curls"></option>
+        <option value="Hammer Curls"></option>
+        <option value="Kniebeugen"></option>
+        <option value="Beinpresse"></option>
+        <option value="Rumänisches Kreuzheben"></option>
+        <option value="Kreuzheben"></option>
+        <option value="Beinbeuger"></option>
+        <option value="Beinstrecker"></option>
+        <option value="Wadenheben"></option>
+        <option value="Hip Thrust"></option>
+        <option value="Plank"></option>
+        <option value="Crunches"></option>
+        <option value="Beinheben"></option>
+        <option value="Kabelzug-Crunch"></option>
+      </datalist>
+
+      <button onclick="savePlan()" class="volt-bg" style="width:100%;height:52px;border:none;border-radius:12px;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;touch-action:manipulation;margin-top:4px" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+        <span style="display:flex;align-items:center;justify-content:center;gap:8px">
+          <span class="material-symbols-outlined" style="font-size:20px">check</span>
+          Plan speichern
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: TRAINING BEENDEN ═══ -->
+<div id="modal-finish-workout" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;padding:24px">
+  <div style="background:#1e2113;border:1px solid #444933;border-radius:20px;width:100%;max-width:360px;padding:28px 24px;display:flex;flex-direction:column;gap:16px">
+    <div style="text-align:center">
+      <span class="material-symbols-outlined" style="font-size:40px;color:#74d604">fitness_center</span>
+      <h3 style="font-size:18px;font-weight:900;font-style:italic;margin:10px 0 6px;letter-spacing:-.02em">Training beenden</h3>
+      <p style="font-size:13px;color:#8e9379;margin:0">Möchtest du dieses Training speichern?</p>
+    </div>
+    <div id="modal-finish-stats" style="background:#161a0c;border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center">
+      <div>
+        <span id="modal-finish-dauer" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#74d604">00:00</span>
+        <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Dauer</p>
+      </div>
+      <div>
+        <span id="modal-finish-uebungen" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#e2e4cf">—</span>
+        <p style="font-size:10px;color:#8e9379;margin:2px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Übungen</p>
+      </div>
+    </div>
+    <button onclick="confirmFinishWorkout(true)" style="width:100%;height:52px;background:#74d604;border:none;border-radius:12px;color:#162000;font-size:15px;font-weight:800;font-style:italic;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation" ontouchstart="this.style.transform='scale(.97)'" ontouchend="this.style.transform='scale(1)'">
+      <span class="material-symbols-outlined" style="font-size:20px">save</span>
+      Ja, speichern
+    </button>
+    <button onclick="confirmFinishWorkout(false)" style="width:100%;height:44px;background:transparent;border:1px solid #444933;border-radius:12px;color:#8e9379;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation">
+      Verwerfen (nicht speichern)
+    </button>
+    <button onclick="document.getElementById('modal-finish-workout').style.display='none'" style="width:100%;height:40px;background:transparent;border:none;color:#444933;font-size:13px;cursor:pointer;touch-action:manipulation">
+      Abbrechen
+    </button>
+  </div>
+</div>
+
+<!-- ═══ AKTIVES TRAINING BANNER ═══ -->
+<div id="workout-return-banner" onclick="navigate('workout')" style="display:none;position:fixed;bottom:80px;left:16px;right:16px;z-index:110;background:rgba(26,51,0,.95);border:1px solid rgba(116,214,4,.4);border-radius:10px;padding:7px 12px;align-items:center;justify-content:space-between;cursor:pointer;box-shadow:0 2px 12px rgba(116,214,4,.12)">
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="width:6px;height:6px;background:#74d604;border-radius:50%;display:inline-block;animation:pulse-volt 1.5s infinite;flex-shrink:0"></span>
+    <span style="font-size:12px;font-weight:700;color:#5aaa00">Training läuft</span>
+    <span style="font-size:11px;color:#8e9379;font-family:'JetBrains Mono',monospace" id="banner-time">00:00</span>
+  </div>
+  <span class="material-symbols-outlined" style="color:#5aaa00;font-size:16px">arrow_forward</span>
+</div>
+
+<!-- ═══════════════════════════ BOTTOM NAVIGATION ═══════════════════════════ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+    <span class="material-symbols-outlined">dashboard</span>
+    <span class="nav-label">Dashboard</span>
+  </div>
+  <div class="nav-item" id="nav-plaene" onclick="navigate('plaene')">
+    <span class="material-symbols-outlined">fitness_center</span>
+    <span class="nav-label">Pläne</span>
+  </div>
+  <div class="nav-item" id="nav-historie" onclick="navigate('historie')">
+    <span class="material-symbols-outlined">history</span>
+    <span class="nav-label">Historie</span>
+  </div>
+  <div class="nav-item" id="nav-gewicht" onclick="navigate('gewicht')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" fill="currentColor" stroke="none"/>
+      <path d="M12 3c-4.4 0-8 1.8-8 4l1.5 10h13L20 7c0-2.2-3.6-4-8-4z"/>
+      <line x1="7" y1="10" x2="17" y2="10"/>
+    </svg>
+    <span class="nav-label">Gewicht</span>
+  </div>
+  <div class="nav-item" id="nav-profil" onclick="navigate('profil')">
+    <span class="material-symbols-outlined">person</span>
+    <span class="nav-label">Profil</span>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════ JAVASCRIPT ═══════════════════════════ -->
+<script>
+// ─── Navigation ───────────────────────────────────────────────────
+// Steht unten im Profil. Zeigt auf einen Blick, ob ein Deploy am Handy angekommen ist.
+var APP_VERSION = 'v2026-08-12';
+
+let currentScreen = 'dashboard';
+var navHistory = ['dashboard'];
+
+var screens = ['dashboard','plaene','workout','historie','profil','social','gewicht','kalorienrechner'];
+var navItems = ['dashboard','plaene','historie','gewicht','profil'];
+
+function navigate(target) {
+  // Start workout timer wenn Workout-Screen geöffnet wird
+  if (target === 'workout' && currentScreen !== 'workout') {
+    setTimeout(function() { startWorkoutTimer(); }, 100);
+  }
+  // Gewicht-Screen initialisieren
+  if (target === 'gewicht') {
+    setTimeout(function() { initGewichtScreen(); }, 50);
+  }
+  // Kalorienrechner: aktuelles Gewicht vorausfüllen
+  if (target === 'kalorienrechner') {
+    setTimeout(function() { kalPrefillGewicht(); }, 50);
+  }
+  // Historie dynamisch rendern
+  if (target === 'historie') {
+    setTimeout(function() { renderHistoryList(); }, 50);
+  }
+
+  // Hide all screens
+  for (var si = 0; si < screens.length; si++) {
+    var el = document.getElementById('screen-' + screens[si]);
+    if (el) el.classList.remove('active');
+  }
+
+  // Show target
+  var target_el = document.getElementById('screen-' + target);
+  if (target_el) {
+    target_el.classList.add('active');
+    target_el.scrollTop = 0;
+  }
+
+  // Update nav active state
+  for (var ni = 0; ni < navItems.length; ni++) {
+    var nid = navItems[ni];
+    var nbtn = document.getElementById('nav-' + nid);
+    if (!nbtn) continue;
+    nbtn.classList.remove('active');
+    nbtn.style.background = '';
+    nbtn.style.color = '';
+    nbtn.style.boxShadow = '';
+  }
+
+  var activeBtn = document.getElementById('nav-' + target);
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+  }
+
+  navHistory.push(target);
+  currentScreen = target;
+}
+
+// Back button
+function goBack() {
+  if (navHistory.length > 1) {
+    navHistory.pop();
+    var prev = navHistory[navHistory.length - 1] || 'dashboard';
+    navigate(prev);
+  }
+}
+
+// ─── Workout Timer ─────────────────────────────────────────────────
+let workoutSeconds = 0;
+let workoutStartTime = null;   // Timestamp beim Start
+let workoutSecondsOffset = 0;  // Bereits gelaufene Sekunden (vor Visibility-Pause)
+let workoutInterval = null;
+let pauseSeconds = 0;
+let pauseStartTime = null;     // Timestamp Pausentimer-Start
+let pauseInterval = null;
+var defaultPauseTimer = 180; // Standard: 180s
+
+// Page Visibility: Workout-Zeit bei Rückkehr synchronisieren
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && workoutStartTime !== null) {
+    // Echte verstrichene Zeit neu berechnen
+    workoutSeconds = workoutSecondsOffset + Math.floor((Date.now() - workoutStartTime) / 1000);
+    var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
+    var s = String(workoutSeconds % 60).padStart(2,'0');
+    var timeStr = m + ':' + s;
+    var el = document.getElementById('workout-time');
+    if (el) el.textContent = timeStr;
+    var bt = document.getElementById('banner-time');
+    if (bt) bt.textContent = timeStr;
+  }
+  // Pausentimer synchronisieren
+  if (document.visibilityState === 'visible' && pauseStartTime !== null && pauseInterval) {
+    var elapsed = Math.floor((Date.now() - pauseStartTime) / 1000);
+    pauseSeconds = Math.max(0, pauseSeconds - elapsed);
+    pauseStartTime = Date.now();
+    updateTimerDisplay();
+    if (pauseSeconds <= 0) stopTimer();
+  }
+  if (document.visibilityState === 'hidden') saveWorkoutState();
+});
+
+// pagehide feuert auf iOS zuverlässiger als visibilitychange, wenn die PWA
+// im Hintergrund weggeräumt wird (z. B. bei einem eingehenden Anruf).
+window.addEventListener('pagehide', saveWorkoutState);
+
+// Jeder Tastendruck in der Satz-Tabelle sichert den Trainings-Stand.
+// Kurz entprellt, damit nicht bei jedem Zeichen geschrieben wird.
+// Bewusst hier ganz am Skriptanfang registriert (nicht erst nach ~2000 Zeilen Code):
+// wirft irgendwo weiter unten ein Init-Schritt einen Fehler, darf das Autosave
+// trotzdem schon scharf sein.
+var speicherTimer = null;
+document.addEventListener('input', function(e) {
+  if (!e.target.closest || !e.target.closest('#sets-container')) return;
+  clearTimeout(speicherTimer);
+  speicherTimer = setTimeout(saveWorkoutState, 300);
+});
+
+// Fehler festhalten — und sofort sichtbar machen, falls die Box schon im DOM hängt.
+// Ohne Devtools am Handy ist das die einzige Chance zu sehen, was passiert ist.
+function merkeFehler(text, stack) {
+  try {
+    localStorage.removeItem('kp_lastError'); // Platz schaffen, falls der Speicher voll ist
+    localStorage.setItem('kp_lastError', JSON.stringify({
+      msg: text, stack: stack || '', time: new Date().toISOString()
+    }));
+  } catch(err) {}
+  var box = document.getElementById('diag-error-box');
+  var txt = document.getElementById('diag-error-text');
+  if (box && txt) {
+    txt.textContent = new Date().toISOString() + '\n' + text;
+    box.style.display = 'block';
+  }
+}
+
+// Zentral schreiben. iOS kappt localStorage bei rund 5 MB — läuft er voll, wirft
+// setItem einen QuotaExceededError. Der darf nicht lautlos verschwinden, sonst
+// sieht ein nie gesicherter Trainings-Stand später aus wie ein iOS-Kill.
+function speichereSicher(key, wert) {
+  try {
+    localStorage.setItem(key, wert);
+    return true;
+  } catch(e) {
+    merkeFehler('Speichern fehlgeschlagen (' + key + '): ' + e.name, e.stack);
+    return false;
+  }
+}
+
+// Ganz am Skriptanfang registriert — fängt auch Fehler weiter unten im Code.
+window.addEventListener('error', function(e) {
+  merkeFehler(e.message + ' (Zeile ' + e.lineno + ')', e.error && e.error.stack);
+});
+window.addEventListener('unhandledrejection', function(e) {
+  merkeFehler('Promise rejected: ' + (e.reason && e.reason.message || e.reason),
+              e.reason && e.reason.stack);
+});
+
+// Trainings-Zustand sichern. Wird bei jeder Änderung aufgerufen, nicht nur beim
+// Verlassen der App — ein Kill ohne Event darf keine Daten kosten.
+// Die Zeit steckt als absoluter Startzeitpunkt drin, nicht als Sekundenstand:
+// so stimmt sie auch dann, wenn gar kein Event mehr durchkam.
+function saveWorkoutState() {
+  // Nicht an workoutInterval hängen: das ist erst gesetzt, wenn die Uhr läuft.
+  // Ein Training gilt als laufend, sobald Übungen geladen sind und ein Start steht.
+  if (!wktUebungen.length || workoutStartTime === null) return;
+  var u = wktUebungen[wktIdx];
+  if (u) {
+    var satzDaten = leseAktuelleSaetze();
+    if (satzDaten.length) wktSessionData[u.name] = satzDaten;
+  }
+  speichereSicher('kp_activeWorkout', JSON.stringify({
+    uebungen: wktUebungen,
+    idx: wktIdx,
+    sessionData: wktSessionData,
+    startedAt: workoutStartTime
+  }));
+}
+
+function getPauseTimer() {
+  return parseInt(localStorage.getItem('kp_pauseTimer') || '180');
+}
+
+function setPauseTimer(seconds) {
+  localStorage.setItem('kp_pauseTimer', String(seconds));
+  defaultPauseTimer = seconds;
+  // Buttons auf Pläne-Screen aktualisieren
+  [120, 150, 180].forEach(function(s) {
+    var btn = document.getElementById('ptbtn-' + s);
+    if (!btn) return;
+    if (s === seconds) {
+      btn.style.background = '#74d604';
+      btn.style.color = '#162000';
+      btn.style.border = 'none';
+      btn.style.fontWeight = '700';
+    } else {
+      btn.style.background = '#1e2113';
+      btn.style.color = '#c4c9ac';
+      btn.style.border = '1px solid #333627';
+      btn.style.fontWeight = '600';
+    }
+  });
+}
+
+function initPauseTimerButtons() {
+  var saved = getPauseTimer();
+  setPauseTimer(saved);
+  // Timer-Display im Workout aktualisieren
+  var m = Math.floor(saved / 60);
+  var s = String(saved % 60).padStart(2, '0');
+  var el = document.getElementById('timer-display');
+  if (el) el.textContent = m + ':' + s;
+}
+
+function toggleUebungNote() {
+  var box = document.getElementById('uebung-note-box');
+  var btn = document.getElementById('uebung-note-btn');
+  var icon = btn ? btn.querySelector('.material-symbols-outlined') : null;
+  var label = btn ? btn.querySelector('span:last-child') : null;
+  if (!box) return;
+  var isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  if (icon) icon.style.color = isOpen ? '#8e9379' : '#74d604';
+  if (label) label.style.color = isOpen ? '#8e9379' : '#74d604';
+  if (!isOpen) {
+    var inp = document.getElementById('uebung-note-input');
+    if (inp) setTimeout(function() { inp.focus(); }, 50);
+  }
+}
+
+function tickWorkoutUhr() {
+  workoutSeconds = workoutSecondsOffset + Math.floor((Date.now() - workoutStartTime) / 1000);
+  var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
+  var s = String(workoutSeconds % 60).padStart(2,'0');
+  var timeStr = m + ':' + s;
+  var el = document.getElementById('workout-time');
+  if (el) el.textContent = timeStr;
+  var bt = document.getElementById('banner-time');
+  if (bt) bt.textContent = timeStr;
+}
+
+function startWorkoutTimer() {
+  if (workoutInterval) return;
+  workoutStartTime = Date.now();
+  workoutSecondsOffset = workoutSeconds;
+  workoutInterval = setInterval(tickWorkoutUhr, 1000);
+}
+
+function startTimer(seconds) {
+  if (pauseInterval) clearInterval(pauseInterval);
+  pauseSeconds = seconds;
+  pauseStartTime = Date.now();
+  // Highlight active chip
+  var chips = [120, 150, 180];
+  for (var ci = 0; ci < chips.length; ci++) {
+    var btn = document.getElementById('tbtn-' + chips[ci]);
+    if (!btn) continue;
+    if (chips[ci] === seconds) {
+      btn.style.background = '#74d604';
+      btn.style.color = '#162000';
+      btn.style.border = 'none';
+    } else {
+      btn.style.background = '#1e2113';
+      btn.style.color = '#c4c9ac';
+      btn.style.border = '1px solid #333627';
+    }
+  }
+  updateTimerDisplay();
+  var timerStartSeconds = seconds;
+  pauseInterval = setInterval(function() {
+    var elapsed = Math.floor((Date.now() - pauseStartTime) / 1000);
+    pauseSeconds = Math.max(0, timerStartSeconds - elapsed);
+    if (pauseSeconds <= 0) {
+      stopTimer();
+      return;
+    }
+    updateTimerDisplay();
+  }, 500);
+}
+
+function updateTimerDisplay() {
+  var m = Math.floor(pauseSeconds / 60);
+  var s = String(pauseSeconds % 60).padStart(2,'0');
+  var el = document.getElementById('timer-display');
+  if (el) el.textContent = m + ':' + s;
+  // Pausentimer-Leiste anzeigen wenn Timer läuft
+  var bar = document.getElementById('pause-timer-bar');
+  if (bar) bar.style.display = pauseSeconds > 0 ? 'flex' : 'none';
+}
+
+function stopTimer() {
+  if (pauseInterval) clearInterval(pauseInterval);
+  pauseInterval = null;
+  pauseStartTime = null;
+  pauseSeconds = 0;
+  var bar = document.getElementById('pause-timer-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+function finishWorkout() {
+  // Letzte Übung der Session speichern
+  if (wktUebungen[wktIdx]) saveCurrentExerciseSets(wktUebungen[wktIdx].name);
+  // Modal anzeigen
+  var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
+  var s = String(workoutSeconds % 60).padStart(2,'0');
+  var dauerEl = document.getElementById('modal-finish-dauer');
+  if (dauerEl) dauerEl.textContent = m + ':' + s;
+  var uebEl = document.getElementById('modal-finish-uebungen');
+  if (uebEl) uebEl.textContent = wktUebungen.length;
+  var modal = document.getElementById('modal-finish-workout');
+  if (modal) modal.style.display = 'flex';
+}
+
+function confirmFinishWorkout(save) {
+  var modal = document.getElementById('modal-finish-workout');
+  if (modal) modal.style.display = 'none';
+
+  if (save) {
+    // History-Eintrag erstellen
+    var now = new Date();
+    var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
+    var uebungsDaten = wktUebungen.map(function(u) {
+      var saetze = lastSets[u.name] || [];
+      var volumen = saetze.reduce(function(sum, s) { return sum + (s.kg * s.wdh); }, 0);
+      var maxKg = saetze.reduce(function(max, s) { return s.kg > max ? s.kg : max; }, 0);
+      return { name: u.name, saetze: saetze, volumen: volumen, maxKg: maxKg };
+    });
+    var gesamtVolumen = uebungsDaten.reduce(function(sum, u) { return sum + u.volumen; }, 0);
+    var histEntry = {
+      date: now.toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
+      datum: now.toISOString(),
+      dauer: workoutSeconds,
+      dauerMin: Math.round(workoutSeconds / 60),
+      uebungen: wktUebungen.length,
+      name: wktUebungen.length ? wktUebungen[0].name + (wktUebungen.length > 1 ? ' + ' + (wktUebungen.length - 1) + ' weitere' : '') : 'Training',
+      uebungsDaten: uebungsDaten,
+      gesamtVolumen: Math.round(gesamtVolumen)
+    };
+    try {
+      var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+      hist.unshift(histEntry);
+      if (hist.length > 20) hist = hist.slice(0, 20);
+      localStorage.setItem('kp_activityHistory', JSON.stringify(hist));
+      // Trainingstag speichern (ISO-Datum für Streak)
+      var todayStr = now.toISOString().slice(0,10);
+      var wDays = JSON.parse(localStorage.getItem('kp_workoutDates') || '[]');
+      if (wDays.indexOf(todayStr) === -1) { wDays.push(todayStr); localStorage.setItem('kp_workoutDates', JSON.stringify(wDays)); }
+    } catch(e) {}
+  }
+
+  // Workout-State zurücksetzen
+  localStorage.removeItem('kp_activeWorkout');
+  stopTimer();
+  if (workoutInterval) clearInterval(workoutInterval);
+  workoutInterval = null;
+  workoutSeconds = 0;
+  workoutStartTime = null;
+  workoutSecondsOffset = 0;
+
+  wktUebungen = [];
+  wktIdx = 0;
+  wktSessionData = {};
+  var sc = document.getElementById('sets-container');
+  if (sc) sc.innerHTML = '';
+  var ctrEl = document.getElementById('wkt-counter');
+  if (ctrEl) ctrEl.textContent = '';
+  var nameEl = document.getElementById('wkt-name');
+  if (nameEl) nameEl.textContent = 'Kein Training aktiv';
+  var subEl = document.getElementById('wkt-sub');
+  if (subEl) subEl.textContent = 'Plan auswählen um zu starten';
+  var nextBtn = document.getElementById('wkt-next-btn');
+  if (nextBtn) nextBtn.style.display = 'none';
+  var prevBtn = document.getElementById('wkt-prev-btn');
+  if (prevBtn) prevBtn.style.display = 'none';
+  var wtEl = document.getElementById('workout-time');
+  if (wtEl) wtEl.textContent = '00:00';
+  var dot2 = document.getElementById('workout-active-dot');
+  if (dot2) dot2.style.display = 'none';
+  var lbl2 = document.getElementById('workout-running-label');
+  if (lbl2) lbl2.style.color = '#8e9379';
+  updateWorkoutBanner();
+
+  renderDashboardPlaene();
+  updateDashboardStats();
+  updateMuskelFokus();
+
+  if (save) {
+    navigate('social');
+    setTimeout(function() { showShareCard('workout'); }, 300);
+  } else {
+    navigate('dashboard');
+  }
+}
+
+// navigate() ist bereits oben vollständig definiert
+
+// ─── Set Done Toggle ───────────────────────────────────────────────
+function toggleSet(el) {
+  el.classList.toggle('done');
+  if (el.classList.contains('done')) {
+    el.textContent = '✓';
+    el.style.color = '#162000';
+    startTimer(getPauseTimer());
+    // Grünen Rahmen auf nächsten Satz verschieben
+    var sc = document.getElementById('sets-container');
+    if (sc) {
+      var rows = Array.from(sc.querySelectorAll('[style*="grid-template-columns"]')).filter(function(r) {
+        return !r.style.cssText.includes('history') && r.querySelector('.set-done');
+      });
+      var currentRow = el.closest('[style*="grid-template-columns"]');
+      var currentIdx = rows.indexOf(currentRow);
+      // Aktuellen Rahmen entfernen
+      if (currentRow) {
+        currentRow.style.border = '1px solid #333627';
+        currentRow.style.boxShadow = '';
+        var numEl = currentRow.querySelector('span[style*="font-size:15px"]');
+        if (numEl) numEl.style.color = '#8e9379';
+      }
+      // Nächsten aktivieren
+      var nextRow = rows[currentIdx + 1];
+      if (nextRow && !nextRow.querySelector('.set-done.done')) {
+        nextRow.style.border = '2px solid #74d604';
+        nextRow.style.boxShadow = '0 0 12px rgba(116,214,4,.15)';
+        var nextNum = nextRow.querySelector('span[style*="font-size:15px"]');
+        if (nextNum) nextNum.style.color = '#74d604';
+        // Focus erstes Input
+        var firstInput = nextRow.querySelector('input[type="number"]');
+        if (firstInput) setTimeout(function() { firstInput.focus(); firstInput.select(); }, 100);
+      }
+    }
+  } else {
+    el.textContent = '✓';
+    el.style.color = 'transparent';
+  }
+  saveWorkoutState();
+}
+
+// ─── Satz-Notiz toggle ─────────────────────────────────────────────
+function toggleSetNote(el) {
+  var row = el.closest('[style*="grid-template-columns"]');
+  if (!row) return;
+  var noteRow = row.querySelector('.set-note-row');
+  if (!noteRow) return;
+  if (noteRow.style.display === 'none') {
+    noteRow.style.display = 'block';
+    noteRow.style.gridColumn = '1 / -1';
+    var inp = noteRow.querySelector('input');
+    if (inp) setTimeout(function() { inp.focus(); }, 50);
+    el.querySelector('.material-symbols-outlined').style.color = '#74d604';
+  } else {
+    noteRow.style.display = 'none';
+    el.querySelector('.material-symbols-outlined').style.color = '#8e9379';
+  }
+}
+
+// ─── History Tab Switch ────────────────────────────────────────────
+function switchHistoryTab(tab) {
+  var historyList = document.getElementById('history-list');
+  var prsList = document.getElementById('prs-list');
+  var tabHistory = document.getElementById('tab-history');
+  var tabPrs = document.getElementById('tab-prs');
+
+  if (tab === 'history') {
+    historyList.style.display = 'block';
+    prsList.style.display = 'none';
+    tabHistory.style.background = '#74d604';
+    tabHistory.style.color = '#162000';
+    tabPrs.style.background = 'transparent';
+    tabPrs.style.color = '#8e9379';
+  } else {
+    historyList.style.display = 'none';
+    prsList.style.display = 'flex';
+    tabPrs.style.background = '#74d604';
+    tabPrs.style.color = '#162000';
+    tabHistory.style.background = 'transparent';
+    tabHistory.style.color = '#8e9379';
+    renderPRsList();
+  }
+}
+
+// ─── Streak-Hilfsfunktion ──────────────────────────────────────────
+// hist: Array neueste zuerst (unshift-Reihenfolge)
+// Zählt aufeinander folgende Tage bis heute oder gestern
+function calcStreak(hist) {
+  if (!hist || !hist.length) return 0;
+  // Eindeutige Datums-Strings (YYYY-MM-DD), neueste zuerst
+  var seen = {};
+  var dayList = [];
+  for (var i = 0; i < hist.length; i++) {
+    if (!hist[i].datum) continue;
+    var ds = hist[i].datum.slice(0,10);
+    if (!seen[ds]) { seen[ds] = true; dayList.push(ds); }
+  }
+  if (!dayList.length) return 0;
+  // dayList ist bereits neueste zuerst (hist ist unshift-sorted)
+  // Prüfen ob neuester Eintrag heute oder gestern
+  var todayStr = new Date().toISOString().slice(0,10);
+  var yesterdayStr = (function() {
+    var d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10);
+  })();
+  if (dayList[0] !== todayStr && dayList[0] !== yesterdayStr) return 0;
+  var streak = 1;
+  for (var j = 1; j < dayList.length; j++) {
+    var prev = new Date(dayList[j-1]);
+    var cur  = new Date(dayList[j]);
+    var diff = Math.round((prev - cur) / 86400000);
+    if (diff === 1) { streak++; }
+    else break;
+  }
+  return streak;
+}
+
+// ─── PRs aus History berechnen und rendern ─────────────────────────
+function renderPRsList() {
+  var container = document.getElementById('prs-list');
+  if (!container) return;
+  var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+
+  if (hist.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#444933"><span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px">emoji_events</span><p style="margin:0;font-size:14px">Noch keine PRs — starte dein erstes Training!</p></div>';
+    return;
+  }
+
+  // Bestes Gewicht pro Übung
+  var bestKg = {};
+  // Bestes Volumen pro Übung
+  var bestVol = {};
+  // Globale PRs
+  var bestGesamtVol = 0;
+  var bestDauer = 0;
+  var bestUebungen = 0;
+
+  hist.forEach(function(entry) {
+    if (entry.gesamtVolumen && entry.gesamtVolumen > bestGesamtVol) bestGesamtVol = entry.gesamtVolumen;
+    if (entry.dauer && entry.dauer > bestDauer) bestDauer = entry.dauer;
+    if (entry.uebungen && entry.uebungen > bestUebungen) bestUebungen = entry.uebungen;
+    if (entry.uebungsDaten) {
+      entry.uebungsDaten.forEach(function(u) {
+        if (u.maxKg && (!bestKg[u.name] || u.maxKg > bestKg[u.name])) bestKg[u.name] = u.maxKg;
+        if (u.volumen && (!bestVol[u.name] || u.volumen > bestVol[u.name])) bestVol[u.name] = u.volumen;
+      });
+    }
+  });
+
+  // Streak berechnen
+  var streak = calcStreak(hist);
+
+  var html = '';
+
+  // ── Globale Bestleistungen ──
+  html += '<p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:4px 0 2px">Globale Bestleistungen</p>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  html += prCard('emoji_events', 'Streak', streak + ' Tage', '');
+  html += prCard('timer', 'Längste Einheit', bestDauer > 60 ? Math.floor(bestDauer/60) + ' min' : '—', '');
+  html += prCard('fitness_center', 'Meiste Übungen', bestUebungen ? bestUebungen + ' Übg.' : '—', '');
+  html += prCard('weight', 'Bestes Volumen', bestGesamtVol >= 1000 ? (bestGesamtVol/1000).toFixed(1) + ' t' : (bestGesamtVol ? bestGesamtVol + ' kg' : '—'), '');
+  html += '</div>';
+
+  // ── Bestes Gewicht pro Übung ──
+  var uebNames = Object.keys(bestKg);
+  if (uebNames.length) {
+    html += '<p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:16px 0 2px">Bestes Gewicht · Übung</p>';
+    html += '<div style="display:flex;flex-direction:column;gap:8px">';
+    uebNames.forEach(function(name) {
+      html += '<div style="background:#1a1d12;border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">' +
+        '<p style="margin:0;font-size:14px;font-weight:700;font-style:italic;color:#f0f4e8">' + name + '</p>' +
+        '<span style="font-size:16px;font-weight:800;color:#74d604">' + bestKg[name] + ' kg</span>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function prCard(icon, label, value, sub) {
+  return '<div style="background:#1a1d12;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:4px">' +
+    '<span class="material-symbols-outlined" style="font-size:22px;color:#74d604">' + icon + '</span>' +
+    '<p style="margin:0;font-size:11px;color:#8e9379;font-weight:600">' + label + '</p>' +
+    '<p style="margin:0;font-size:18px;font-weight:800;color:#f0f4e8">' + value + '</p>' +
+    (sub ? '<p style="margin:0;font-size:11px;color:#444933">' + sub + '</p>' : '') +
+    '</div>';
+}
+
+// ─── Historie aus localStorage rendern ────────────────────────────
+function renderHistoryList() {
+  var container = document.getElementById('history-list');
+  if (!container) return;
+  var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+  if (hist.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#444933"><span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px">history</span><p style="margin:0;font-size:14px">Noch keine Trainings aufgezeichnet</p></div>';
+    return;
+  }
+  var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var html = '<div style="display:flex;flex-direction:column;gap:10px">';
+  var lastMonth = '';
+  hist.forEach(function(entry, idx) {
+    var d = entry.datum ? new Date(entry.datum) : null;
+    var dateStr = '';
+    var monthLabel = '';
+    if (d && !isNaN(d)) {
+      dateStr = days[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()];
+      monthLabel = months[d.getMonth()] + ' ' + d.getFullYear();
+    } else if (entry.date) {
+      dateStr = entry.date;
+    }
+    if (monthLabel && monthLabel !== lastMonth) {
+      html += '<p style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:8px 0 4px">' + monthLabel + '</p>';
+      lastMonth = monthLabel;
+    }
+    var dauerStr = '';
+    if (entry.dauer && entry.dauer > 60) {
+      dauerStr = Math.floor(entry.dauer / 60) + ' min';
+    } else if (entry.dauerMin) {
+      dauerStr = entry.dauerMin + ' min';
+    } else if (entry.dauer) {
+      dauerStr = entry.dauer + ' min';
+    }
+    var volStr = entry.gesamtVolumen ? (entry.gesamtVolumen >= 1000 ? (entry.gesamtVolumen/1000).toFixed(1) + 't' : entry.gesamtVolumen + 'kg') : '';
+    html += '<div class="card-sm" onclick="openTrainingDetail(' + idx + ')" style="cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity=\'.7\'" onmouseup="this.style.opacity=\'1\'">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+      '<div style="flex:1;min-width:0"><p style="margin:0;font-size:15px;font-weight:800;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (entry.name || 'Training') + '</p>' +
+      '<p style="margin:0;font-size:11px;color:#8e9379">' + dateStr + (dauerStr ? ' · ' + dauerStr : '') + '</p></div>' +
+      '<div style="text-align:right;flex-shrink:0;margin-left:12px">' +
+      '<p style="margin:0;font-size:12px;font-weight:700;color:#8e9379">' + (entry.uebungen || '—') + ' Übg.</p>' +
+      (volStr ? '<p style="margin:2px 0 0;font-size:11px;color:#74d604;font-weight:700">' + volStr + '</p>' : '') +
+      '</div></div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function openTrainingDetail(idx) {
+  var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+  var entry = hist[idx];
+  if (!entry) return;
+  var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var d = entry.datum ? new Date(entry.datum) : null;
+  var dateStr = d && !isNaN(d) ? days[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear() : (entry.date || '');
+  var dauerStr = '';
+  if (entry.dauer && entry.dauer > 60) dauerStr = Math.floor(entry.dauer / 60) + ' min';
+  else if (entry.dauerMin) dauerStr = entry.dauerMin + ' min';
+  var meta = dateStr + (dauerStr ? ' · ' + dauerStr : '') + (entry.gesamtVolumen ? ' · ' + entry.gesamtVolumen + ' kg Volumen' : '');
+  document.getElementById('modal-detail-name').textContent = entry.name || 'Training';
+  document.getElementById('modal-detail-meta').textContent = meta;
+  var body = document.getElementById('modal-detail-body');
+  if (entry.uebungsDaten && entry.uebungsDaten.length) {
+    body.innerHTML = entry.uebungsDaten.map(function(u) {
+      var saetzeHtml = '';
+      if (u.saetze && u.saetze.length) {
+        saetzeHtml = u.saetze.map(function(s, si) {
+          return '<div style="display:flex;gap:16px;padding:6px 0;border-bottom:1px solid #1a1d12">' +
+            '<span style="font-size:12px;color:#444933;width:24px">S' + (si+1) + '</span>' +
+            '<span style="font-size:14px;font-weight:700;color:#f0f4e8">' + s.kg + ' kg</span>' +
+            '<span style="font-size:14px;color:#8e9379">× ' + s.wdh + ' Wdh.</span>' +
+            '<span style="font-size:12px;color:#74d604;margin-left:auto">' + Math.round(s.kg * s.wdh) + ' kg</span>' +
+            '</div>';
+        }).join('');
+      } else {
+        saetzeHtml = '<p style="font-size:12px;color:#444933;margin:8px 0 0">Keine Satzdaten</p>';
+      }
+      var volStr = u.volumen ? '<span style="font-size:11px;color:#74d604;font-weight:700">' + u.volumen + ' kg</span>' : '';
+      return '<div style="background:#1a1d12;border-radius:12px;padding:12px 14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#f0f4e8">' + u.name + '</p>' + volStr +
+        '</div>' + saetzeHtml + '</div>';
+    }).join('');
+  } else {
+    body.innerHTML = '<p style="color:#444933;font-size:14px;text-align:center;padding:24px 0">Keine Detaildaten — nur für neue Trainings verfügbar</p>';
+  }
+  var modal = document.getElementById('modal-training-detail');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTrainingDetail() {
+  document.getElementById('modal-training-detail').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// ─── Social Tab Switch ─────────────────────────────────────────────
+function switchSocialTab(tab) {
+  var tabs = ['share','feed','bench'];
+  tabs.forEach(function(t) {
+    var content = document.getElementById('social-' + t);
+    var btn = document.getElementById('social-tab-' + t);
+    if (content) content.style.display = 'none';
+    if (btn) {
+      btn.style.background = 'transparent';
+      btn.style.color = '#8e9379';
+    }
+  });
+  var activeContent = document.getElementById('social-' + tab);
+  var activeBtn = document.getElementById('social-tab-' + tab);
+  if (activeContent) activeContent.style.display = 'flex';
+  if (activeBtn) {
+    activeBtn.style.background = '#74d604';
+    activeBtn.style.color = '#162000';
+  }
+}
+
+// ─── Share Card Preview ────────────────────────────────────────────
+function showShareCard(type) {
+  var preview = document.getElementById('share-card-preview');
+  var cards = ['workout','pr','progress','streak'];
+
+  preview.style.display = 'flex';
+  preview.style.flexDirection = 'column';
+  preview.style.gap = '12px';
+
+  cards.forEach(function(c) {
+    var el = document.getElementById('card-' + c);
+    if (el) el.style.display = 'none';
+  });
+
+  var target = document.getElementById('card-' + type);
+  if (target) target.style.display = 'block';
+
+  // Highlight selected button
+  ['workout','pr','progress','streak'].forEach(function(t) {
+    var btn = document.getElementById('share-' + t + '-btn');
+    if (btn) {
+      btn.style.border = t === type ? '1px solid #74d604' : '1px solid #333627';
+      btn.style.background = t === type ? '#162000' : '#1e2113';
+    }
+  });
+
+  // Workout card: Daten aus letztem Training befüllen
+  if (type === 'workout') {
+    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    if (hist.length > 0) {
+      var last = hist[0]; // unshift → neustes zuerst
+      var titleEl = document.getElementById('erfolge-workout-title');
+      var dauerEl = document.getElementById('erfolge-dauer');
+      var uebEl   = document.getElementById('erfolge-uebungen');
+      var datumEl = document.getElementById('erfolge-datum');
+
+      if (titleEl && last.name) titleEl.textContent = last.name + ' ✓';
+
+      if (dauerEl) {
+        if (last.dauer && last.dauer > 60) {
+          // Sekunden (neues Format)
+          var min = Math.floor(last.dauer / 60);
+          var sec = last.dauer % 60;
+          dauerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+        } else if (last.dauerMin) {
+          dauerEl.textContent = last.dauerMin + ' min';
+        } else if (last.dauer) {
+          dauerEl.textContent = last.dauer + ' min';
+        }
+      }
+
+      if (uebEl && last.uebungen != null) {
+        uebEl.textContent = last.uebungen;
+      }
+
+      if (datumEl) {
+        var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+        if (last.datum) {
+          var d = new Date(last.datum);
+          datumEl.textContent = d.getDate() + '. ' + months[d.getMonth()];
+        } else if (last.date) {
+          datumEl.textContent = last.date;
+        }
+      }
+    }
+  }
+
+  // PR card: besten PR aus History befüllen
+  if (type === 'pr') {
+    var histPR = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    var bestKgPR = {};
+    var bestKgDate = {};
+    histPR.forEach(function(entry) {
+      if (entry.uebungsDaten) {
+        entry.uebungsDaten.forEach(function(u) {
+          if (u.maxKg && u.maxKg > 0 && (!bestKgPR[u.name] || u.maxKg > bestKgPR[u.name])) {
+            bestKgPR[u.name] = u.maxKg;
+            bestKgDate[u.name] = entry.datum || entry.date || '';
+          }
+        });
+      }
+    });
+    var prNames2 = Object.keys(bestKgPR);
+    if (prNames2.length > 0) {
+      // Höchstes Gewicht insgesamt
+      var topName = prNames2.reduce(function(a, b) { return bestKgPR[a] >= bestKgPR[b] ? a : b; });
+      var nameEl = document.getElementById('pr-card-name');
+      var kgEl = document.getElementById('pr-card-kg');
+      var metaEl = document.getElementById('pr-card-meta');
+      if (nameEl) nameEl.textContent = topName;
+      if (kgEl) kgEl.textContent = bestKgPR[topName];
+      if (metaEl) {
+        var dateStr2 = '';
+        if (bestKgDate[topName]) {
+          var months2 = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+          var d2 = new Date(bestKgDate[topName]);
+          if (!isNaN(d2)) dateStr2 = d2.getDate() + '. ' + months2[d2.getMonth()] + ' ' + d2.getFullYear();
+        }
+        metaEl.textContent = dateStr2 ? dateStr2 + ' · Personal Best' : 'Personal Best';
+      }
+    } else {
+      var nameEl2 = document.getElementById('pr-card-name');
+      if (nameEl2) nameEl2.textContent = 'Noch kein PR';
+    }
+  }
+
+  // Streak card: aktuellen Streak befüllen
+  if (type === 'streak') {
+    var hist2 = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    var streakVal = calcStreak(hist2);
+    var streakNumEl = document.querySelector('#card-streak div[style*="font-size:56px"]');
+    if (streakNumEl) streakNumEl.textContent = streakVal || '0';
+  }
+
+  // Scroll to preview
+  setTimeout(function() {
+    preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+// ─── Als Bild speichern ────────────────────────────────────────────
+function saveShareCard() {
+  // Aktive Card finden
+  var cards = ['workout','pr','progress','streak'];
+  var activeCard = null;
+  for (var i = 0; i < cards.length; i++) {
+    var el = document.getElementById('card-' + cards[i]);
+    if (el && el.style.display !== 'none') { activeCard = el; break; }
+  }
+  if (!activeCard) { alert('Bitte zuerst eine Karte auswählen.'); return; }
+
+  var btn = document.getElementById('erfolge-save-btn');
+  if (btn) { btn.textContent = 'Wird erstellt…'; btn.disabled = true; }
+
+  // Kurz warten damit Fonts geladen sind
+  setTimeout(function() {
+    html2canvas(activeCard, {
+      backgroundColor: null,
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false
+    }).then(function(canvas) {
+      var link = document.createElement('a');
+      link.download = 'kinetic-pulse-' + new Date().toISOString().slice(0,10) + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">check</span> Gespeichert!';
+        btn.disabled = false;
+        setTimeout(function() {
+          btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">download</span> Als Bild speichern';
+        }, 2500);
+      }
+    }).catch(function(err) {
+      console.error('html2canvas Fehler:', err);
+      if (btn) {
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">download</span> Als Bild speichern';
+        btn.disabled = false;
+      }
+      alert('Speichern fehlgeschlagen. Bitte versuche es erneut.');
+    });
+  }, 100);
+}
+
+// ─── Plan erstellen ────────────────────────────────────────────────
+function showCreatePlan() {
+  var modal = document.getElementById('modal-create-plan');
+  if (modal) { modal.style.display = 'flex'; }
+  // Felder leeren
+  ['new-plan-name','new-plan-fokus'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  // Übungsliste leeren
+  var liste = document.getElementById('uebungen-liste');
+  var leer  = document.getElementById('uebungen-leer');
+  if (liste) liste.innerHTML = '';
+  if (leer)  leer.style.display = 'block';
+}
+
+function hideCreatePlan() {
+  var modal = document.getElementById('modal-create-plan');
+  if (modal) modal.style.display = 'none';
+  // Scroll-Position + Übungsliste zurücksetzen damit Modal beim nächsten Öffnen oben beginnt
+  var inner = modal ? modal.querySelector('div') : null;
+  if (inner) inner.scrollTop = 0;
+  var liste = document.getElementById('uebungen-liste');
+  if (liste) liste.innerHTML = '';
+  var leer = document.getElementById('uebungen-leer');
+  if (leer) leer.style.display = 'block';
+  editingPlanId = null;
+  var modalTitle = document.querySelector('#modal-create-plan h2');
+  if (modalTitle) modalTitle.textContent = 'Neuen Plan erstellen';
+}
+
+function addUebungRow() {
+  var liste = document.getElementById('uebungen-liste');
+  var leer  = document.getElementById('uebungen-leer');
+  if (!liste) return;
+  if (leer) leer.style.display = 'none';
+
+  var idx = liste.children.length;
+  var row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 56px 56px 36px;gap:6px;align-items:center';
+  row.innerHTML =
+    '<input type="text" list="uebungen-vorschlaege" placeholder="Übungsname" autocomplete="off" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 10px;color:#e2e4cf;font-size:16px;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#74d604\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="number" placeholder="3" min="1" max="20" value="3" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#74d604;font-size:16px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#74d604\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<input type="number" placeholder="10" min="1" max="100" value="10" style="background:#161a0c;border:1px solid #444933;border-radius:8px;padding:9px 6px;color:#e2e4cf;font-size:16px;font-family:\'JetBrains Mono\',monospace;font-weight:600;text-align:center;outline:none;width:100%;box-sizing:border-box" onfocus="this.style.borderColor=\'#74d604\'" onblur="this.style.borderColor=\'#444933\'">' +
+    '<button type="button" onclick="this.parentNode.remove();checkUebungenLeer()" style="width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation"><span class="material-symbols-outlined" style="font-size:16px">delete</span></button>';
+  liste.appendChild(row);
+}
+
+function checkUebungenLeer() {
+  var liste = document.getElementById('uebungen-liste');
+  var leer  = document.getElementById('uebungen-leer');
+  if (liste && leer) leer.style.display = liste.children.length === 0 ? 'block' : 'none';
+}
+
+function savePlan() {
+  var name  = (document.getElementById('new-plan-name').value || '').trim();
+  var tage  = '3';
+  var dauer = '60';
+  var fokus = (document.getElementById('new-plan-fokus').value || '').trim();
+
+  if (!name) { alert('Bitte einen Plannamen eingeben.'); return; }
+
+  // Übungen auslesen
+  var uebungen = [];
+  var liste = document.getElementById('uebungen-liste');
+  if (liste) {
+    Array.from(liste.children).forEach(function(row) {
+      var inputs = row.querySelectorAll('input');
+      var uName  = (inputs[0] && inputs[0].value.trim()) || '';
+      var saetze = (inputs[1] && inputs[1].value) || '3';
+      var wdh    = (inputs[2] && inputs[2].value) || '10';
+      if (uName) uebungen.push({ name: uName, saetze: saetze, wdh: wdh });
+    });
+  }
+
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    if (editingPlanId !== null) {
+      // Update bestehenden Plan
+      for (var i = 0; i < plaene.length; i++) {
+        if (plaene[i].id === editingPlanId) {
+          plaene[i] = { name: name, tage: tage, dauer: dauer, fokus: fokus, uebungen: uebungen, id: editingPlanId };
+          break;
+        }
+      }
+      editingPlanId = null;
+    } else {
+      plaene.push({ name: name, tage: tage, dauer: dauer, fokus: fokus, uebungen: uebungen, id: Date.now() });
+    }
+    localStorage.setItem('kp_plaene', JSON.stringify(plaene));
+  } catch(e) {}
+
+  hideCreatePlan();
+  renderDashboardPlaene();
+}
+
+// ─── Dashboard Sortierung ──────────────────────────────────────────
+var dashSortMode = localStorage.getItem('kp_dashSort') || 'name'; // 'name' | 'recent'
+
+function toggleDashSort() {
+  dashSortMode = dashSortMode === 'name' ? 'recent' : 'name';
+  localStorage.setItem('kp_dashSort', dashSortMode);
+  var lbl = document.getElementById('dash-sort-label');
+  if (lbl) lbl.textContent = dashSortMode === 'name' ? 'A–Z' : 'Zuletzt';
+  var btn = document.getElementById('dash-sort-btn');
+  if (btn) {
+    btn.style.background = dashSortMode === 'recent' ? '#1a3300' : '#1e2113';
+    btn.style.borderColor = dashSortMode === 'recent' ? '#74d604' : '#333627';
+    btn.style.color = dashSortMode === 'recent' ? '#74d604' : '#8e9379';
+  }
+  renderDashboardPlaene();
+}
+
+function planLastUsedBadge(p) {
+  if (!p.lastUsed) {
+    return '<span style="font-size:10px;font-weight:700;color:#444933;background:#1a1d12;border-radius:6px;padding:2px 7px;flex-shrink:0">nie</span>';
+  }
+  var diff = Math.round((Date.now() - new Date(p.lastUsed)) / 86400000);
+  var label, bg, color;
+  if (diff === 0)      { label = 'heute';         bg = '#162000'; color = '#74d604'; }
+  else if (diff === 1) { label = 'gestern';        bg = '#162000'; color = '#5aaa00'; }
+  else if (diff <= 4)  { label = 'vor ' + diff + ' T.'; bg = '#1a1200'; color = '#d4a800'; }
+  else if (diff <= 7)  { label = 'vor ' + diff + ' T.'; bg = '#1a1d12'; color = '#8e9379'; }
+  else                 { label = diff + ' T. her';  bg = '#161a0c'; color = '#444933'; }
+  return '<span style="font-size:10px;font-weight:700;color:' + color + ';background:' + bg + ';border-radius:6px;padding:2px 7px;flex-shrink:0;white-space:nowrap">' + label + '</span>';
+}
+
+function renderDashboardPlaene() {
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+
+    // ── Dashboard Schnellstart ──────────────────────────────────────
+    var container = document.getElementById('dashboard-plaene-list');
+    var emptyState = document.getElementById('plaene-empty-state');
+
+    // Sort-Button-Zustand wiederherstellen
+    var lbl = document.getElementById('dash-sort-label');
+    if (lbl) lbl.textContent = dashSortMode === 'name' ? 'A–Z' : 'Zuletzt';
+    var btn = document.getElementById('dash-sort-btn');
+    if (btn) {
+      btn.style.background = dashSortMode === 'recent' ? '#1a3300' : '#1e2113';
+      btn.style.borderColor = dashSortMode === 'recent' ? '#74d604' : '#333627';
+      btn.style.color = dashSortMode === 'recent' ? '#74d604' : '#8e9379';
+    }
+
+    if (container) {
+      container.querySelectorAll('.custom-plan-item').forEach(function(el) { el.remove(); });
+      if (emptyState) emptyState.style.display = plaene.length ? 'none' : 'block';
+
+      // Sortieren
+      var sorted = plaene.slice();
+      if (dashSortMode === 'name') {
+        sorted.sort(function(a, b) { return a.name.localeCompare(b.name, 'de'); });
+      } else {
+        // Zuletzt verwendet zuerst; nie verwendet ganz hinten
+        sorted.sort(function(a, b) {
+          if (!a.lastUsed && !b.lastUsed) return a.name.localeCompare(b.name, 'de');
+          if (!a.lastUsed) return 1;
+          if (!b.lastUsed) return -1;
+          return new Date(b.lastUsed) - new Date(a.lastUsed);
+        });
+      }
+
+      sorted.forEach(function(p) {
+        var div = document.createElement('div');
+        div.className = 'custom-plan-item';
+        div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 14px;background:#161a0c;border-radius:10px;border:1px solid #444933';
+        div.innerHTML =
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">' +
+              '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#e2e4cf;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">' + p.name + '</p>' +
+              planLastUsedBadge(p) +
+            '</div>' +
+            '<p style="margin:0;font-size:11px;color:#8e9379;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (p.fokus || 'Kein Fokus') + (p.uebungen && p.uebungen.length ? ' · ' + p.uebungen.length + ' Übg.' : '') + '</p>' +
+          '</div>' +
+          '<button onclick="startPlan(' + p.id + ')" style="width:40px;height:40px;min-width:40px;border-radius:50%;background:#74d604;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation">' +
+            '<span class="material-symbols-outlined" style="font-size:20px;color:#162000">play_arrow</span>' +
+          '</button>';
+        container.appendChild(div);
+      });
+    }
+
+    // ── Pläne-Screen ───────────────────────────────────────────────
+    var screenList = document.getElementById('plaene-screen-list');
+    var screenEmpty = document.getElementById('plaene-screen-empty');
+    if (screenList) {
+      screenList.querySelectorAll('.plan-screen-item').forEach(function(el) { el.remove(); });
+      if (screenEmpty) screenEmpty.style.display = plaene.length ? 'none' : 'block';
+      plaene.forEach(function(p) {
+        var div = document.createElement('div');
+        div.className = 'plan-screen-item card-sm';
+        div.style.cssText = 'display:flex;align-items:flex-start;gap:10px';
+        var uebPills = '';
+        if (p.uebungen && p.uebungen.length) {
+          uebPills = '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">' +
+            p.uebungen.map(function(u) {
+              return '<span class="pill" style="font-size:10px">' + u.name + ' <span style="color:#74d604;font-weight:700">' + u.saetze + '\xd7' + u.wdh + '</span></span>';
+            }).join('') +
+          '</div>';
+        }
+        div.innerHTML =
+          '<div style="flex:1;min-width:0">' +
+            '<p style="margin:0;font-size:15px;font-weight:800;font-style:italic">' + p.name + '</p>' +
+            '<p style="margin:0;font-size:11px;color:#8e9379">' + (p.fokus ? p.fokus : 'Kein Fokus angegeben') + '</p>' +
+            uebPills +
+          '</div>' +
+          '<div style="display:flex;gap:4px;flex-shrink:0;align-items:center">' +
+            '<button onclick="editPlan(' + p.id + ')" style="width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
+              '<span class="material-symbols-outlined" style="font-size:16px">edit</span>' +
+            '</button>' +
+            '<button onclick="deletePlan(' + p.id + ')" style="width:36px;height:36px;border-radius:8px;background:transparent;border:1px solid #444933;color:#8e9379;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">' +
+              '<span class="material-symbols-outlined" style="font-size:16px">delete</span>' +
+            '</button>' +
+          '</div>';
+        screenList.appendChild(div);
+      });
+    }
+
+    // ── Gewicht-Widget Dashboard ────────────────────────────────────
+    var g = localStorage.getItem('kp_gewicht');
+    var dashG = document.getElementById('dash-gewicht');
+    if (dashG && g) dashG.textContent = parseFloat(g).toFixed(1);
+
+  } catch(e) {}
+}
+
+// ─── Plan starten: Workout-Screen mit Plan-Übungen befüllen ───────
+var wktUebungen = [];
+var wktIdx = 0;
+var wktSessionData = {}; // temporärer Speicher für laufenden Workout: { uebungsName: [{kg, wdh, done}] }
+
+function startPlan(planId) {
+  // Prüfen ob ein Training bereits aktiv ist
+  if (workoutInterval !== null) {
+    if (!confirm('Ein Training ist noch aktiv! Möchtest du es abbrechen und ein neues starten?')) {
+      navigate('workout'); // Zurück zum laufenden Training
+      return;
+    }
+    // Aktives Training beenden
+    if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
+    stopTimer();
+  }
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    var plan = null;
+    for (var i = 0; i < plaene.length; i++) { if (plaene[i].id === planId) { plan = plaene[i]; break; } }
+    if (!plan || !plan.uebungen || !plan.uebungen.length) { navigate('workout'); return; }
+    // lastUsed speichern
+    plan.lastUsed = new Date().toISOString();
+    localStorage.setItem('kp_plaene', JSON.stringify(plaene));
+    wktUebungen = plan.uebungen;
+    wktIdx = 0;
+    wktSessionData = {};
+    workoutSeconds = 0;
+    var wtEl = document.getElementById('workout-time');
+    if (wtEl) wtEl.textContent = '00:00';
+    renderWorkoutExercise(0);
+    navigate('workout');
+    // Uhr und erste Sicherung sofort, nicht per setTimeout: iOS friert Timer
+    // beim Backgrounding ein — wer direkt nach dem Start den Bildschirm sperrt,
+    // hätte sonst ein Training ohne jeden gespeicherten Stand.
+    if (workoutInterval) clearInterval(workoutInterval);
+    workoutStartTime = Date.now();
+    workoutSecondsOffset = 0;
+    workoutInterval = setInterval(tickWorkoutUhr, 1000);
+    updateWorkoutBanner();
+    saveWorkoutState();
+  } catch(e) { merkeFehler('startPlan: ' + e.message, e.stack); navigate('workout'); }
+}
+
+// Banner "Zurück zum Training" aktualisieren
+function updateWorkoutBanner() {
+  var banner = document.getElementById('workout-return-banner');
+  if (!banner) return;
+  // Banner nur auf anderen Screens zeigen, nicht im Workout-Screen selbst
+  var onWorkout = currentScreen === 'workout';
+  banner.style.display = (workoutInterval && !onWorkout) ? 'flex' : 'none';
+  // Aktiv-Punkt im Workout-Header ein-/ausblenden
+  var dot = document.getElementById('workout-active-dot');
+  if (dot) dot.style.display = workoutInterval ? 'inline-block' : 'none';
+  var lbl = document.getElementById('workout-running-label');
+  if (lbl) lbl.style.color = workoutInterval ? '#74d604' : '#8e9379';
+}
+
+function renderWorkoutExercise(idx) {
+  var u = wktUebungen[idx];
+  if (!u) return;
+  var saetze = parseInt(u.saetze) || 3;
+  var wdh    = parseInt(u.wdh)    || 10;
+
+  var ctrEl = document.getElementById('wkt-counter');
+  if (ctrEl) ctrEl.textContent = 'Übung ' + (idx + 1) + ' von ' + wktUebungen.length;
+  var nameEl = document.getElementById('wkt-name');
+  if (nameEl) nameEl.textContent = u.name;
+  var subEl = document.getElementById('wkt-sub');
+  if (subEl) subEl.textContent = saetze + ' S\xe4tze \xb7 ' + wdh + ' Wdh';
+  // Übungs-Notiz zurücksetzen
+  var noteBox = document.getElementById('uebung-note-box');
+  var noteInp = document.getElementById('uebung-note-input');
+  var noteBtn = document.getElementById('uebung-note-btn');
+  if (noteBox) noteBox.style.display = 'none';
+  if (noteInp) noteInp.value = '';
+  if (noteBtn) { var ic = noteBtn.querySelector('.material-symbols-outlined'); var lb = noteBtn.querySelector('span:last-child'); if (ic) ic.style.color='#8e9379'; if (lb) lb.style.color='#8e9379'; }
+
+  // Letztes Training laden
+  var lastSets = {};
+  try { lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}'); } catch(e) {}
+  var prevSets = lastSets[u.name] || [];
+
+  // Sätze aufbauen
+  var sc = document.getElementById('sets-container');
+  if (sc) {
+    sc.innerHTML = '';
+
+    // Referenzzeile "Letztes Training"
+    if (prevSets.length) {
+      var refRow = document.createElement('div');
+      refRow.style.cssText = 'background:#161a0c;border:1px solid #2a3318;border-radius:10px;padding:8px 12px;margin-bottom:4px';
+      refRow.innerHTML =
+        '<div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">' +
+          '<span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">history</span>' +
+          '<span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Letztes Training</span>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;padding:0 0">' +
+          '<span></span>' +
+          '<span style="font-size:11px;color:#8e9379;font-weight:700;text-align:center">KG</span>' +
+          '<span style="font-size:11px;color:#8e9379;font-weight:700;text-align:center">Wdh</span>' +
+          '<span></span>' +
+        '</div>' +
+        prevSets.map(function(ps, i) {
+          return '<div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;padding:3px 0">' +
+            '<span style="font-size:12px;color:#8e9379;font-weight:700;text-align:center">' + (i+1) + '</span>' +
+            '<span style="font-family:\'JetBrains Mono\',monospace;font-size:15px;font-weight:600;color:#c3f400;text-align:center">' + (ps.kg || '—') + '</span>' +
+            '<span style="font-family:\'JetBrains Mono\',monospace;font-size:15px;font-weight:600;color:#c4c9ac;text-align:center">' + (ps.wdh || '—') + '</span>' +
+            '<span></span>' +
+          '</div>';
+        }).join('');
+      sc.appendChild(refRow);
+    } else {
+      // Kein letztes Training — Hinweis
+      var noRef = document.createElement('p');
+      noRef.style.cssText = 'font-size:11px;color:#444933;text-align:center;margin:0 0 6px;font-style:italic';
+      noRef.textContent = 'Erstes Training — leg los!';
+      sc.appendChild(noRef);
+    }
+
+    // Session-Daten (laufendes Training) haben Vorrang vor letztem Training
+    var sessionSets = wktSessionData[u.name] || null;
+
+    for (var s = 1; s <= saetze; s++) {
+      var si = s - 1;
+      var useKg, useWdh, isDone;
+      if (sessionSets && sessionSets[si]) {
+        useKg  = sessionSets[si].kg  > 0 ? sessionSets[si].kg  : '';
+        useWdh = sessionSets[si].wdh > 0 ? sessionSets[si].wdh : wdh;
+        isDone = sessionSets[si].done;
+      } else {
+        useKg  = (prevSets[si] && prevSets[si].kg > 0) ? prevSets[si].kg : '';
+        useWdh = (prevSets[si] && prevSets[si].wdh > 0) ? prevSets[si].wdh : wdh;
+        isDone = false;
+      }
+      var row = document.createElement('div');
+      var active = s === 1 && !isDone;
+      row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #74d604;box-shadow:0 0 12px rgba(116,214,4,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
+      row.innerHTML =
+        '<span style="font-size:15px;color:' + (active ? '#74d604' : '#8e9379') + ';font-weight:700;text-align:center">' + s + '</span>' +
+        '<input type="number" value="' + useKg + '" placeholder="kg" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
+        '<input type="number" value="' + useWdh + '" placeholder="Wdh" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
+        '<div class="set-done' + (isDone ? ' done' : '') + '" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>';
+      sc.appendChild(row);
+    }
+  }
+
+  // Navigation Buttons
+  var nextBtn = document.getElementById('wkt-next-btn');
+  var prevBtn = document.getElementById('wkt-prev-btn');
+
+  // Prev Button
+  if (prevBtn) {
+    if (idx > 0) {
+      prevBtn.style.display = 'flex';
+    } else {
+      prevBtn.style.display = 'none';
+    }
+  }
+
+  // Next Button — auf letzter Übung zum "Training beenden"-Button umwandeln
+  if (nextBtn) {
+    if (idx < wktUebungen.length - 1) {
+      nextBtn.style.background = '#1e2113';
+      nextBtn.style.border = '1px solid #74d604';
+      nextBtn.style.color = '#74d604';
+      nextBtn.innerHTML = 'Nächste Übung <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>';
+      nextBtn.style.display = 'flex';
+      nextBtn.onclick = function() {
+        saveCurrentExerciseSets(wktUebungen[wktIdx] ? wktUebungen[wktIdx].name : '');
+        wktIdx++;
+        renderWorkoutExercise(wktIdx);
+        startTimer(getPauseTimer());
+        saveWorkoutState();
+      };
+    } else {
+      // Letzte Übung — Button wird zu "Training beenden"
+      nextBtn.style.background = '#74d604';
+      nextBtn.style.border = 'none';
+      nextBtn.style.color = '#162000';
+      nextBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px">flag</span> Training beenden';
+      nextBtn.style.display = 'flex';
+      nextBtn.onclick = function() { finishWorkout(); };
+    }
+  }
+
+  // Aktiv-Dot im Header
+  updateWorkoutBanner();
+}
+
+function prevExercise() {
+  if (wktIdx <= 0) return;
+  saveCurrentExerciseSets(wktUebungen[wktIdx] ? wktUebungen[wktIdx].name : '');
+  wktIdx--;
+  renderWorkoutExercise(wktIdx);
+  saveWorkoutState();
+}
+
+// Aktuell eingetippte Sätze aus dem DOM lesen
+function leseAktuelleSaetze() {
+  var satzDaten = [];
+  try {
+    var sc = document.getElementById('sets-container');
+    if (!sc) return satzDaten;
+    var rows = sc.querySelectorAll('div[style*="grid-template-columns"]');
+    rows.forEach(function(row) {
+      var inputs = row.querySelectorAll('input[type="number"]');
+      var doneEl = row.querySelector('.set-done');
+      if (inputs.length >= 2) {
+        satzDaten.push({
+          kg: parseFloat(inputs[0].value) || 0,
+          wdh: parseInt(inputs[1].value) || 0,
+          done: doneEl ? doneEl.classList.contains('done') : false
+        });
+      }
+    });
+  } catch(e) {}
+  return satzDaten;
+}
+
+// Satz-Daten der aktuellen Übung in kp_lastSets zwischenspeichern
+function saveCurrentExerciseSets(uName) {
+  if (!uName) return;
+  try {
+    var satzDaten = leseAktuelleSaetze();
+    if (satzDaten.length) {
+      // In-Session-Speicher (für Zurück-Navigation)
+      wktSessionData[uName] = satzDaten;
+      // kp_lastSets (für nächstes Training)
+      var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
+      lastSets[uName] = satzDaten;
+      speichereSicher('kp_lastSets', JSON.stringify(lastSets));
+    }
+  } catch(e) {}
+}
+
+// ─── Diagnose-Box: letzter Fehler ──────────────────────────────────
+function renderDiagError() {
+  var raw = localStorage.getItem('kp_lastError');
+  var box = document.getElementById('diag-error-box');
+  var txt = document.getElementById('diag-error-text');
+  if (!raw || !box || !txt) return;
+  var err;
+  try { err = JSON.parse(raw); } catch(e) { localStorage.removeItem('kp_lastError'); return; }
+  txt.textContent = err.time + '\n' + err.msg + (err.line ? ' (Zeile ' + err.line + ')' : '');
+  box.style.display = 'block';
+}
+
+// Belegung anzeigen + echte Schreibprobe. Sagt auf einen Blick, ob das Autosave
+// noch Platz hat — der Grund, warum Trainings verloren gingen.
+function renderSpeicherInfo() {
+  var el = document.getElementById('speicher-info');
+  if (!el) return;
+  var zeichen = 0;
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    zeichen += k.length + (localStorage.getItem(k) || '').length;
+  }
+  var foto = (localStorage.getItem('kp_avatar') || '').length;
+  var probe = 'Platz frei';
+  try {
+    localStorage.setItem('kp_probe', new Array(50001).join('x'));
+    localStorage.removeItem('kp_probe');
+  } catch(e) {
+    probe = 'VOLL - Training kann nicht gesichert werden';
+  }
+  // Herkunft mit anzeigen: eine zum Homebildschirm hinzugefügte Web-App zeigt keine
+  // Adresszeile, und iOS trennt ihren Speicher von Safari. Ohne diese Zeile lässt sich
+  // am Handy nicht feststellen, von welcher Adresse die installierte App eigentlich kommt.
+  el.textContent = location.host + ' \xb7 ' + APP_VERSION + ' \xb7 ' +
+                   Math.round(zeichen * 2 / 1024) + ' kB belegt (Foto ' +
+                   Math.round(foto * 2 / 1024) + ' kB) \xb7 ' + probe;
+  el.style.color = probe === 'Platz frei' ? '#444933' : '#c04040';
+}
+
+function dismissDiagError() {
+  localStorage.removeItem('kp_lastError');
+  var box = document.getElementById('diag-error-box');
+  if (box) box.style.display = 'none';
+}
+
+// ─── Backup / Umzug auf eine andere Adresse ────────────────────────
+// localStorage hängt an der Domain: dieselbe App unter kinetic-pulse.netlify.app
+// und martinrichlik99.github.io sieht zwei getrennte, leere Speicher. Export/Import
+// ist der einzige Weg, Trainingshistorie/Pläne/Gewicht von einer Adresse zur anderen
+// mitzunehmen. kp_lastError bleibt bewusst draußen — reine Diagnose, keine Nutzerdaten.
+function exportAllData() {
+  var daten = {};
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (k.indexOf('kp_') === 0 && k !== 'kp_lastError') daten[k] = localStorage.getItem(k);
+  }
+  var payload = { exportedAt: new Date().toISOString(), herkunft: location.host, daten: daten };
+  var json = JSON.stringify(payload, null, 2);
+  var dateiname = 'kinetic-pulse-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  var file = new File([json], dateiname, { type: 'application/json' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: 'Kinetic Pulse Backup' }).catch(function(e) {
+      if (e.name !== 'AbortError') merkeFehler('Export-Freigabe fehlgeschlagen: ' + e.message, e.stack);
+    });
+    return;
+  }
+  // Fallback: normaler Download (Desktop-Browser ohne Web-Share-API)
+  var url = URL.createObjectURL(file);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = dateiname;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importAllData(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var payload;
+    try { payload = JSON.parse(e.target.result); } catch(err) { alert('Datei ist kein gültiges Backup.'); return; }
+    if (!payload || !payload.daten) { alert('Datei ist kein gültiges Backup.'); return; }
+    var herkunft = payload.herkunft ? ' (von ' + payload.herkunft + ')' : '';
+    if (!confirm('Vorhandene Daten auf diesem Gerät mit dem Backup' + herkunft + ' überschreiben?')) return;
+
+    var keys = Object.keys(payload.daten);
+    var fehler = 0;
+    for (var i = 0; i < keys.length; i++) {
+      if (!speichereSicher(keys[i], payload.daten[keys[i]])) fehler++;
+    }
+    if (fehler) alert('Import unvollständig — ' + fehler + ' Eintrag/Einträge passten nicht in den Speicher.');
+    window.location.reload();
+  };
+  reader.onerror = function() { alert('Datei konnte nicht gelesen werden.'); };
+  reader.readAsText(input.files[0]);
+}
+
+// ─── App komplett zurücksetzen ─────────────────────────────────────
+function resetAppData() {
+  if (!confirm('Alle Daten löschen? Das kann nicht rückgängig gemacht werden.')) return;
+  var keys = ['kp_plaene','kp_lastSets','kp_activityHistory','kp_workoutDays','kp_workoutDates',
+              'kp_gewicht','kp_gewicht_hist','kp_name','kp_sub','kp_ziel',
+              'kp_startgewicht','kp_avatar','kp_pauseTimer','kp_activeWorkout'];
+  for (var ki = 0; ki < keys.length; ki++) { localStorage.removeItem(keys[ki]); }
+  // Workout-State zurücksetzen
+  wktUebungen = []; wktIdx = 0; wktSessionData = {};
+  if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
+  workoutSeconds = 0;
+  stopTimer();
+  // App neu laden
+  window.location.reload();
+}
+
+// ─── Plan löschen ─────────────────────────────────────────────────
+function deletePlan(planId) {
+  if (!confirm('Plan löschen?')) return;
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    plaene = plaene.filter(function(p) { return p.id !== planId; });
+    localStorage.setItem('kp_plaene', JSON.stringify(plaene));
+  } catch(e) {}
+  renderDashboardPlaene();
+}
+
+// ─── Plan bearbeiten ──────────────────────────────────────────────
+var editingPlanId = null;
+
+function editPlan(planId) {
+  try {
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+    var plan = null;
+    for (var i = 0; i < plaene.length; i++) { if (plaene[i].id === planId) { plan = plaene[i]; break; } }
+    if (!plan) return;
+    editingPlanId = planId;
+    document.getElementById('new-plan-name').value = plan.name || '';
+    // tage/dauer nicht mehr im Modal
+    document.getElementById('new-plan-fokus').value = plan.fokus || '';
+    // Übungen neu laden
+    var liste = document.getElementById('uebungen-liste');
+    var leer  = document.getElementById('uebungen-leer');
+    if (liste) {
+      liste.innerHTML = '';
+      if (plan.uebungen && plan.uebungen.length) {
+        if (leer) leer.style.display = 'none';
+        plan.uebungen.forEach(function(u) {
+          addUebungRow();
+          var rows = liste.children;
+          var last = rows[rows.length - 1];
+          var inputs = last.querySelectorAll('input');
+          if (inputs[0]) inputs[0].value = u.name || '';
+          if (inputs[1]) inputs[1].value = u.saetze || '3';
+          if (inputs[2]) inputs[2].value = u.wdh || '10';
+        });
+      } else {
+        if (leer) leer.style.display = 'block';
+      }
+    }
+    // Modal-Titel anpassen
+    var modalTitle = document.querySelector('#modal-create-plan h2');
+    if (modalTitle) modalTitle.textContent = 'Plan bearbeiten';
+    var modal = document.getElementById('modal-create-plan');
+    if (modal) modal.style.display = 'flex';
+  } catch(e) {}
+}
+
+// ─── Dashboard Stats ───────────────────────────────────────────────
+function updateDashboardStats() {
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    // Einheiten dieser Woche
+    var now = new Date();
+    var weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0,0,0,0);
+
+    var weekCount = 0;
+    var weekDauer = 0; // in Sekunden
+    var weekVolumen = 0;
+    hist.forEach(function(h) {
+      // datum ist ISO-String, date ist "18.05.2026" - beides versuchen
+      var d = null;
+      if (h.datum) {
+        d = new Date(h.datum);
+      } else if (h.date) {
+        var parts = h.date.split('.');
+        if (parts.length === 3) d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+      }
+      if (d && d >= weekStart) {
+        weekCount++;
+        weekDauer += (h.dauer || 0); // dauer ist in Sekunden
+        weekVolumen += (h.gesamtVolumen || 0);
+      }
+    });
+
+    // Stats-Cards aktualisieren
+    var statCards = document.querySelectorAll('#screen-dashboard .card-sm');
+    if (statCards.length >= 3) {
+      statCards[0].querySelector('div').textContent = weekCount;
+      // Volumen in t oder kg
+      var volStr = weekVolumen >= 1000 ? (weekVolumen/1000).toFixed(1) + ' t' : (weekVolumen > 0 ? weekVolumen + ' kg' : '0 t');
+      statCards[1].querySelector('div').textContent = volStr;
+      // Dauer: Sekunden → Minuten
+      var dauerMin = weekDauer > 60 ? Math.round(weekDauer / 60) : weekDauer;
+      statCards[2].querySelector('div').textContent = dauerMin > 0 ? dauerMin + 'm' : '0m';
+    }
+
+    // Wochenvolumen-Chart rendern (letzte 7 Tage)
+    var chartEl = document.getElementById('volumen-chart');
+    if (chartEl) {
+      var dayLabels = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      // Volumen pro Wochentag (0=So, 1=Mo, ... 6=Sa) für letzte 7 Tage
+      var volByDay = [0,0,0,0,0,0,0];
+      var today7 = new Date(); today7.setHours(0,0,0,0);
+      hist.forEach(function(h) {
+        var d7 = null;
+        if (h.datum) { d7 = new Date(h.datum); }
+        else if (h.date) {
+          var p = h.date.split('.');
+          if (p.length === 3) d7 = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+        }
+        if (!d7) return;
+        d7.setHours(0,0,0,0);
+        var diff = Math.round((today7 - d7) / 86400000);
+        if (diff >= 0 && diff < 7) {
+          volByDay[d7.getDay()] += (h.gesamtVolumen || 0);
+        }
+      });
+      // Wochentage Mo–So (1..6,0) aufbauen
+      var orderedDays = [1,2,3,4,5,6,0];
+      var maxVol = Math.max.apply(null, orderedDays.map(function(i){ return volByDay[i]; }));
+      var chartHtml = '';
+      orderedDays.forEach(function(dayIdx) {
+        var vol = volByDay[dayIdx];
+        var pct = maxVol > 0 ? Math.round(vol / maxVol * 100) : 0;
+        var isToday = dayIdx === today7.getDay();
+        var fillColor = isToday ? '#74d604' : (pct > 0 ? '#5aaa00' : '');
+        var fillStyle = 'height:' + pct + '%' + (fillColor ? ';background:' + fillColor : '');
+        chartHtml += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">' +
+          '<div class="chart-bar" style="height:60px"><div class="fill" style="' + fillStyle + '"></div></div>' +
+          '<span style="font-size:9px;color:' + (isToday ? '#74d604' : '#8e9379') + ';font-weight:' + (isToday ? '700' : '400') + '">' + dayLabels[dayIdx] + '</span>' +
+          '</div>';
+      });
+      chartEl.innerHTML = chartHtml;
+    }
+
+    // Dashboard PRs rendern
+    var dashPRs = document.getElementById('dashboard-prs-list');
+    if (dashPRs) {
+      var bestKgDash = {};
+      hist.forEach(function(entry) {
+        if (entry.uebungsDaten) {
+          entry.uebungsDaten.forEach(function(u) {
+            if (u.maxKg && u.maxKg > 0 && (!bestKgDash[u.name] || u.maxKg > bestKgDash[u.name])) {
+              bestKgDash[u.name] = u.maxKg;
+            }
+          });
+        }
+      });
+      var prNames = Object.keys(bestKgDash);
+      if (prNames.length === 0) {
+        dashPRs.innerHTML = '<div style="text-align:center;padding:16px 0"><span class="material-symbols-outlined" style="font-size:36px;color:#444933">emoji_events</span><p style="font-size:13px;color:#8e9379;margin:8px 0 0">Noch keine PRs — starte dein erstes Training!</p></div>';
+      } else {
+        var prHtml = '<div style="display:flex;flex-direction:column;gap:8px">';
+        var shown = prNames.slice(0, 4);
+        shown.forEach(function(name) {
+          prHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1a1d12;border-radius:10px">' +
+            '<span style="font-size:13px;font-weight:700;font-style:italic;color:#f0f4e8">' + name + '</span>' +
+            '<span style="font-size:15px;font-weight:800;color:#74d604;font-family:\'JetBrains Mono\',monospace">' + bestKgDash[name] + ' kg</span>' +
+            '</div>';
+        });
+        prHtml += '</div>';
+        dashPRs.innerHTML = prHtml;
+      }
+    }
+
+    // Profil Einheiten
+    var profilEinheiten = document.querySelector('#profil-view .card div[style*="gap:16px"] div:first-child span');
+    if (profilEinheiten) profilEinheiten.textContent = hist.length;
+  } catch(e) {}
+}
+
+// ─── Muskelfokus ───────────────────────────────────────────────────
+function updateMuskelFokus() {
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]');
+    var plaene = JSON.parse(localStorage.getItem('kp_plaene') || '[]');
+
+    // Muskel-Mapping aus Übungsnamen
+    var muskelMap = {
+      'Bankdrücken': 'Brust', 'Schrägbankdrücken': 'Brust', 'Kurzhantel-Flyes': 'Brust', 'Dips': 'Brust',
+      'Schulterdrücken': 'Schultern', 'Seitheben': 'Schultern', 'Vorgebeugtes Seitheben': 'Schultern',
+      'Trizeps-Pushdown': 'Arme', 'Skull Crushers': 'Arme', 'Bizeps-Curls': 'Arme', 'Hammer Curls': 'Arme',
+      'Klimmzüge': 'Rücken', 'Latzug': 'Rücken', 'Rudern (Langhantel)': 'Rücken', 'Rudern (Kabelzug)': 'Rücken',
+      'Kniebeugen': 'Beine', 'Beinpresse': 'Beine', 'Rumänisches Kreuzheben': 'Beine', 'Kreuzheben': 'Beine',
+      'Beinbeuger': 'Beine', 'Beinstrecker': 'Beine', 'Wadenheben': 'Beine', 'Hip Thrust': 'Beine'
+    };
+
+    // 30-Tage-Fenster
+    var cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+
+    var muskelCount = { 'Brust': 0, 'Rücken': 0, 'Beine': 0, 'Schultern': 0, 'Arme': 0 };
+    var total = 0;
+
+    // Gespeicherte Satz-Daten auswerten
+    var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
+    Object.keys(lastSets).forEach(function(uName) {
+      var muskel = muskelMap[uName];
+      if (muskel && muskelCount.hasOwnProperty(muskel)) {
+        muskelCount[muskel] += lastSets[uName].length;
+        total += lastSets[uName].length;
+      }
+    });
+
+    // Alternativ: aus Plan-Fokus
+    if (total === 0 && hist.length > 0) {
+      // Wenn kein lastSets, Fokus aus Plänen nutzen
+      var fokusKW = { 'Brust': ['brust','chest'], 'Rücken': ['rücken','back','lats'], 'Beine': ['bein','leg','quad'], 'Schultern': ['schulter','shoulder'], 'Arme': ['arm','bizeps','trizeps'] };
+      plaene.forEach(function(p) {
+        if (p.fokus) {
+          var f = p.fokus.toLowerCase();
+          Object.keys(fokusKW).forEach(function(m) {
+            fokusKW[m].forEach(function(kw) { if (f.includes(kw)) { muskelCount[m]++; total++; } });
+          });
+        }
+      });
+    }
+
+    // UI updaten
+    var muskeln = ['Brust', 'Rücken', 'Beine', 'Schultern', 'Arme'];
+    var bars = document.querySelectorAll('#screen-profil .card:nth-of-type(3) .progress-fill');
+    var pcts = document.querySelectorAll('#screen-profil .card:nth-of-type(3) span[style*="JetBrains"]');
+
+    if (total > 0) {
+      muskeln.forEach(function(m, i) {
+        var pct = Math.round(muskelCount[m] / total * 100);
+        if (bars[i]) bars[i].style.width = pct + '%';
+        if (pcts[i]) pcts[i].textContent = pct + '%';
+      });
+    }
+  } catch(e) {}
+}
+
+// ─── Gewicht Numpad ────────────────────────────────────────────────
+let gewichtInput = '';
+
+function numpad(val) {
+  var display = document.getElementById('gewicht-display');
+  if (val === 'del') {
+    gewichtInput = gewichtInput.slice(0, -1);
+  } else if (val === '.' && gewichtInput.includes('.')) {
+    return; // nur ein Komma erlaubt
+  } else if (gewichtInput.length >= 5) {
+    return; // max 5 Zeichen (z.B. 100.0)
+  } else {
+    gewichtInput += val;
+  }
+  if (display) display.textContent = gewichtInput || '0';
+}
+
+function saveGewicht() {
+  if (!gewichtInput) return;
+  var val = parseFloat(gewichtInput);
+  if (isNaN(val) || val < 30 || val > 300) {
+    alert('Ungültiger Wert');
+    return;
+  }
+  try {
+    localStorage.setItem('kp_gewicht', val.toFixed(1));
+    // Historie
+    var hist = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+    hist.push({ date: new Date().toISOString().slice(0,10), val: val });
+    if (hist.length > 90) hist = hist.slice(-90);
+    localStorage.setItem('kp_gewicht_hist', JSON.stringify(hist));
+  } catch(e) {}
+  gewichtInput = '';
+  updateGewichtScreen(val);
+  renderGewichtChart();
+  loadProfilData();
+  // Protokoll aktualisieren falls offen
+  var prList2 = document.getElementById('protokoll-list');
+  if (prList2 && prList2.style.display !== 'none') renderMessprotokoll();
+  // Kurzes Feedback
+  var btn = document.querySelector('#screen-gewicht .volt-bg');
+  if (btn) { btn.textContent = '✓ Gespeichert!'; setTimeout(function() { btn.textContent = 'Speichern'; }, 1500); }
+}
+
+function updateGewichtScreen(val) {
+  var ziel = parseFloat(localStorage.getItem('kp_ziel') || '78');
+  var start = parseFloat(localStorage.getItem('kp_startgewicht') || '90');
+  var display = document.getElementById('gewicht-display');
+  var aktuell = document.getElementById('gw-aktuell');
+  var zielLabel = document.getElementById('gw-ziel-label');
+  var startLabel = document.getElementById('gw-start');
+  var bar = document.getElementById('gw-progress-bar');
+  var ms2lbl = document.getElementById('ms2-label');
+  var avg = document.getElementById('gewicht-avg');
+  var weekly = document.getElementById('gewicht-weekly');
+  var aktuellStat = document.getElementById('gewicht-aktuell-stat');
+
+  if (display) display.textContent = val.toFixed(1);
+  if (aktuell) aktuell.textContent = 'Aktuell: ' + val.toFixed(1) + ' kg';
+  if (aktuellStat) aktuellStat.textContent = val.toFixed(1) + ' kg';
+  if (zielLabel) zielLabel.textContent = ziel.toFixed(1) + ' kg';
+  if (startLabel) startLabel.textContent = start.toFixed(1) + ' kg';
+
+  var pct = (start !== ziel) ? Math.max(0, Math.min(100, Math.round((start - val) / (start - ziel) * 100))) : 0;
+  if (bar) bar.style.width = pct + '%';
+
+  // Gleitender Durchschnitt (7 Tage)
+  try {
+    var hist7 = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+    var last7 = hist7.slice(-7);
+    if (last7.length > 0) {
+      var sum7 = last7.reduce(function(s, e) { return s + e.val; }, 0);
+      if (avg) avg.textContent = (sum7 / last7.length).toFixed(1) + ' kg';
+    } else {
+      if (avg) avg.textContent = val.toFixed(1) + ' kg';
+    }
+  } catch(e) { if (avg) avg.textContent = val.toFixed(1) + ' kg'; }
+
+  // Wöchentliche Veränderung aus Verlaufsdaten
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+    if (hist.length >= 2 && weekly) {
+      var oldest = hist[Math.max(0, hist.length - 8)].val;
+      var diff7 = val - oldest;
+      weekly.textContent = (diff7 <= 0 ? '' : '+') + diff7.toFixed(1) + ' kg';
+      weekly.style.color = diff7 <= 0 ? '#5aaa00' : '#ffb4ab';
+    }
+  } catch(e) {}
+
+  // Meilensteine dynamisch rendern
+  renderMeilensteine(start, val, ziel);
+}
+
+function renderMeilensteine(start, aktuell, ziel) {
+  var container = document.getElementById('meilensteine-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Schritte: 10%, 20%, 30% ... bis Ziel
+  var totalAbnahme = start - ziel;
+  if (totalAbnahme <= 0) return; // Ziel >= Start — nichts tun
+
+  var schritte = [];
+  var schritt = 10; // %
+  while (schritt < 100) {
+    var zielKg = start - (totalAbnahme * schritt / 100);
+    schritte.push({ pct: schritt, kg: zielKg });
+    schritt += 10;
+  }
+  // Zielgewicht als letzten Meilenstein
+  schritte.push({ pct: 100, kg: ziel, isZiel: true });
+
+  schritte.forEach(function(ms) {
+    var erreicht = aktuell <= ms.kg;
+    var label = ms.isZiel ? 'Zielgewicht' : ('–' + Math.round(totalAbnahme * ms.pct / 100 * 10) / 10 + ' kg (' + ms.pct + '%)');
+    var restKg = aktuell - ms.kg;
+    var statusText = erreicht ? 'Erreicht' : (restKg > 0 ? 'Noch ' + restKg.toFixed(1) + ' kg' : 'Erreicht');
+    var isReached = aktuell <= ms.kg;
+
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid ' +
+      (isReached ? '#2a4400' : '#2a2d1e') + ';background:' + (isReached ? '#1a3300' : '#161a0c');
+    div.innerHTML =
+      '<span style="font-size:14px">' + (isReached ? '✅' : '⭕') + '</span>' +
+      '<span style="font-size:12px;font-weight:700;flex:1;color:' + (isReached ? '#e2e4cf' : '#8e9379') + '">' + label + '</span>' +
+      '<span style="font-size:10px;font-weight:600;color:' + (isReached ? '#74d604' : '#8e9379') + '">' + statusText + '</span>';
+    container.appendChild(div);
+  });
+}
+
+// ─── Messprotokoll ────────────────────────────────────────────────
+function renderMessprotokoll() {
+  var container = document.getElementById('protokoll-list');
+  var countEl = document.getElementById('protokoll-count');
+  if (!container) return;
+  var hist = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+  var last50 = hist.slice(-50).reverse(); // neueste zuerst
+  if (countEl) countEl.textContent = last50.length + ' Einträge';
+  if (last50.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:#444933;font-size:13px;padding:16px;margin:0">Noch keine Messungen</p>';
+    return;
+  }
+  var days = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var html = '';
+  last50.forEach(function(entry, i) {
+    var d = entry.date ? new Date(entry.date) : null;
+    var dateStr = d && !isNaN(d) ? days[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear() : (entry.label || '—');
+    var isFirst = i === 0;
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid #2a2d1e' + (isFirst ? ';background:#162000' : '') + '">' +
+      '<span style="font-size:12px;color:' + (isFirst ? '#74d604' : '#8e9379') + '">' + dateStr + '</span>' +
+      '<span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;font-weight:600;color:' + (isFirst ? '#74d604' : '#e2e4cf') + '">' + entry.val.toFixed(1) + ' kg</span>' +
+      '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function toggleMessprotokoll() {
+  var list = document.getElementById('protokoll-list');
+  var chevron = document.getElementById('protokoll-chevron');
+  if (!list) return;
+  var isOpen = list.style.display !== 'none';
+  if (isOpen) {
+    list.style.display = 'none';
+    if (chevron) chevron.style.transform = '';
+  } else {
+    renderMessprotokoll();
+    list.style.display = 'block';
+    if (chevron) chevron.style.transform = 'rotate(180deg)';
+  }
+}
+
+function initGewichtScreen() {
+  // Startgewicht aus Profil übernehmen falls noch nicht gesetzt
+  var startLS = localStorage.getItem('kp_startgewicht');
+  if (!startLS) {
+    var profilGewicht = localStorage.getItem('kp_gewicht');
+    if (profilGewicht) {
+      localStorage.setItem('kp_startgewicht', parseFloat(profilGewicht).toFixed(1));
+    }
+  }
+  var val = parseFloat(localStorage.getItem('kp_gewicht') || '0');
+  gewichtInput = '';
+  if (val > 0) {
+    updateGewichtScreen(val);
+    var display = document.getElementById('gewicht-display');
+    if (display) display.textContent = val.toFixed(1);
+  } else {
+    var display2 = document.getElementById('gewicht-display');
+    if (display2) display2.textContent = '—';
+  }
+  renderGewichtChart();
+  // Protokoll-Zähler aktualisieren (ohne zu öffnen)
+  var hist0 = [];
+  try { hist0 = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]'); } catch(e) {}
+  var countEl = document.getElementById('protokoll-count');
+  if (countEl) countEl.textContent = Math.min(hist0.length, 50) + ' Einträge';
+  // Protokoll schließen falls offen
+  var prList = document.getElementById('protokoll-list');
+  var chev = document.getElementById('protokoll-chevron');
+  if (prList) prList.style.display = 'none';
+  if (chev) chev.style.transform = '';
+}
+
+function toggleStartgewichtEdit() {
+  var box = document.getElementById('startgewicht-edit');
+  if (!box) return;
+  var isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    var inp = document.getElementById('startgewicht-input');
+    var cur = localStorage.getItem('kp_startgewicht');
+    if (inp && cur) inp.value = parseFloat(cur).toFixed(1);
+    if (inp) setTimeout(function() { inp.focus(); inp.select(); }, 50);
+  }
+}
+
+function saveStartgewicht() {
+  var inp = document.getElementById('startgewicht-input');
+  if (!inp) return;
+  var val = parseFloat(inp.value);
+  if (isNaN(val) || val < 30 || val > 300) { alert('Ungültiger Wert'); return; }
+  localStorage.setItem('kp_startgewicht', val.toFixed(1));
+  var box = document.getElementById('startgewicht-edit');
+  if (box) box.style.display = 'none';
+  var curVal = parseFloat(localStorage.getItem('kp_gewicht') || val.toFixed(1));
+  updateGewichtScreen(curVal);
+}
+
+function renderGewichtChart() {
+  try {
+    var hist = JSON.parse(localStorage.getItem('kp_gewicht_hist') || '[]');
+    if (hist.length < 2) return;
+    // Letzte 30 Einträge
+    var data = hist.slice(-30);
+    var vals = data.map(function(d) { return d.val; });
+    var minV = Math.min.apply(null, vals);
+    var maxV = Math.max.apply(null, vals);
+    var range = maxV - minV || 1;
+    var w = 300, h = 80, pad = 8;
+    var pts = vals.map(function(v, i) {
+      var x = (i / (vals.length - 1)) * w;
+      var y = pad + (1 - (v - minV) / range) * (h - pad * 2);
+      return x + ',' + y;
+    });
+    var pathD = 'M' + pts.join(' L');
+    var areaD = pathD + ' L' + w + ',' + h + ' L0,' + h + ' Z';
+
+    var svg = document.getElementById('gewicht-chart-svg');
+    if (svg) {
+      svg.innerHTML =
+        '<defs><linearGradient id="gGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#74d604" stop-opacity="0.25"/><stop offset="100%" stop-color="#74d604" stop-opacity="0"/></linearGradient></defs>' +
+        '<path d="' + areaD + '" fill="url(#gGrad)" stroke="none"/>' +
+        '<path d="' + pathD + '" fill="none" stroke="#74d604" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<circle cx="0" cy="' + pts[0].split(',')[1] + '" r="3" fill="#8e9379"/>' +
+        '<circle cx="' + w + '" cy="' + pts[pts.length-1].split(',')[1] + '" r="4" fill="#74d604"/>';
+    }
+    // Datum-Labels
+    var labDiv = document.getElementById('gewicht-chart-labels');
+    if (labDiv) {
+      // Datum formatieren: "2026-04-14" → "14.04."
+      var fd = data[0].date;
+      var firstDate = fd.length === 10 ? fd.slice(8) + '.' + fd.slice(5,7) + '.' : fd;
+      labDiv.innerHTML = '<span>' + firstDate + '</span><span>Heute</span>';
+    }
+    // Range-Label oben rechts
+    var rangeEl = document.getElementById('gewicht-chart-range');
+    if (rangeEl && data.length > 0) {
+      var minVal = Math.min.apply(null, vals).toFixed(1);
+      var maxVal = Math.max.apply(null, vals).toFixed(1);
+      rangeEl.textContent = minVal + ' – ' + maxVal + ' kg';
+    }
+  } catch(e) {}
+}
+
+// ─── Profil localStorage ───────────────────────────────────────────
+function loadProfilData() {
+  try {
+    var name    = localStorage.getItem('kp_name')    || 'Martin R.';
+    var sub     = localStorage.getItem('kp_sub')     || 'Trainiert seit 18 Monaten · PPL-Split';
+    var gewicht = localStorage.getItem('kp_gewicht') || '82.4';
+    var ziel    = localStorage.getItem('kp_ziel')    || '78.0';
+    var avatar  = localStorage.getItem('kp_avatar')  || '';
+
+    // Ansicht aktualisieren
+    var nd = document.getElementById('profil-name-display');
+    var sd = document.getElementById('profil-sub-display');
+    var gd = document.getElementById('profil-gewicht-display');
+    var zd = document.getElementById('profil-ziel-display');
+    var dd = document.getElementById('profil-diff-display');
+    var pb = document.getElementById('profil-progress-bar');
+    var pp = document.getElementById('profil-progress-pct');
+
+    if (nd) nd.textContent = name;
+    if (sd) sd.textContent = sub;
+    if (gd) gd.textContent = parseFloat(gewicht).toFixed(1);
+    if (zd) zd.textContent = parseFloat(ziel).toFixed(1);
+
+    var diff = parseFloat(gewicht) - parseFloat(ziel);
+    if (dd) dd.textContent = diff > 0 ? '–' + diff.toFixed(1) : '+' + Math.abs(diff).toFixed(1);
+
+    // Fortschritt: Annahme Stargewicht 90 kg (oder aus LS)
+    var start = parseFloat(localStorage.getItem('kp_startgewicht') || '90');
+    var pct = Math.max(0, Math.min(100, Math.round((start - parseFloat(gewicht)) / (start - parseFloat(ziel)) * 100)));
+    if (pb) pb.style.width = pct + '%';
+    if (pp) pp.textContent = pct + '%';
+
+    // Avatar
+    updateAvatarDisplay(avatar, name);
+
+    // Edit-Felder vorausfüllen
+    var en = document.getElementById('edit-name');
+    var es = document.getElementById('edit-sub');
+    var eg = document.getElementById('edit-gewicht');
+    var ez = document.getElementById('edit-ziel');
+    if (en) en.value = name;
+    if (es) es.value = sub;
+    if (eg) eg.value = gewicht;
+    if (ez) ez.value = ziel;
+  } catch(e) {}
+}
+
+function updateAvatarDisplay(avatarSrc, name) {
+  var initial = (name || 'M').charAt(0).toUpperCase();
+  var displays = [
+    document.getElementById('avatar-display'),
+    document.getElementById('avatar-edit-preview')
+  ];
+  // Auch Dashboard-Avatar
+  var dashAvatar = document.querySelector('.avatar');
+
+  for (var di = 0; di < displays.length; di++) {
+    var del = displays[di];
+    if (!del) continue;
+    if (avatarSrc) {
+      del.innerHTML = '<img src="' + avatarSrc + '" style="width:100%;height:100%;object-fit:cover">';
+    } else {
+      del.innerHTML = initial;
+      del.style.background = 'linear-gradient(135deg,#74d604,#556d00)';
+    }
+  }
+
+  if (dashAvatar) {
+    if (avatarSrc) {
+      dashAvatar.innerHTML = '<img src="' + avatarSrc + '" style="width:100%;height:100%;object-fit:cover">';
+      dashAvatar.style.background = 'none';
+    } else {
+      dashAvatar.innerHTML = initial;
+      dashAvatar.style.background = 'linear-gradient(135deg,#74d604,#556d00)';
+    }
+  }
+}
+
+function saveProfilData() {
+  try {
+    var name    = document.getElementById('edit-name').value.trim()    || 'Martin R.';
+    var sub     = document.getElementById('edit-sub').value.trim()     || '';
+    var gewicht = document.getElementById('edit-gewicht').value.trim() || '82.4';
+    var ziel    = document.getElementById('edit-ziel').value.trim()    || '78.0';
+
+    localStorage.setItem('kp_name',    name);
+    localStorage.setItem('kp_sub',     sub);
+    localStorage.setItem('kp_gewicht', gewicht);
+    localStorage.setItem('kp_ziel',    ziel);
+    // Startgewicht setzen falls noch nicht vorhanden
+    if (!localStorage.getItem('kp_startgewicht')) {
+      localStorage.setItem('kp_startgewicht', gewicht);
+    }
+
+    loadProfilData();
+    toggleProfilEdit();
+  } catch(e) {
+    alert('Speichern fehlgeschlagen — bitte App über eine URL öffnen (nicht als lokale Datei).');
+  }
+}
+
+// Ein iPhone-Foto als Roh-DataURL belegt mehrere MB. iOS kappt localStorage bei
+// rund 5 MB — danach passt kein Trainings-Stand mehr rein und das Autosave
+// scheitert bei jedem Satz. Deshalb auf 256 px quadratisch herunterrechnen (~15 KB).
+function avatarVerkleinern(src, fertig) {
+  var img = new Image();
+  img.onload = function() {
+    var kante = 256;
+    var c = document.createElement('canvas');
+    c.width = kante;
+    c.height = kante;
+    var seite = Math.min(img.width, img.height);
+    c.getContext('2d').drawImage(img, (img.width - seite) / 2, (img.height - seite) / 2,
+                                 seite, seite, 0, 0, kante, kante);
+    fertig(c.toDataURL('image/jpeg', 0.8));
+  };
+  img.onerror = function() { fertig(null); };
+  img.src = src;
+}
+
+function handleAvatarUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    avatarVerkleinern(e.target.result, function(klein) {
+      if (!klein) { merkeFehler('Profilbild konnte nicht gelesen werden'); return; }
+      speichereSicher('kp_avatar', klein);
+      var preview = document.getElementById('avatar-edit-preview');
+      if (preview) preview.innerHTML = '<img src="' + klein + '" style="width:100%;height:100%;object-fit:cover">';
+      renderSpeicherInfo();
+    });
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// Bereits gespeichertes Riesen-Foto einmalig nachschrumpfen, sonst bleibt der
+// Speicher bei bestehenden Installationen für immer verstopft.
+function avatarAufraeumen() {
+  var src = localStorage.getItem('kp_avatar');
+  if (!src || src.length < 60000) return;
+  avatarVerkleinern(src, function(klein) {
+    if (!klein) return;
+    speichereSicher('kp_avatar', klein);
+    loadProfilData();
+    renderSpeicherInfo();
+  });
+}
+
+function toggleProfilEdit() {
+  var view = document.getElementById('profil-view');
+  var edit = document.getElementById('profil-edit');
+  var icon = document.getElementById('profil-edit-icon');
+  var isEditing = edit.style.display === 'flex';
+  if (isEditing) {
+    edit.style.display = 'none';
+    view.style.display = 'block';
+    if (icon) icon.textContent = 'edit';
+  } else {
+    view.style.display = 'none';
+    edit.style.display = 'flex';
+    if (icon) icon.textContent = 'close';
+    loadProfilData(); // Felder aktualisieren
+  }
+}
+
+// ─── Greeting ──────────────────────────────────────────────────────
+function initGreeting() {
+  var now = new Date();
+  var days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  var months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  var dateStr = days[now.getDay()] + ', ' + now.getDate() + '. ' + months[now.getMonth()];
+  var name = localStorage.getItem('kp_name') || 'Martin';
+  var firstName = name.split(' ')[0].replace('.','');
+  var d = document.getElementById('greeting-date');
+  var t = document.getElementById('greeting-text');
+  if (d) d.textContent = dateStr;
+  if (t) t.textContent = 'Hallo, ' + firstName;
+}
+
+// Migration entfernt — war fehlerhaft und löschte gespeicherte Übungen
+
+// Unterbrochenes Training wiederherstellen (iOS räumt die App im Hintergrund weg).
+function restoreWorkout() {
+  var raw = localStorage.getItem('kp_activeWorkout');
+  if (!raw) return;
+  // Bei Abbruch wird der Stand NICHT gelöscht: eine gescheiterte Wiederherstellung
+  // darf nicht auch noch die Daten mitnehmen. Ein neuer Plan-Start überschreibt ihn.
+  var ws;
+  try { ws = JSON.parse(raw); } catch(e) { merkeFehler('Trainings-Stand unlesbar: ' + e.message); return; }
+  if (!ws || !ws.uebungen || !ws.uebungen.length) return;
+
+  // Absoluter Startzeitpunkt. Ältere Stände kannten nur secondsOffset — dann ab jetzt rechnen.
+  var start = ws.startedAt || (Date.now() - (ws.secondsOffset || 0) * 1000);
+  // Karteileiche aus einem früheren Tag nicht wiederbeleben.
+  if (Date.now() - start > 6 * 3600 * 1000) return;
+
+  wktUebungen = ws.uebungen;
+  wktIdx = ws.idx || 0;
+  wktSessionData = ws.sessionData || {};
+  workoutStartTime = start;
+  workoutSecondsOffset = 0;
+  renderWorkoutExercise(wktIdx);
+  navigate('workout');
+  if (workoutInterval) clearInterval(workoutInterval);
+  workoutInterval = setInterval(tickWorkoutUhr, 1000);
+  updateWorkoutBanner();
+}
+
+// ─── Init ──────────────────────────────────────────────────────────
+// Jeder Schritt einzeln abgesichert: ein kaputter Eintrag in einem Bereich darf
+// nicht den Rest der App mitreißen — vor allem nicht die Trainings-Wiederherstellung.
+// Fehler werden zusätzlich nach kp_lastError geschrieben: ein hier verschluckter
+// Fehler in restoreWorkout sah bisher aus wie ein iOS-Kill, weil die Diagnose-Box
+// leer blieb (console.warn sieht am Handy niemand).
+function sicher(fn, name) {
+  try { fn(); } catch(e) {
+    console.warn('Init-Schritt fehlgeschlagen:', e);
+    merkeFehler('Init "' + (name || 'unbenannt') + '": ' + e.message, e.stack);
+  }
+}
+
+sicher(avatarAufraeumen, 'avatarAufraeumen');
+sicher(initGreeting, 'initGreeting');
+sicher(loadProfilData, 'loadProfilData');
+sicher(initGewichtScreen, 'initGewichtScreen');
+sicher(initPauseTimerButtons, 'initPauseTimerButtons');
+sicher(renderDashboardPlaene, 'renderDashboardPlaene');
+sicher(updateDashboardStats, 'updateDashboardStats');
+sicher(updateMuskelFokus, 'updateMuskelFokus');
+sicher(function() { navigate('dashboard'); }, 'navigate');
+sicher(restoreWorkout, 'restoreWorkout');
+sicher(renderDiagError, 'renderDiagError');
+sicher(renderSpeicherInfo, 'renderSpeicherInfo');
+
+// PWA Service Worker registrieren
+// Relativer Pfad — funktioniert egal in welchem Unterordner die App liegt.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.warn('Service Worker Registrierung fehlgeschlagen:', err);
+    });
+  });
+}
+
+// ═══════ KALORIENRECHNER ═══════
+var kalGender = 'm';
+
+function kalSelectGender(g) {
+  kalGender = g;
+  document.getElementById('kal-btn-m').classList.toggle('active', g === 'm');
+  document.getElementById('kal-btn-w').classList.toggle('active', g === 'w');
+  kalCalc();
+}
+
+function kalCalc() {
+  var alter   = parseFloat(document.getElementById('kal-alter').value);
+  var groesse = parseFloat(document.getElementById('kal-groesse').value);
+  var gewicht = parseFloat(document.getElementById('kal-gewicht').value);
+  var pal     = parseFloat(document.getElementById('kal-aktivitaet').value);
+
+  if (!alter || !groesse || !gewicht || isNaN(pal)) {
+    document.getElementById('kal-ergebnis').style.display = 'none';
+    return;
+  }
+
+  // Mifflin-St-Jeor
+  var bmr;
+  if (kalGender === 'm') {
+    bmr = 10 * gewicht + 6.25 * groesse - 5 * alter + 5;
+  } else {
+    bmr = 10 * gewicht + 6.25 * groesse - 5 * alter - 161;
+  }
+
+  var tdee = Math.round(bmr * pal);
+  bmr = Math.round(bmr);
+
+  document.getElementById('kal-bmr').textContent       = bmr + ' kcal';
+  document.getElementById('kal-tdee').textContent      = tdee;
+  document.getElementById('kal-halten').textContent    = tdee + ' kcal';
+  document.getElementById('kal-abnehmen').textContent  = (tdee - 500) + ' kcal';
+  document.getElementById('kal-zunehmen').textContent  = (tdee + 500) + ' kcal';
+
+  document.getElementById('kal-ergebnis').style.display = 'block';
+}
+
+function kalPrefillGewicht() {
+  // Aktuelles Gewicht aus localStorage übernehmen, falls vorhanden
+  var data = JSON.parse(localStorage.getItem('gewichtData') || '[]');
+  if (data.length > 0) {
+    var latest = data[data.length - 1];
+    var inp = document.getElementById('kal-gewicht');
+    if (inp && !inp.value) {
+      inp.value = latest.kg;
+      kalCalc();
+    }
+  }
+}
+</script>
+</body>
+</html>
