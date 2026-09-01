@@ -342,7 +342,7 @@
       </div>
 
       <!-- + Satz hinzufügen -->
-      <button style="width:100%;height:44px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px">
+      <button onclick="satzHinzufuegen()" style="width:100%;height:44px;background:transparent;border:1px dashed #444933;border-radius:12px;color:#8e9379;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px">
         <span class="material-symbols-outlined" style="font-size:18px">add</span>
         Satz hinzufügen
       </button>
@@ -1121,7 +1121,7 @@ function localISODate(d) {
 
 // ─── Navigation ───────────────────────────────────────────────────
 // Steht unten im Profil. Zeigt auf einen Blick, ob ein Deploy am Handy angekommen ist.
-var APP_VERSION = 'v2026-08-23';
+var APP_VERSION = 'v2026-09-01';
 
 let currentScreen = 'dashboard';
 var navHistory = ['dashboard'];
@@ -2358,12 +2358,21 @@ function renderWorkoutExercise(idx) {
   var saetze = parseInt(u.saetze) || 3;
   var wdh    = parseInt(u.wdh)    || 10;
 
+  // Letztes Training + laufende Session laden. Beide bestimmen mit, wie viele
+  // Satz-Zeilen gebaut werden: ein per "Satz hinzufügen" ergänzter Satz bleibt
+  // dadurch auch beim nächsten Training sichtbar, ohne den gespeicherten Plan zu ändern.
+  var lastSets = {};
+  try { lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}'); } catch(e) {}
+  var prevSets = lastSets[u.name] || [];
+  var sessionSets = wktSessionData[u.name] || null;
+  var rowCount = Math.max(saetze, prevSets.length, sessionSets ? sessionSets.length : 0);
+
   var ctrEl = document.getElementById('wkt-counter');
   if (ctrEl) ctrEl.textContent = 'Übung ' + (idx + 1) + ' von ' + wktUebungen.length;
   var nameEl = document.getElementById('wkt-name');
   if (nameEl) nameEl.textContent = u.name;
   var subEl = document.getElementById('wkt-sub');
-  if (subEl) subEl.textContent = saetze + ' S\xe4tze \xb7 ' + wdh + ' Wdh';
+  if (subEl) subEl.textContent = rowCount + ' S\xe4tze \xb7 ' + wdh + ' Wdh';
   // Übungs-Notiz zurücksetzen
   var noteBox = document.getElementById('uebung-note-box');
   var noteInp = document.getElementById('uebung-note-input');
@@ -2371,11 +2380,6 @@ function renderWorkoutExercise(idx) {
   if (noteBox) noteBox.style.display = 'none';
   if (noteInp) noteInp.value = '';
   if (noteBtn) { var ic = noteBtn.querySelector('.material-symbols-outlined'); var lb = noteBtn.querySelector('span:last-child'); if (ic) ic.style.color='#8e9379'; if (lb) lb.style.color='#8e9379'; }
-
-  // Letztes Training laden
-  var lastSets = {};
-  try { lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}'); } catch(e) {}
-  var prevSets = lastSets[u.name] || [];
 
   // Sätze aufbauen
   var sc = document.getElementById('sets-container');
@@ -2414,8 +2418,7 @@ function renderWorkoutExercise(idx) {
       sc.appendChild(noRef);
     }
 
-    // Session-Daten (laufendes Training) haben Vorrang vor letztem Training
-    var sessionSets = wktSessionData[u.name] || null;
+    // sessionSets (laufendes Training) hat Vorrang vor letztem Training — oben bereits geladen.
 
     // Progressionsvorschlag nur beim ersten Aufbau der Übung in dieser Session
     // berechnen — nicht bei Zurück-Navigation, da sonst schon getippte Werte
@@ -2430,7 +2433,7 @@ function renderWorkoutExercise(idx) {
       sc.appendChild(pRow);
     }
 
-    for (var s = 1; s <= saetze; s++) {
+    for (var s = 1; s <= rowCount; s++) {
       var si = s - 1;
       var useKg, useWdh, isDone;
       if (sessionSets && sessionSets[si]) {
@@ -2550,6 +2553,26 @@ function saveCurrentExerciseSets(uName) {
       speichereSicher('kp_lastSets', JSON.stringify(lastSets));
     }
   } catch(e) {}
+}
+
+// Der aktuellen Übung eine weitere Satz-Zeile anhängen. Gilt nur für dieses
+// Training; über kp_lastSets (beim Übungs-/Trainingswechsel geschrieben) taucht
+// der Extra-Satz auch beim nächsten Mal auf. Der gespeicherte Plan bleibt unberührt.
+function satzHinzufuegen() {
+  var u = wktUebungen[wktIdx];
+  if (!u) return;
+  var aktuell = leseAktuelleSaetze();
+  // Getippte Werte sichern, damit der Re-Render sie nicht verwirft. Wurde noch
+  // nichts eingetragen, sessionSets nicht setzen — dann bleibt der Progressions-
+  // vorschlag erhalten und füllt auch die neue Zeile vor.
+  if (aktuell.some(function(s) { return s.kg > 0 || s.done; })) wktSessionData[u.name] = aktuell;
+  // An der tatsächlich sichtbaren Zeilenzahl hochzählen, nicht am Plan-Wert —
+  // sonst tut der erste Klick nichts, wenn schon eine Referenzzeile aus dem
+  // letzten Training die Anzeige über den Plan hinaus verlängert hat.
+  var sichtbar = aktuell.length || (parseInt(u.saetze) || 3);
+  u.saetze = sichtbar + 1;
+  renderWorkoutExercise(wktIdx);
+  saveWorkoutState();
 }
 
 // ─── Automatische Progression (linear) ─────────────────────────────
