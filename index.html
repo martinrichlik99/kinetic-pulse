@@ -309,11 +309,12 @@
     <!-- Satz-Tabelle -->
     <div>
       <!-- Header Row -->
-      <div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;padding:0 4px;margin-bottom:6px">
+      <div style="display:grid;grid-template-columns:32px 1fr 1fr 40px 30px;gap:8px;padding:0 4px;margin-bottom:6px">
         <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Satz</span>
         <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">KG</span>
         <span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em;text-align:center">Wdh.</span>
         <span style="font-size:11px;color:transparent">✓</span>
+        <span></span>
       </div>
 
       <!-- Sets -->
@@ -351,6 +352,11 @@
 
   <!-- ═ Sticky Footer ═ -->
   <div style="position:fixed;bottom:68px;left:0;right:0;z-index:90;background:rgba(17,21,8,.97);backdrop-filter:blur(16px);border-top:1px solid #333627;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
+
+    <!-- Übung heute überspringen -->
+    <button id="wkt-skip-btn" onclick="uebungUeberspringen()" style="display:none;width:100%;height:34px;background:transparent;border:none;color:#8e9379;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;align-items:center;justify-content:center;gap:6px">
+      Übung heute überspringen
+    </button>
 
     <!-- Übung Navigation -->
     <div style="display:flex;gap:8px">
@@ -1121,7 +1127,7 @@ function localISODate(d) {
 
 // ─── Navigation ───────────────────────────────────────────────────
 // Steht unten im Profil. Zeigt auf einen Blick, ob ein Deploy am Handy angekommen ist.
-var APP_VERSION = 'v2026-09-01';
+var APP_VERSION = 'v2026-09-02';
 
 let currentScreen = 'dashboard';
 var navHistory = ['dashboard'];
@@ -1295,6 +1301,7 @@ function saveWorkoutState() {
     uebungen: wktUebungen,
     idx: wktIdx,
     sessionData: wktSessionData,
+    skipped: wktSkipped,
     startedAt: workoutStartTime
   }));
 }
@@ -1442,6 +1449,9 @@ function confirmFinishWorkout(save) {
     var now = new Date();
     var lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}');
     var uebungsDaten = wktUebungen.map(function(u) {
+      if (wktSkipped[u.name]) {
+        return { name: u.name, saetze: [], volumen: 0, maxKg: 0, uebersprungen: true };
+      }
       var saetze = lastSets[u.name] || [];
       var volumen = saetze.reduce(function(sum, s) { return sum + (s.kg * s.wdh); }, 0);
       var maxKg = saetze.reduce(function(max, s) { return s.kg > max ? s.kg : max; }, 0);
@@ -1482,6 +1492,9 @@ function confirmFinishWorkout(save) {
   wktUebungen = [];
   wktIdx = 0;
   wktSessionData = {};
+  wktSkipped = {};
+  var skipBtn = document.getElementById('wkt-skip-btn');
+  if (skipBtn) skipBtn.style.display = 'none';
   var sc = document.getElementById('sets-container');
   if (sc) sc.innerHTML = '';
   var ctrEl = document.getElementById('wkt-counter');
@@ -1788,6 +1801,12 @@ function openTrainingDetail(idx) {
   var body = document.getElementById('modal-detail-body');
   if (entry.uebungsDaten && entry.uebungsDaten.length) {
     body.innerHTML = entry.uebungsDaten.map(function(u) {
+      if (u.uebersprungen) {
+        return '<div style="background:#1a1d12;border-radius:12px;padding:12px 14px;opacity:.6">' +
+          '<p style="margin:0;font-size:14px;font-weight:800;font-style:italic;color:#8e9379">' + esc(u.name) + '</p>' +
+          '<p style="margin:6px 0 0;font-size:12px;color:#444933">Übersprungen</p>' +
+        '</div>';
+      }
       var saetzeHtml = '';
       if (u.saetze && u.saetze.length) {
         saetzeHtml = u.saetze.map(function(s, si) {
@@ -2296,6 +2315,7 @@ function renderDashboardPlaene() {
 var wktUebungen = [];
 var wktIdx = 0;
 var wktSessionData = {}; // temporärer Speicher für laufenden Workout: { uebungsName: [{kg, wdh, done}] }
+var wktSkipped = {}; // heute übersprungene Übungen: { uebungsName: true } — landen leer + markiert in der Historie
 
 function startPlan(planId) {
   // Prüfen ob ein Training bereits aktiv ist
@@ -2321,6 +2341,7 @@ function startPlan(planId) {
     wktUebungen = plan.uebungen;
     wktIdx = 0;
     wktSessionData = {};
+    wktSkipped = {};
     workoutSeconds = 0;
     var wtEl = document.getElementById('workout-time');
     if (wtEl) wtEl.textContent = '00:00';
@@ -2365,7 +2386,10 @@ function renderWorkoutExercise(idx) {
   try { lastSets = JSON.parse(localStorage.getItem('kp_lastSets') || '{}'); } catch(e) {}
   var prevSets = lastSets[u.name] || [];
   var sessionSets = wktSessionData[u.name] || null;
-  var rowCount = Math.max(saetze, prevSets.length, sessionSets ? sessionSets.length : 0);
+  // Sobald in dieser Session Sätze bearbeitet wurden (getippt, hinzugefügt, gelöscht),
+  // ist sessionSets maßgeblich — sonst würde eine gelöschte Zeile durch die
+  // "Letztes Training"-Referenz (prevSets.length) sofort wieder auftauchen.
+  var rowCount = (sessionSets && sessionSets.length) ? sessionSets.length : Math.max(saetze, prevSets.length);
 
   var ctrEl = document.getElementById('wkt-counter');
   if (ctrEl) ctrEl.textContent = 'Übung ' + (idx + 1) + ' von ' + wktUebungen.length;
@@ -2395,17 +2419,19 @@ function renderWorkoutExercise(idx) {
           '<span class="material-symbols-outlined" style="font-size:14px;color:#8e9379">history</span>' +
           '<span style="font-size:11px;color:#8e9379;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Letztes Training</span>' +
         '</div>' +
-        '<div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;padding:0 0">' +
+        '<div style="display:grid;grid-template-columns:32px 1fr 1fr 40px 30px;gap:8px;padding:0 0">' +
           '<span></span>' +
           '<span style="font-size:11px;color:#8e9379;font-weight:700;text-align:center">KG</span>' +
           '<span style="font-size:11px;color:#8e9379;font-weight:700;text-align:center">Wdh</span>' +
           '<span></span>' +
+          '<span></span>' +
         '</div>' +
         prevSets.map(function(ps, i) {
-          return '<div style="display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;padding:3px 0">' +
+          return '<div style="display:grid;grid-template-columns:32px 1fr 1fr 40px 30px;gap:8px;align-items:center;padding:3px 0">' +
             '<span style="font-size:12px;color:#8e9379;font-weight:700;text-align:center">' + (i+1) + '</span>' +
             '<span style="font-family:\'JetBrains Mono\',monospace;font-size:15px;font-weight:600;color:#c3f400;text-align:center">' + (ps.kg || '—') + '</span>' +
             '<span style="font-family:\'JetBrains Mono\',monospace;font-size:15px;font-weight:600;color:#c4c9ac;text-align:center">' + (ps.wdh || '—') + '</span>' +
+            '<span></span>' +
             '<span></span>' +
           '</div>';
         }).join('');
@@ -2451,12 +2477,15 @@ function renderWorkoutExercise(idx) {
       }
       var row = document.createElement('div');
       var active = s === 1 && !isDone;
-      row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 1fr 44px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #74d604;box-shadow:0 0 12px rgba(116,214,4,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
+      row.style.cssText = 'display:grid;grid-template-columns:32px 1fr 1fr 40px 30px;gap:8px;align-items:center;background:#161a0c;border:' + (active ? '2px solid #74d604;box-shadow:0 0 12px rgba(116,214,4,.15)' : '1px solid #333627') + ';border-radius:12px;padding:10px 12px';
       row.innerHTML =
         '<span style="font-size:15px;color:' + (active ? '#74d604' : '#8e9379') + ';font-weight:700;text-align:center">' + s + '</span>' +
         '<input type="number" value="' + useKg + '" placeholder="kg" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
         '<input type="number" value="' + useWdh + '" placeholder="Wdh" onfocus="this.select()" style="background:#1e2113;border:none;border-radius:8px;height:40px;font-family:\'JetBrains Mono\',monospace;font-size:18px;font-weight:600;color:#e2e4cf;text-align:center;width:100%;-webkit-appearance:none">' +
-        '<div class="set-done' + (isDone ? ' done' : '') + '" onclick="toggleSet(this)" style="width:44px;height:40px;border-radius:10px">✓</div>';
+        '<div class="set-done' + (isDone ? ' done' : '') + '" onclick="toggleSet(this)" style="width:40px;height:40px;border-radius:10px">✓</div>' +
+        (rowCount > 1
+          ? '<button onclick="satzLoeschen(this)" title="Satz löschen" aria-label="Satz löschen" style="width:30px;height:40px;background:transparent;border:none;color:#5a5f47;font-size:20px;line-height:1;cursor:pointer;padding:0">&times;</button>'
+          : '<span></span>');
       sc.appendChild(row);
     }
   }
@@ -2464,6 +2493,10 @@ function renderWorkoutExercise(idx) {
   // Navigation Buttons
   var nextBtn = document.getElementById('wkt-next-btn');
   var prevBtn = document.getElementById('wkt-prev-btn');
+
+  // "Übung überspringen" nur zeigen, wenn es noch eine nächste Übung gibt
+  var skipBtn = document.getElementById('wkt-skip-btn');
+  if (skipBtn) skipBtn.style.display = (idx < wktUebungen.length - 1) ? 'flex' : 'none';
 
   // Prev Button
   if (prevBtn) {
@@ -2508,6 +2541,9 @@ function prevExercise() {
   if (wktIdx <= 0) return;
   saveCurrentExerciseSets(wktUebungen[wktIdx] ? wktUebungen[wktIdx].name : '');
   wktIdx--;
+  // Zurück zu einer übersprungenen Übung = doch machen: Markierung aufheben.
+  var pu = wktUebungen[wktIdx];
+  if (pu) delete wktSkipped[pu.name];
   renderWorkoutExercise(wktIdx);
   saveWorkoutState();
 }
@@ -2562,15 +2598,57 @@ function satzHinzufuegen() {
   var u = wktUebungen[wktIdx];
   if (!u) return;
   var aktuell = leseAktuelleSaetze();
-  // Getippte Werte sichern, damit der Re-Render sie nicht verwirft. Wurde noch
-  // nichts eingetragen, sessionSets nicht setzen — dann bleibt der Progressions-
-  // vorschlag erhalten und füllt auch die neue Zeile vor.
-  if (aktuell.some(function(s) { return s.kg > 0 || s.done; })) wktSessionData[u.name] = aktuell;
-  // An der tatsächlich sichtbaren Zeilenzahl hochzählen, nicht am Plan-Wert —
-  // sonst tut der erste Klick nichts, wenn schon eine Referenzzeile aus dem
-  // letzten Training die Anzeige über den Plan hinaus verlängert hat.
-  var sichtbar = aktuell.length || (parseInt(u.saetze) || 3);
-  u.saetze = sichtbar + 1;
+  if (aktuell.some(function(s) { return s.kg > 0 || s.done; })) {
+    // Getippte Werte sichern + die neue Leerzeile explizit an sessionSets hängen:
+    // rowCount richtet sich jetzt nach sessionSets.length, sobald das gesetzt ist.
+    aktuell.push({ kg: 0, wdh: parseInt(u.wdh) || 0, done: false });
+    wktSessionData[u.name] = aktuell;
+    u.saetze = aktuell.length;
+  } else {
+    // Nichts eingetragen: sessionSets nicht setzen, damit der Progressionsvorschlag
+    // erhalten bleibt und auch die neue Zeile vorfüllt. An der sichtbaren Zeilenzahl
+    // hochzählen, nicht am Plan-Wert (Referenzzeile kann die Anzeige verlängert haben).
+    var sichtbar = aktuell.length || (parseInt(u.saetze) || 3);
+    u.saetze = sichtbar + 1;
+  }
+  renderWorkoutExercise(wktIdx);
+  saveWorkoutState();
+}
+
+// Einen Satz der aktuellen Übung löschen. Mindestens eine Zeile bleibt immer stehen.
+function satzLoeschen(btn) {
+  var u = wktUebungen[wktIdx];
+  if (!u) return;
+  var sc = document.getElementById('sets-container');
+  if (!sc) return;
+  var row = btn.closest('div[style*="grid-template-columns"]');
+  if (!row) return;
+  var eingabeReihen = Array.prototype.slice.call(sc.querySelectorAll('div[style*="grid-template-columns"]'))
+    .filter(function(r) { return r.querySelector('input[type="number"]'); });
+  if (eingabeReihen.length <= 1) return; // min. 1 Satz
+  var pos = eingabeReihen.indexOf(row);
+  if (pos < 0) return;
+  var aktuell = leseAktuelleSaetze();
+  aktuell.splice(pos, 1);
+  var ziel = parseInt(u.wdh) || 0;
+  aktuell.forEach(function(s) { s.ziel = ziel; });
+  wktSessionData[u.name] = aktuell;
+  u.saetze = aktuell.length;
+  renderWorkoutExercise(wktIdx);
+  saveWorkoutState();
+}
+
+// Aktuelle Übung heute überspringen: keine Sätze speichern, direkt zur nächsten.
+// Landet leer + als "übersprungen" markiert in der Trainingshistorie und zählt
+// nicht in die Progression (sessionsForExercise ignoriert leere Sätze).
+function uebungUeberspringen() {
+  if (wktIdx >= wktUebungen.length - 1) return; // letzte Übung: nichts tun
+  var u = wktUebungen[wktIdx];
+  if (!u) return;
+  if (!confirm('Übung "' + u.name + '" heute überspringen?')) return;
+  wktSkipped[u.name] = true;
+  delete wktSessionData[u.name]; // evtl. schon Getipptes verwerfen — Übung gilt als ausgelassen
+  wktIdx++;
   renderWorkoutExercise(wktIdx);
   saveWorkoutState();
 }
@@ -2735,7 +2813,7 @@ function resetAppData() {
               'kp_startgewicht','kp_avatar','kp_pauseTimer','kp_activeWorkout'];
   for (var ki = 0; ki < keys.length; ki++) { localStorage.removeItem(keys[ki]); }
   // Workout-State zurücksetzen
-  wktUebungen = []; wktIdx = 0; wktSessionData = {};
+  wktUebungen = []; wktIdx = 0; wktSessionData = {}; wktSkipped = {};
   if (workoutInterval) { clearInterval(workoutInterval); workoutInterval = null; }
   workoutSeconds = 0;
   stopTimer();
@@ -3513,6 +3591,7 @@ function restoreWorkout() {
   wktUebungen = ws.uebungen;
   wktIdx = ws.idx || 0;
   wktSessionData = ws.sessionData || {};
+  wktSkipped = ws.skipped || {};
   workoutStartTime = start;
   workoutSecondsOffset = 0;
   renderWorkoutExercise(wktIdx);
