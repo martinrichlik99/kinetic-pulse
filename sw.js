@@ -1,6 +1,6 @@
 // Kinetic Pulse – Service Worker
 // Version hochzählen wenn sich Dateien ändern → erzwingt Cache-Update
-const CACHE_NAME = 'kinetic-pulse-v5';
+const CACHE_NAME = 'kinetic-pulse-v6';
 
 // Alle Pfade RELATIV — damit der Worker in jedem Unterordner funktioniert.
 // (v1 cachte '/index.html' in der Server-Wurzel. Die gibt es nicht, addAll schlug

@@ -1127,7 +1127,7 @@ function localISODate(d) {
 
 // ─── Navigation ───────────────────────────────────────────────────
 // Steht unten im Profil. Zeigt auf einen Blick, ob ein Deploy am Handy angekommen ist.
-var APP_VERSION = 'v2026-09-02';
+var APP_VERSION = 'v2026-09-03';
 
 let currentScreen = 'dashboard';
 var navHistory = ['dashboard'];
@@ -1201,7 +1201,7 @@ let workoutStartTime = null;   // Timestamp beim Start
 let workoutSecondsOffset = 0;  // Bereits gelaufene Sekunden (vor Visibility-Pause)
 let workoutInterval = null;
 let pauseSeconds = 0;
-let pauseStartTime = null;     // Timestamp Pausentimer-Start
+let pauseEndsAt = null;        // absoluter Endzeitpunkt des Pausentimers — überlebt App-Wechsel/Kill
 let pauseInterval = null;
 var defaultPauseTimer = 180; // Standard: 180s
 
@@ -1218,11 +1218,9 @@ document.addEventListener('visibilitychange', function() {
     var bt = document.getElementById('banner-time');
     if (bt) bt.textContent = timeStr;
   }
-  // Pausentimer synchronisieren
-  if (document.visibilityState === 'visible' && pauseStartTime !== null && pauseInterval) {
-    var elapsed = Math.floor((Date.now() - pauseStartTime) / 1000);
-    pauseSeconds = Math.max(0, pauseSeconds - elapsed);
-    pauseStartTime = Date.now();
+  // Pausentimer aus dem absoluten Endzeitpunkt neu ableiten
+  if (document.visibilityState === 'visible' && pauseInterval) {
+    pauseSeconds = Math.max(0, Math.round((pauseEndsAt - Date.now()) / 1000));
     updateTimerDisplay();
     if (pauseSeconds <= 0) stopTimer();
   }
@@ -1302,7 +1300,8 @@ function saveWorkoutState() {
     idx: wktIdx,
     sessionData: wktSessionData,
     skipped: wktSkipped,
-    startedAt: workoutStartTime
+    startedAt: workoutStartTime,
+    pauseEndsAt: pauseInterval ? pauseEndsAt : null
   }));
 }
 
@@ -1378,7 +1377,7 @@ function startWorkoutTimer() {
 function startTimer(seconds) {
   if (pauseInterval) clearInterval(pauseInterval);
   pauseSeconds = seconds;
-  pauseStartTime = Date.now();
+  pauseEndsAt = Date.now() + seconds * 1000;
   // Highlight active chip
   var chips = [120, 150, 180];
   for (var ci = 0; ci < chips.length; ci++) {
@@ -1395,16 +1394,15 @@ function startTimer(seconds) {
     }
   }
   updateTimerDisplay();
-  var timerStartSeconds = seconds;
   pauseInterval = setInterval(function() {
-    var elapsed = Math.floor((Date.now() - pauseStartTime) / 1000);
-    pauseSeconds = Math.max(0, timerStartSeconds - elapsed);
+    pauseSeconds = Math.max(0, Math.round((pauseEndsAt - Date.now()) / 1000));
     if (pauseSeconds <= 0) {
       stopTimer();
       return;
     }
     updateTimerDisplay();
   }, 500);
+  saveWorkoutState();
 }
 
 function updateTimerDisplay() {
@@ -1420,7 +1418,7 @@ function updateTimerDisplay() {
 function stopTimer() {
   if (pauseInterval) clearInterval(pauseInterval);
   pauseInterval = null;
-  pauseStartTime = null;
+  pauseEndsAt = null;
   pauseSeconds = 0;
   var bar = document.getElementById('pause-timer-bar');
   if (bar) bar.style.display = 'none';
@@ -3598,6 +3596,10 @@ function restoreWorkout() {
   navigate('workout');
   if (workoutInterval) clearInterval(workoutInterval);
   workoutInterval = setInterval(tickWorkoutUhr, 1000);
+  // Pausentimer wiederherstellen, falls beim App-Wechsel/Kill noch einer lief
+  if (ws.pauseEndsAt && ws.pauseEndsAt > Date.now()) {
+    startTimer(Math.ceil((ws.pauseEndsAt - Date.now()) / 1000));
+  }
   updateWorkoutBanner();
 }
 
