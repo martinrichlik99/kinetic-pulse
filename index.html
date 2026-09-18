@@ -1127,7 +1127,7 @@ function localISODate(d) {
 
 // ─── Navigation ───────────────────────────────────────────────────
 // Steht unten im Profil. Zeigt auf einen Blick, ob ein Deploy am Handy angekommen ist.
-var APP_VERSION = 'v2026-09-03';
+var APP_VERSION = 'v2026-09-18';
 
 let currentScreen = 'dashboard';
 var navHistory = ['dashboard'];
@@ -1426,7 +1426,13 @@ function stopTimer() {
 
 function finishWorkout() {
   // Letzte Übung der Session speichern
-  if (wktUebungen[wktIdx]) saveCurrentExerciseSets(wktUebungen[wktIdx].name);
+  if (wktUebungen[wktIdx]) {
+    var letzteUebung = wktUebungen[wktIdx].name;
+    saveCurrentExerciseSets(letzteUebung);
+    if (steigerungFuerUebung(letzteUebung, wktSessionData[letzteUebung] || [])) {
+      zeigeSteigerungsToast(letzteUebung + ' gesteigert!');
+    }
+  }
   // Modal anzeigen
   var m = String(Math.floor(workoutSeconds / 60)).padStart(2,'0');
   var s = String(workoutSeconds % 60).padStart(2,'0');
@@ -1455,6 +1461,10 @@ function confirmFinishWorkout(save) {
       var maxKg = saetze.reduce(function(max, s) { return s.kg > max ? s.kg : max; }, 0);
       return { name: u.name, saetze: saetze, volumen: volumen, maxKg: maxKg };
     });
+    // Steigerung vor dem Speichern in die Historie prüfen (sonst vergleicht sich das Training mit sich selbst).
+    var gesteigerteUebungen = uebungsDaten
+      .filter(function(u) { return !u.uebersprungen && steigerungFuerUebung(u.name, u.saetze); })
+      .map(function(u) { return u.name; });
     var gesamtVolumen = uebungsDaten.reduce(function(sum, u) { return sum + u.volumen; }, 0);
     var histEntry = {
       date: now.toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' }),
@@ -1520,6 +1530,12 @@ function confirmFinishWorkout(save) {
   if (save) {
     navigate('social');
     setTimeout(function() { showShareCard('workout'); }, 300);
+    if (gesteigerteUebungen.length) {
+      var txt = gesteigerteUebungen.length === 1
+        ? gesteigerteUebungen[0] + ' gesteigert!'
+        : gesteigerteUebungen.length + ' Übungen gesteigert!';
+      setTimeout(function() { zeigeSteigerungsToast(txt); }, 400);
+    }
   } else {
     navigate('dashboard');
   }
@@ -1647,6 +1663,63 @@ function calcStreak(hist) {
 function estimate1RM(kg, wdh) {
   if (!(kg > 0) || !(wdh > 0)) return 0;
   return Math.round(kg * (1 + wdh / 30) * 2) / 2;
+}
+
+// ─── Steigerungs-Feedback ───────────────────────────────────────────
+// Bisherige Bestwerte einer Übung aus der Historie (vor dem aktuellen Training).
+function vorherigePRsFuerUebung(uName) {
+  var hist = [];
+  try { hist = JSON.parse(localStorage.getItem('kp_activityHistory') || '[]'); } catch(e) {}
+  var bestKg = 0, bestVol = 0, bestE1RM = 0;
+  hist.forEach(function(entry) {
+    (entry.uebungsDaten || []).forEach(function(u) {
+      if (u.name !== uName) return;
+      if (u.maxKg > bestKg) bestKg = u.maxKg;
+      if (u.volumen > bestVol) bestVol = u.volumen;
+      (u.saetze || []).forEach(function(s) {
+        if (!s.done || !(s.kg > 0) || !(s.wdh > 0)) return;
+        var e = estimate1RM(s.kg, s.wdh);
+        if (e > bestE1RM) bestE1RM = e;
+      });
+    });
+  });
+  return { kg: bestKg, vol: bestVol, e1rm: bestE1RM };
+}
+
+// Hat diese Übung heute mehr Gewicht, mehr Volumen oder ein neues 1RM erreicht?
+// Ohne bisherige Historie (erstes Training dieser Übung) kein Vergleich möglich.
+function steigerungFuerUebung(uName, saetze) {
+  if (!saetze || !saetze.length) return false;
+  var prev = vorherigePRsFuerUebung(uName);
+  if (!(prev.kg > 0) && !(prev.vol > 0) && !(prev.e1rm > 0)) return false;
+  var maxKg = saetze.reduce(function(m, s) { return s.kg > m ? s.kg : m; }, 0);
+  var vol = saetze.reduce(function(sum, s) { return sum + s.kg * s.wdh; }, 0);
+  var e1rm = 0;
+  saetze.forEach(function(s) {
+    if (!s.done || !(s.kg > 0) || !(s.wdh > 0)) return;
+    var e = estimate1RM(s.kg, s.wdh);
+    if (e > e1rm) e1rm = e;
+  });
+  return maxKg > prev.kg || vol > prev.vol || e1rm > prev.e1rm;
+}
+
+// Kurzer 💪-Toast oben im Screen, verschwindet von selbst.
+function zeigeSteigerungsToast(text) {
+  var el = document.getElementById('steigerung-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'steigerung-toast';
+    el.style.cssText = 'position:fixed;top:16px;left:16px;right:16px;z-index:1000;background:rgba(26,51,0,.97);border:1px solid rgba(116,214,4,.5);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  el.innerHTML = '<span style="font-size:22px;line-height:1">💪</span><span style="font-size:13px;font-weight:700;color:#c8f76a">' + text + '</span>';
+  el.style.opacity = '1';
+  el.style.transform = 'translateY(0)';
+  clearTimeout(window._steigerungToastTimer);
+  window._steigerungToastTimer = setTimeout(function() {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(-8px)';
+  }, 2400);
 }
 
 // ─── PRs aus History berechnen und rendern ─────────────────────────
@@ -2514,7 +2587,11 @@ function renderWorkoutExercise(idx) {
       nextBtn.innerHTML = 'Nächste Übung <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>';
       nextBtn.style.display = 'flex';
       nextBtn.onclick = function() {
-        saveCurrentExerciseSets(wktUebungen[wktIdx] ? wktUebungen[wktIdx].name : '');
+        var fertigeUebung = wktUebungen[wktIdx] ? wktUebungen[wktIdx].name : '';
+        saveCurrentExerciseSets(fertigeUebung);
+        if (fertigeUebung && steigerungFuerUebung(fertigeUebung, wktSessionData[fertigeUebung] || [])) {
+          zeigeSteigerungsToast(fertigeUebung + ' gesteigert!');
+        }
         wktIdx++;
         renderWorkoutExercise(wktIdx);
         startTimer(getPauseTimer());
