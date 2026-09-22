@@ -351,7 +351,7 @@
   </main>
 
   <!-- ═ Sticky Footer ═ -->
-  <div style="position:fixed;bottom:68px;left:0;right:0;z-index:90;background:rgba(17,21,8,.97);backdrop-filter:blur(16px);border-top:1px solid #333627;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
+  <div id="wkt-footer" style="position:fixed;bottom:68px;left:0;right:0;z-index:90;background:rgba(17,21,8,.97);backdrop-filter:blur(16px);border-top:1px solid #333627;padding:12px 20px;display:flex;flex-direction:column;gap:8px">
 
     <!-- Übung heute überspringen -->
     <button id="wkt-skip-btn" onclick="uebungUeberspringen()" style="display:none;width:100%;height:34px;background:transparent;border:none;color:#8e9379;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;align-items:center;justify-content:center;gap:6px">
@@ -1127,7 +1127,7 @@ function localISODate(d) {
 
 // ─── Navigation ───────────────────────────────────────────────────
 // Steht unten im Profil. Zeigt auf einen Blick, ob ein Deploy am Handy angekommen ist.
-var APP_VERSION = 'v2026-09-18';
+var APP_VERSION = 'v2026-09-22';
 
 let currentScreen = 'dashboard';
 var navHistory = ['dashboard'];
@@ -1703,23 +1703,26 @@ function steigerungFuerUebung(uName, saetze) {
   return maxKg > prev.kg || vol > prev.vol || e1rm > prev.e1rm;
 }
 
-// Kurzer 💪-Toast oben im Screen, verschwindet von selbst.
+// Kurzer 💪-Toast direkt über dem Workout-Footer (Blickfeld beim Satz-Eintragen), verschwindet von selbst.
 function zeigeSteigerungsToast(text) {
   var el = document.getElementById('steigerung-toast');
   if (!el) {
     el = document.createElement('div');
     el.id = 'steigerung-toast';
-    el.style.cssText = 'position:fixed;top:16px;left:16px;right:16px;z-index:1000;background:rgba(26,51,0,.97);border:1px solid rgba(116,214,4,.5);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);opacity:0;transform:translateY(-8px);transition:opacity .25s,transform .25s;pointer-events:none';
+    el.style.cssText = 'position:fixed;left:16px;right:16px;z-index:1000;background:rgba(26,51,0,.97);border:1px solid rgba(116,214,4,.5);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none';
     document.body.appendChild(el);
   }
+  var footer = document.getElementById('wkt-footer');
+  var footerHoehe = footer ? footer.getBoundingClientRect().height : 0;
+  el.style.bottom = (68 + footerHoehe + 12) + 'px';
   el.innerHTML = '<span style="font-size:22px;line-height:1">💪</span><span style="font-size:13px;font-weight:700;color:#c8f76a">' + text + '</span>';
   el.style.opacity = '1';
   el.style.transform = 'translateY(0)';
   clearTimeout(window._steigerungToastTimer);
   window._steigerungToastTimer = setTimeout(function() {
     el.style.opacity = '0';
-    el.style.transform = 'translateY(-8px)';
-  }, 2400);
+    el.style.transform = 'translateY(8px)';
+  }, 5500);
 }
 
 // ─── PRs aus History berechnen und rendern ─────────────────────────
